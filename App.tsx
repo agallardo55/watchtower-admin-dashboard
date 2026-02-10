@@ -8,6 +8,7 @@ import BITWManager from './pages/BITWManager';
 import SchemaBrowser from './pages/SchemaBrowser';
 import GraduationQueue from './pages/GraduationQueue';
 import CrossAppActivity from './pages/CrossAppActivity';
+import Development from './pages/Development';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -150,6 +151,7 @@ export default function App() {
           <Route path="/schema" element={<SchemaBrowser />} />
           <Route path="/graduation" element={<GraduationQueue />} />
           <Route path="/cross-app" element={<CrossAppActivity />} />
+          <Route path="/development" element={<Development />} />
           {/* Placeholder routes */}
           <Route path="*" element={<div className="flex items-center justify-center h-full text-slate-500">Module under development</div>} />
         </Routes>

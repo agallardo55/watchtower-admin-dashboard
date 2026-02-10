@@ -9,6 +9,7 @@ export const sidebarNav: NavSection[] = [
   ]},
   { section: "Apps", items: [
     { label: "App Registry", icon: "grid", path: "/apps" },
+    { label: "Development", icon: "edit", path: "/development" },
     { label: "Build In The Wild", icon: "globe", path: "/bitw" },
     { label: "Graduation Queue", icon: "rocket", path: "/graduation" }
   ]},
