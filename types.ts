@@ -1,5 +1,5 @@
 
-export type AppStatus = 'idea' | 'building' | 'beta' | 'live' | 'paused';
+export type AppStatus = 'idea' | 'beta' | 'live' | 'paused';
 
 export interface AppEntry {
   name: string;

@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
 import { apps, icons } from '../constants';
+import { AppEntry } from '../types';
 
 export default function AppRegistry() {
   const [showModal, setShowModal] = useState(false);
+  const [editingApp, setEditingApp] = useState<AppEntry | null>(null);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -35,7 +37,7 @@ export default function AppRegistry() {
                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
                       app.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' :
                       app.status === 'beta' ? 'bg-yellow-500/10 text-yellow-500' :
-                      app.status === 'building' ? 'bg-blue-500/10 text-blue-500' :
+                      app.status === 'paused' ? 'bg-orange-500/10 text-orange-500' :
                       'bg-slate-500/10 text-slate-500'
                     }`}>
                       {app.status}
@@ -82,7 +84,10 @@ export default function AppRegistry() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-6">
-              <button className="flex items-center justify-center gap-2 py-2 text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors border border-white/5">
+              <button
+                onClick={() => setEditingApp({ ...app })}
+                className="flex items-center justify-center gap-2 py-2 text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors border border-white/5"
+              >
                 <icons.edit className="w-3.5 h-3.5" />
                 Edit App
               </button>
@@ -101,7 +106,118 @@ export default function AppRegistry() {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Edit App Modal */}
+      {editingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-2xl">
+                  {editingApp.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Edit App</h3>
+                  <p className="text-xs text-slate-500">{editingApp.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setEditingApp(null)} className="text-slate-500 hover:text-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              </button>
+            </div>
+            <form className="p-6 space-y-5" onSubmit={(e) => { e.preventDefault(); setEditingApp(null); }}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">App Name</label>
+                  <input
+                    type="text"
+                    value={editingApp.name}
+                    onChange={(e) => setEditingApp({ ...editingApp, name: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
+                  <select
+                    value={editingApp.category}
+                    onChange={(e) => setEditingApp({ ...editingApp, category: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option>Sales</option>
+                    <option>AI</option>
+                    <option>Operations</option>
+                    <option>Finance</option>
+                    <option>Marketing</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
+                <textarea
+                  rows={3}
+                  value={editingApp.description || ''}
+                  onChange={(e) => setEditingApp({ ...editingApp, description: e.target.value })}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Schema Prefix</label>
+                  <input
+                    type="text"
+                    value={editingApp.schemaPrefix || ''}
+                    onChange={(e) => setEditingApp({ ...editingApp, schemaPrefix: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
+                  <select
+                    value={editingApp.status}
+                    onChange={(e) => setEditingApp({ ...editingApp, status: e.target.value as any })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="idea">Idea</option>
+                    <option value="beta">Beta</option>
+                    <option value="live">Live</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Database</label>
+                  <input
+                    type="text"
+                    value={editingApp.db}
+                    onChange={(e) => setEditingApp({ ...editingApp, db: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={editingApp.url || ''}
+                    onChange={(e) => setEditingApp({ ...editingApp, url: e.target.value || null })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                  />
+                </div>
+              </div>
+              <div className="pt-4 flex gap-4">
+                <button type="button" onClick={() => setEditingApp(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Register New App Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
           <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10 animate-in fade-in zoom-in duration-300">
@@ -141,7 +257,6 @@ export default function AppRegistry() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
                   <select className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option>Idea</option>
-                    <option>Building</option>
                     <option>Beta</option>
                     <option>Live</option>
                     <option>Paused</option>

@@ -9,6 +9,8 @@ import SchemaBrowser from './pages/SchemaBrowser';
 import GraduationQueue from './pages/GraduationQueue';
 import CrossAppActivity from './pages/CrossAppActivity';
 import Development from './pages/Development';
+import AllUsers from './pages/AllUsers';
+import Analytics from './pages/Analytics';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -106,13 +108,6 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-950"></span>
             </button>
 
-            <button 
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
-            >
-              {darkMode ? <icons.sun /> : <icons.moon />}
-            </button>
-
             <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="lg:hidden text-slate-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
@@ -146,10 +141,12 @@ export default function App() {
       <Layout darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/apps" element={<AppRegistry />} />
           <Route path="/bitw" element={<BITWManager />} />
           <Route path="/schema" element={<SchemaBrowser />} />
           <Route path="/graduation" element={<GraduationQueue />} />
+          <Route path="/users" element={<AllUsers />} />
           <Route path="/cross-app" element={<CrossAppActivity />} />
           <Route path="/development" element={<Development />} />
           {/* Placeholder routes */}

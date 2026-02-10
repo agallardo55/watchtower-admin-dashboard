@@ -28,21 +28,23 @@ export const sidebarNav: NavSection[] = [
 ];
 
 export const apps: AppEntry[] = [
-  { name: "BuybidHQ", icon: "🏷️", status: "beta", db: "Dedicated (fdcfdbjputcitgxosnyk)", users: 12, lastActivity: "2026-02-07", url: "https://sandbox-buybidhq.netlify.app", category: "Sales", description: "Strategic bidding and inventory management for auto wholesalers.", schemaPrefix: "bb_", tableCount: 14 },
+  // Live
   { name: "SalesboardHQ", icon: "📊", status: "live", db: "Dedicated (suykcdomvqmkjwmbtyzk)", users: 23, lastActivity: "2026-02-01", url: "https://salesboardhq.netlify.app", category: "Sales", description: "Real-time leaderboard and sales performance tracker.", schemaPrefix: "sb_", tableCount: 12 },
-  { name: "AutoSales Copilot", icon: "🤖", status: "idea", db: "Watchtower (copilot_*)", users: 0, lastActivity: "2026-02-07", url: null, category: "AI", description: "AI-driven customer outreach and deal closing assistant.", schemaPrefix: "copilot_", tableCount: 3 },
+  { name: "BuybidHQ", icon: "🏷️", status: "live", db: "Dedicated (fdcfdbjputcitgxosnyk)", users: 12, lastActivity: "2026-02-07", url: "https://sandbox-buybidhq.netlify.app", category: "Sales", description: "Strategic bidding and inventory management for auto wholesalers.", schemaPrefix: "bb_", tableCount: 14 },
+  // Idea
+  { name: "Agentflow", icon: "🔄", status: "idea", db: "Watchtower (af_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Operations", description: "Low-code automation for internal dealership workflows.", schemaPrefix: "af_", tableCount: 7 },
+  { name: "CUDL Rate Capture", icon: "📈", status: "idea", db: "Watchtower (cr_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Finance", description: "Rate tracking and comparison for credit union direct lending.", schemaPrefix: "cr_", tableCount: 6 },
+  { name: "Sidecar CRM", icon: "🤝", status: "idea", db: "Watchtower (sidecar_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Sales", description: "Lightweight CRM built specifically for high-velocity sales.", schemaPrefix: "sidecar_", tableCount: 3 },
+  { name: "Sidepilot", icon: "🤖", status: "idea", db: "Watchtower (copilot_*)", users: 0, lastActivity: "2026-02-07", url: null, category: "AI", description: "AI-driven customer outreach and deal closing assistant.", schemaPrefix: "copilot_", tableCount: 3 },
   { name: "Demolight", icon: "🚗", status: "idea", db: "Watchtower (dl_*)", users: 0, lastActivity: "2026-01-15", url: null, category: "Operations", description: "Fleet tracking and demo drive management system.", schemaPrefix: "dl_", tableCount: 4 },
-  { name: "DealerDocs", icon: "📄", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-01-20", url: null, category: "Finance", description: "Centralized document vault for dealer compliance.", schemaPrefix: "dd_", tableCount: 2 },
-  { name: "MMR Arbitrage", icon: "💰", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-02-05", url: null, category: "AI", description: "Market data analysis for finding profitable vehicle trade spreads.", schemaPrefix: "mmr_", tableCount: 5 },
-  { name: "Agentflow", icon: "🔄", status: "building", db: "Watchtower (af_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Operations", description: "Low-code automation for internal dealership workflows.", schemaPrefix: "af_", tableCount: 7 },
-  { name: "CUDL Rate Capture", icon: "📈", status: "building", db: "Watchtower (cr_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Finance", description: "Rate tracking and comparison for credit union direct lending.", schemaPrefix: "cr_", tableCount: 6 },
-  { name: "Sidecar CRM", icon: "🤝", status: "building", db: "Watchtower (sidecar_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Sales", description: "Lightweight CRM built specifically for high-velocity sales.", schemaPrefix: "sidecar_", tableCount: 3 },
-  { name: "SalesLog", icon: "📝", status: "idea", db: "Watchtower (saleslog_*)", users: 0, lastActivity: "2026-01-28", url: null, category: "Sales", description: "Quick entry daily log for dealership sales staff.", schemaPrefix: "saleslog_", tableCount: 2 }
+  { name: "Dealerment", icon: "📄", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-01-20", url: null, category: "Finance", description: "Centralized document vault for dealer compliance.", schemaPrefix: "dd_", tableCount: 2 },
+  { name: "Marbitrage", icon: "💰", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-02-05", url: null, category: "AI", description: "Market data analysis for finding profitable vehicle trade spreads.", schemaPrefix: "mmr_", tableCount: 5 },
+  { name: "SalesLogHQ", icon: "📝", status: "idea", db: "Watchtower (saleslog_*)", users: 0, lastActivity: "2026-01-28", url: null, category: "Sales", description: "Quick entry daily log for dealership sales staff.", schemaPrefix: "saleslog_", tableCount: 2 }
 ];
 
 export const recentActivity: ActivityEntry[] = [
   { app: "BuybidHQ", action: "VIN decoder wired with cascading dropdowns", time: "2 hours ago", type: "feature" },
-  { app: "AutoSales Copilot", action: "Product spec completed (19KB)", time: "5 hours ago", type: "spec" },
+  { app: "Sidepilot", action: "Product spec completed (19KB)", time: "5 hours ago", type: "spec" },
   { app: "Watchtower", action: "betahub_apps and betahub_feedback tables created", time: "1 day ago", type: "schema" },
   { app: "BuybidHQ", action: "Stripe signup flow — 5 edge functions deployed", time: "2 days ago", type: "feature" },
   { app: "Build In The Wild", action: "Landing page UI generated", time: "3 hours ago", type: "deploy" },
@@ -51,24 +53,24 @@ export const recentActivity: ActivityEntry[] = [
 
 export const graduationStages: GraduationStage[] = [
   {
-    stage: "Incubating",
-    description: "Shared database on Watchtower",
-    apps: ["AutoSales Copilot", "Demolight", "DealerDocs", "MMR Arbitrage", "Agentflow", "CUDL Rate Capture", "Sidecar CRM", "SalesLog"]
+    stage: "Idea",
+    description: "Concept stage — spec or research in progress",
+    apps: apps.filter(a => a.status === 'idea').map(a => a.name)
   },
   {
-    stage: "Ready to Graduate",
-    description: "Has users, proven traction, ready for own DB",
-    apps: []
+    stage: "Beta",
+    description: "In testing — early users and feedback",
+    apps: apps.filter(a => a.status === 'beta').map(a => a.name)
   },
   {
-    stage: "Migrating",
-    description: "Schema being moved to dedicated project",
-    apps: []
+    stage: "Live",
+    description: "Deployed and serving users",
+    apps: apps.filter(a => a.status === 'live').map(a => a.name)
   },
   {
-    stage: "Graduated",
-    description: "Running on own Supabase + own domain",
-    apps: ["BuybidHQ", "SalesboardHQ"]
+    stage: "Paused",
+    description: "On hold — not actively developed",
+    apps: apps.filter(a => a.status === 'paused').map(a => a.name)
   }
 ];
 

@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const barData = apps.slice(0, 8).map(app => ({
   name: app.name,
   users: app.users + Math.floor(Math.random() * 10),
-  color: app.status === 'live' ? '#10b981' : app.status === 'beta' ? '#f59e0b' : '#325AE7'
+  color: app.status === 'live' ? '#10b981' : app.status === 'paused' ? '#f59e0b' : '#325AE7'
 }));
 
 const overlapData = [
