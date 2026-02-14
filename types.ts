@@ -38,3 +38,32 @@ export interface NavSection {
   section: string;
   items: NavItem[];
 }
+
+export interface TicketEntry {
+  id: string;
+  title: string;
+  app: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'wont_fix';
+  category: string;
+  aiSummary: string;
+  feedbackMessage: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VoteEntry {
+  id: string;
+  app: string;
+  vote: 'up' | 'down';
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  app: string;
+  email: string;
+  createdAt: string;
+}
