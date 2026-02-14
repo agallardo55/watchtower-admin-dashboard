@@ -14,15 +14,14 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
   // MFA challenge state
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
-  const [mfaFactorId, setMfaFactorId] = useState('');
-  const [mfaChallengeId, setMfaChallengeId] = useState('');
+  const [mfaPhone, setMfaPhone] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError(error.message);
@@ -30,23 +29,25 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
       return;
     }
 
-    // Check if MFA is required
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    const phoneFactor = factors?.all.find((f: any) => f.factor_type === 'phone' && f.status === 'verified');
-
-    if (phoneFactor) {
-      // Send MFA challenge
-      const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId: phoneFactor.id });
-      if (challengeErr) {
-        setError(challengeErr.message);
+    // Check if user has MFA enabled via wt_users.mfa_phone
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: wtUser } = await supabase.from('wt_users').select('mfa_phone').eq('id', user.id).single();
+      if (wtUser?.mfa_phone) {
+        // Send MFA code
+        const { data, error: sendErr } = await supabase.functions.invoke('mfa-send', {
+          body: { phone: wtUser.mfa_phone },
+        });
+        if (sendErr || data?.error) {
+          setError(data?.error || sendErr?.message || 'Failed to send MFA code');
+          setLoading(false);
+          return;
+        }
+        setMfaPhone(wtUser.mfa_phone);
+        setMfaStep(true);
         setLoading(false);
         return;
       }
-      setMfaFactorId(phoneFactor.id);
-      setMfaChallengeId(challenge!.id);
-      setMfaStep(true);
-      setLoading(false);
-      return;
     }
 
     // No MFA — session is set, onAuthStateChange will handle it
@@ -58,20 +59,21 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.mfa.verify({
-      factorId: mfaFactorId,
-      challengeId: mfaChallengeId,
-      code: mfaCode,
+    const { data, error } = await supabase.functions.invoke('mfa-verify', {
+      body: { code: mfaCode, phone: mfaPhone, action: 'verify-login' },
     });
 
-    if (error) {
-      setError(error.message);
+    if (error || data?.error) {
+      setError(data?.error || error?.message || 'Verification failed');
       setLoading(false);
       return;
     }
-    // Verified — onAuthStateChange picks up the elevated session
-    setLoading(false);
+
+    // MFA verified — force a session refresh so App picks it up
+    window.location.reload();
   };
+
+  const maskedPhone = mfaPhone ? `***-***-${mfaPhone.slice(-4)}` : '';
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
@@ -136,7 +138,7 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
           </>
         ) : (
           <form onSubmit={handleMfaVerify} className="space-y-4">
-            <p className="text-sm text-slate-400 text-center">A 6-digit code was sent to your phone.</p>
+            <p className="text-sm text-slate-400 text-center">A 6-digit code was sent to {maskedPhone}.</p>
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1.5">Verification Code</label>
               <input

@@ -107,24 +107,22 @@ export default function Settings() {
   const [mfaStep, setMfaStep] = useState<'idle' | 'enroll' | 'verify'>('idle');
   const [mfaPhone, setMfaPhone] = useState('');
   const [mfaCode, setMfaCode] = useState('');
-  const [mfaFactorId, setMfaFactorId] = useState('');
-  const [mfaChallengeId, setMfaChallengeId] = useState('');
   const [mfaError, setMfaError] = useState('');
   const [mfaSuccess, setMfaSuccess] = useState('');
 
   useEffect(() => {
-    if (profile.mobile) setMfaPhone(profile.mobile);
+    setMfaPhone(profile.mobile || '');
   }, [profile.mobile]);
 
+  // Check if MFA is already enabled
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.mfa.listFactors();
-      if (data) {
-        const phoneFactor = data.all.find((f: any) => f.factor_type === 'phone' && f.status === 'verified');
-        if (phoneFactor) {
-          setMfaEnabled(true);
-          setMfaFactorId(phoneFactor.id);
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('wt_users').select('mfa_phone').eq('id', user.id).single();
+      if (data?.mfa_phone) {
+        setMfaEnabled(true);
+        setMfaPhone(data.mfa_phone);
       }
     })();
   }, []);
@@ -137,25 +135,15 @@ export default function Settings() {
     }
     const phone = mfaPhone.startsWith('+') ? mfaPhone : `+1${mfaPhone.replace(/\D/g, '')}`;
     setMfaLoading(true);
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'phone', phone });
+    const { data, error } = await supabase.functions.invoke('mfa-send', {
+      body: { phone },
+    });
     setMfaLoading(false);
-    if (error) {
-      setMfaError(error.message);
+    if (error || data?.error) {
+      setMfaError(data?.error || error?.message || 'Failed to send code');
       return;
     }
-    if (data) {
-      setMfaFactorId(data.id);
-      // Create a challenge to send the SMS code
-      const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId: data.id });
-      if (challengeErr) {
-        setMfaError(challengeErr.message);
-        return;
-      }
-      if (challenge) {
-        setMfaChallengeId(challenge.id);
-      }
-      setMfaStep('verify');
-    }
+    setMfaStep('verify');
   };
 
   const handleVerifyMfa = async () => {
@@ -164,11 +152,14 @@ export default function Settings() {
       setMfaError('Enter the 6-digit code.');
       return;
     }
+    const phone = mfaPhone.startsWith('+') ? mfaPhone : `+1${mfaPhone.replace(/\D/g, '')}`;
     setMfaLoading(true);
-    const { error } = await supabase.auth.mfa.verify({ factorId: mfaFactorId, challengeId: mfaChallengeId, code: mfaCode });
+    const { data, error } = await supabase.functions.invoke('mfa-verify', {
+      body: { code: mfaCode, phone, action: 'verify-enroll' },
+    });
     setMfaLoading(false);
-    if (error) {
-      setMfaError(error.message);
+    if (error || data?.error) {
+      setMfaError(data?.error || error?.message || 'Verification failed');
       return;
     }
     setMfaEnabled(true);
@@ -181,14 +172,13 @@ export default function Settings() {
   const handleUnenrollMfa = async () => {
     setMfaError('');
     setMfaLoading(true);
-    const { error } = await supabase.auth.mfa.unenroll({ factorId: mfaFactorId });
-    setMfaLoading(false);
-    if (error) {
-      setMfaError(error.message);
-      return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const serviceClient = supabase;
+      await serviceClient.from('wt_users').update({ mfa_phone: null }).eq('id', user.id);
     }
+    setMfaLoading(false);
     setMfaEnabled(false);
-    setMfaFactorId('');
     setMfaStep('idle');
     setMfaSuccess('Two-factor authentication disabled.');
     setTimeout(() => setMfaSuccess(''), 3000);
@@ -451,7 +441,7 @@ export default function Settings() {
                     <label className="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
                     <input
                       type="tel"
-                      value={mfaPhone}
+                      value={mfaPhone || ''}
                       onChange={(e) => setMfaPhone(e.target.value)}
                       placeholder="+1 (555) 123-4567"
                       className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
