@@ -12,6 +12,61 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 
+const MfaChallenge: React.FC<{ phone: string; onVerify: (code: string) => Promise<string | null> }> = ({ phone, onVerify }) => {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const maskedPhone = phone ? `***-***-${phone.slice(-4)}` : '';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const err = await onVerify(code);
+    if (err) {
+      setError(err);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-2xl mb-3">W</div>
+          <h1 className="text-xl font-bold text-white">Verify Your Identity</h1>
+          <p className="text-sm text-slate-500 mt-1">A 6-digit code was sent to {maskedPhone}</p>
+        </div>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400 mb-4">{error}</div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1.5">Verification Code</label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              required
+              maxLength={6}
+              className="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-white/10 text-white text-sm text-center font-mono tracking-widest placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="000000"
+              autoFocus
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading || code.length < 6}
+            className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Verifying...' : 'Verify'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void; onSignOut: () => void }> = ({ children, darkMode, toggleTheme, onSignOut }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
@@ -130,19 +185,61 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [authView, setAuthView] = useState<'login' | 'forgot'>('login');
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaPhone, setMfaPhone] = useState('');
+  const [mfaVerified, setMfaVerified] = useState(false);
+  const mfaCheckDone = React.useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      if (session && !mfaCheckDone.current) {
+        mfaCheckDone.current = true;
+        checkMfa(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        setMfaRequired(false);
+        setMfaVerified(false);
+        setMfaPhone('');
+        mfaCheckDone.current = false;
+      } else if (!mfaCheckDone.current) {
+        mfaCheckDone.current = true;
+        checkMfa(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkMfa = async (userId: string) => {
+    const { data: wtUser } = await supabase.from('wt_users').select('mfa_phone').eq('id', userId).single();
+    if (wtUser?.mfa_phone) {
+      setMfaRequired(true);
+      setMfaPhone(wtUser.mfa_phone);
+      await supabase.functions.invoke('mfa-send', { body: { phone: wtUser.mfa_phone } });
+    } else {
+      setMfaVerified(true);
+    }
+    setLoading(false);
+  };
+
+  const handleMfaVerify = async (code: string): Promise<string | null> => {
+    const { data, error } = await supabase.functions.invoke('mfa-verify', {
+      body: { code, phone: mfaPhone, action: 'verify-login' },
+    });
+    if (error || data?.error) {
+      return data?.error || error?.message || 'Verification failed';
+    }
+    setMfaVerified(true);
+    setMfaRequired(false);
+    return null;
+  };
 
   useEffect(() => {
     if (darkMode) {
@@ -155,6 +252,8 @@ export default function App() {
   }, [darkMode]);
 
   const handleSignOut = async () => {
+    setMfaVerified(false);
+    setMfaRequired(false);
     await supabase.auth.signOut();
   };
 
@@ -171,6 +270,10 @@ export default function App() {
       return <ForgotPassword onBack={() => setAuthView('login')} />;
     }
     return <Login onForgotPassword={() => setAuthView('forgot')} />;
+  }
+
+  if (mfaRequired && !mfaVerified) {
+    return <MfaChallenge phone={mfaPhone} onVerify={handleMfaVerify} />;
   }
 
   return (
