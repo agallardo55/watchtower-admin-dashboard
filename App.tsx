@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 import { icons, sidebarNav } from './constants';
 import Dashboard from './pages/Dashboard';
 import AppRegistry from './pages/AppRegistry';
 import Development from './pages/Development';
 import AllUsers from './pages/AllUsers';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 
-const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
+const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void; onSignOut: () => void }> = ({ children, darkMode, toggleTheme, onSignOut }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
 
@@ -64,6 +68,15 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">Super Admin</p>
               </div>
             )}
+            {!isSidebarCollapsed && (
+              <button
+                onClick={onSignOut}
+                className="text-slate-500 hover:text-red-400 transition-colors"
+                title="Sign out"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -83,9 +96,9 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                 <icons.search />
               </div>
-              <input 
-                type="text" 
-                placeholder="Global Search..." 
+              <input
+                type="text"
+                placeholder="Global Search..."
                 className={`pl-10 pr-4 py-1.5 rounded-lg text-sm w-64 border focus:outline-none transition-all ${
                   darkMode ? 'bg-slate-900 border-white/5 focus:border-blue-500 focus:bg-slate-800' : 'bg-slate-100 border-slate-200 focus:border-blue-500 focus:bg-white'
                 }`}
@@ -114,6 +127,22 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [authView, setAuthView] = useState<'login' | 'forgot'>('login');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -125,9 +154,28 @@ export default function App() {
     }
   }, [darkMode]);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    if (authView === 'forgot') {
+      return <ForgotPassword onBack={() => setAuthView('login')} />;
+    }
+    return <Login onForgotPassword={() => setAuthView('forgot')} />;
+  }
+
   return (
     <HashRouter>
-      <Layout darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)}>
+      <Layout darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)} onSignOut={handleSignOut}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/apps" element={<AppRegistry />} />
