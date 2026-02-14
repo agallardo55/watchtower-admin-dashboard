@@ -44,6 +44,12 @@ export default function Settings() {
           timezone: data.timezone || 'America/Los_Angeles',
         });
       }
+      // Check MFA status
+      const { data: wtUser } = await supabase.from('wt_users').select('mfa_phone').eq('id', user.id).single();
+      if (wtUser?.mfa_phone) {
+        setMfaEnabled(true);
+        setMfaPhone(wtUser.mfa_phone);
+      }
       setProfileLoading(false);
     })();
   }, []);
@@ -114,18 +120,7 @@ export default function Settings() {
     setMfaPhone(profile.mobile || '');
   }, [profile.mobile]);
 
-  // Check if MFA is already enabled
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from('wt_users').select('mfa_phone').eq('id', user.id).single();
-      if (data?.mfa_phone) {
-        setMfaEnabled(true);
-        setMfaPhone(data.mfa_phone);
-      }
-    })();
-  }, []);
+  // MFA check is done inside the profile load effect below
 
   const handleEnrollMfa = async () => {
     setMfaError('');
