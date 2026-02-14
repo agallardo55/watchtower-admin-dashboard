@@ -1,30 +1,13 @@
 
 import React from 'react';
-import { AppEntry, ActivityEntry, GraduationStage, NavSection } from './types';
+import { AppEntry, ActivityEntry, GraduationStage, NavItem } from './types';
 
-export const sidebarNav: NavSection[] = [
-  { section: "Overview", items: [
-    { label: "Dashboard", icon: "home", path: "/" },
-    { label: "Analytics", icon: "chart", path: "/analytics" }
-  ]},
-  { section: "Apps", items: [
-    { label: "App Registry", icon: "grid", path: "/apps" },
-    { label: "Development", icon: "edit", path: "/development" },
-    { label: "Build In The Wild", icon: "globe", path: "/bitw" },
-    { label: "Graduation Queue", icon: "rocket", path: "/graduation" }
-  ]},
-  { section: "Users", items: [
-    { label: "All Users", icon: "users", path: "/users" },
-    { label: "Invitations", icon: "mail", path: "/invitations" },
-    { label: "Cross-App Activity", icon: "activity", path: "/cross-app" }
-  ]},
-  { section: "Database", items: [
-    { label: "Schema Browser", icon: "database", path: "/schema" },
-    { label: "Migrations", icon: "git-branch", path: "/migrations" }
-  ]},
-  { section: "Settings", items: [
-    { label: "Configuration", icon: "settings", path: "/settings" }
-  ]}
+export const sidebarNav: NavItem[] = [
+  { label: "Dashboard", icon: "home", path: "/" },
+  { label: "Apps", icon: "grid", path: "/apps" },
+  { label: "Development", icon: "edit", path: "/development" },
+  { label: "Users", icon: "users", path: "/users" },
+  { label: "Settings", icon: "settings", path: "/settings" },
 ];
 
 export const apps: AppEntry[] = [

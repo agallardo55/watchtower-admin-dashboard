@@ -4,13 +4,9 @@ import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { icons, sidebarNav } from './constants';
 import Dashboard from './pages/Dashboard';
 import AppRegistry from './pages/AppRegistry';
-import BITWManager from './pages/BITWManager';
-import SchemaBrowser from './pages/SchemaBrowser';
-import GraduationQueue from './pages/GraduationQueue';
-import CrossAppActivity from './pages/CrossAppActivity';
 import Development from './pages/Development';
 import AllUsers from './pages/AllUsers';
-import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -18,7 +14,7 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
 
   const getBreadcrumb = () => {
     const path = location.pathname;
-    const findItem = sidebarNav.flatMap(s => s.items).find(i => i.path === path);
+    const findItem = sidebarNav.find(i => i.path === path);
     return findItem ? findItem.label : 'Dashboard';
   };
 
@@ -31,39 +27,32 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
           {!isSidebarCollapsed && <span className="font-bold text-lg">Watchtower</span>}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {sidebarNav.map((section) => (
-            <div key={section.section}>
-              {!isSidebarCollapsed && <h3 className="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">{section.section}</h3>}
-              <div className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = (icons as any)[item.icon];
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <Link
-                      key={item.label}
-                      to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all group relative ${
-                        isActive 
-                          ? (darkMode ? 'bg-blue-600/10 text-blue-500 border-l-2 border-blue-600 rounded-l-none' : 'bg-blue-50 text-blue-600 border-l-2 border-blue-600 rounded-l-none') 
-                          : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'
-                      }`}
-                    >
-                      <div className={`${isActive ? 'text-blue-500' : 'text-slate-500 group-hover:text-slate-300'}`}>
-                        <Icon />
-                      </div>
-                      {!isSidebarCollapsed && <span>{item.label}</span>}
-                      {isSidebarCollapsed && (
-                        <div className="absolute left-14 bg-slate-900 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                          {item.label}
-                        </div>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+          {sidebarNav.map((item) => {
+            const Icon = (icons as any)[item.icon];
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.label}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all group relative ${
+                  isActive
+                    ? (darkMode ? 'bg-blue-600/10 text-blue-500 border-l-2 border-blue-600 rounded-l-none' : 'bg-blue-50 text-blue-600 border-l-2 border-blue-600 rounded-l-none')
+                    : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'
+                }`}
+              >
+                <div className={`${isActive ? 'text-blue-500' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                  <Icon />
+                </div>
+                {!isSidebarCollapsed && <span>{item.label}</span>}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-14 bg-slate-900 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                    {item.label}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className={`p-4 border-t ${darkMode ? 'border-white/5' : 'border-slate-200'}`}>
@@ -141,15 +130,10 @@ export default function App() {
       <Layout darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/analytics" element={<Analytics />} />
           <Route path="/apps" element={<AppRegistry />} />
-          <Route path="/bitw" element={<BITWManager />} />
-          <Route path="/schema" element={<SchemaBrowser />} />
-          <Route path="/graduation" element={<GraduationQueue />} />
-          <Route path="/users" element={<AllUsers />} />
-          <Route path="/cross-app" element={<CrossAppActivity />} />
           <Route path="/development" element={<Development />} />
-          {/* Placeholder routes */}
+          <Route path="/users" element={<AllUsers />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<div className="flex items-center justify-center h-full text-slate-500">Module under development</div>} />
         </Routes>
       </Layout>
