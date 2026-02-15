@@ -178,15 +178,6 @@ export default function Settings() {
               </button>
             </div>
           </div>
-
-          {/* Danger zone */}
-          <div className="glass rounded-xl p-6 border-red-500/10">
-            <h3 className="font-semibold text-lg text-red-400 mb-2">Danger Zone</h3>
-            <p className="text-xs text-slate-500 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-            <button className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors">
-              Delete Account
-            </button>
-          </div>
         </div>
       )}
 

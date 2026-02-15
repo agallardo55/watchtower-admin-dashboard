@@ -2,16 +2,6 @@
 import React from 'react';
 import { AppEntry, ActivityEntry, GraduationStage, NavItem } from './types';
 
-export const sidebarNav: NavItem[] = [
-  { label: "Dashboard", icon: "home", path: "/" },
-  { label: "Apps", icon: "grid", path: "/apps" },
-  { label: "Development", icon: "edit", path: "/development" },
-  { label: "Users", icon: "users", path: "/users" },
-  { label: "Tickets", icon: "ticket", path: "/tickets" },
-  { label: "BITW Manager", icon: "globe", path: "/bitw" },
-  { label: "Settings", icon: "settings", path: "/settings" },
-];
-
 export const apps: AppEntry[] = [
   // Live
   { name: "SalesboardHQ", icon: "📊", status: "live", db: "Dedicated (suykcdomvqmkjwmbtyzk)", users: 23, lastActivity: "2026-02-01", url: "https://salesboardhq.netlify.app", category: "Sales", description: "Real-time leaderboard and sales performance tracker.", schemaPrefix: "sb_", tableCount: 12 },
@@ -25,6 +15,23 @@ export const apps: AppEntry[] = [
   { name: "Dealerment", icon: "📄", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-01-20", url: null, category: "Finance", description: "Centralized document vault for dealer compliance.", schemaPrefix: "dd_", tableCount: 2 },
   { name: "Marbitrage", icon: "💰", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-02-05", url: null, category: "AI", description: "Market data analysis for finding profitable vehicle trade spreads.", schemaPrefix: "mmr_", tableCount: 5 },
   { name: "SalesLogHQ", icon: "📝", status: "idea", db: "Watchtower (saleslog_*)", users: 0, lastActivity: "2026-01-28", url: null, category: "Sales", description: "Quick entry daily log for dealership sales staff.", schemaPrefix: "saleslog_", tableCount: 2 }
+];
+
+export const sidebarNav: NavItem[] = [
+  { label: "Dashboard", icon: "home", path: "/" },
+  { label: "Apps", icon: "grid", path: "/apps" },
+  { label: "Development", icon: "edit", path: "/development", children: [
+    { label: "Overview", icon: "chart", path: "/development/overview" },
+    { label: "All Apps", icon: "grid", path: "/development" },
+    ...apps.map(a => ({ label: a.name, icon: a.icon, path: `/development/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
+  ]},
+  { label: "Users", icon: "users", path: "/users", children: [
+    { label: "All Users", icon: "users", path: "/users" },
+    ...apps.map(a => ({ label: a.name, icon: a.icon, path: `/users/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
+  ]},
+  { label: "Tickets", icon: "ticket", path: "/tickets" },
+  { label: "BITW Manager", icon: "globe", path: "/bitw" },
+  { label: "Settings", icon: "settings", path: "/settings" },
 ];
 
 export const recentActivity: ActivityEntry[] = [

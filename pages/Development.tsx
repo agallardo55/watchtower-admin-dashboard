@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { apps } from '../constants';
 
 type TaskStatus = 'todo' | 'review' | 'done';
@@ -51,19 +52,23 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function Development() {
+  const { appSlug } = useParams<{ appSlug?: string }>();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [appTab, setAppTab] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showAddTask, setShowAddTask] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' as Task['priority'], category: 'Specs', status: 'todo' as TaskStatus, app: 'Watchtower' });
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Build app tabs from tasks + known apps
-  const taskApps = Array.from(new Set(tasks.map(t => t.app)));
-  const appTabs = ['all', ...taskApps.sort()];
+  // Resolve app name from slug
+  const currentApp = appSlug
+    ? apps.find(a => a.name.toLowerCase().replace(/\s+/g, '-') === appSlug)?.name
+      || tasks.find(t => t.app.toLowerCase().replace(/\s+/g, '-') === appSlug)?.app
+      || null
+    : null;
 
-  // Filter by app tab, then by category
-  const appFiltered = appTab === 'all' ? tasks : tasks.filter(t => t.app === appTab);
+  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' as Task['priority'], category: 'Specs', status: 'todo' as TaskStatus, app: currentApp || 'Watchtower' });
+
+  // Filter by app from URL, then by category
+  const appFiltered = currentApp ? tasks.filter(t => t.app === currentApp) : tasks;
   const filtered = categoryFilter === 'all' ? appFiltered : appFiltered.filter(t => t.category === categoryFilter);
 
   const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
@@ -92,7 +97,7 @@ export default function Development() {
       app: newTask.app,
     };
     setTasks(prev => [task, ...prev]);
-    setNewTask({ title: '', description: '', priority: 'medium', category: 'Specs', status: 'todo', app: appTab === 'all' ? 'Watchtower' : appTab });
+    setNewTask({ title: '', description: '', priority: 'medium', category: 'Specs', status: 'todo', app: currentApp || 'Watchtower' });
     setShowAddTask(false);
   };
 
@@ -113,36 +118,20 @@ export default function Development() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Development</h2>
-          <p className="text-slate-500 mt-1">Daily tasks and work items across all applications.</p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'Development'}
+          </h2>
+          <p className="text-slate-500 mt-1">
+            {currentApp ? `Tasks for ${currentApp}.` : 'Daily tasks and work items across all applications.'}
+          </p>
         </div>
         <button
-          onClick={() => { setNewTask(prev => ({ ...prev, app: appTab === 'all' ? 'Watchtower' : appTab })); setShowAddTask(true); }}
+          onClick={() => { setNewTask(prev => ({ ...prev, app: currentApp || 'Watchtower' })); setShowAddTask(true); }}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           Add Task
         </button>
-      </div>
-
-      {/* App Tabs */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit overflow-x-auto">
-        {appTabs.map(tab => {
-          const appEntry = apps.find(a => a.name === tab);
-          const count = tab === 'all' ? tasks.length : tasks.filter(t => t.app === tab).length;
-          return (
-            <button
-              key={tab}
-              onClick={() => { setAppTab(tab); setCategoryFilter('all'); }}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                appTab === tab ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {tab === 'all' ? 'All Apps' : <><span>{appEntry?.icon || ''}</span>{tab}</>}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${appTab === tab ? 'bg-white/20' : 'bg-white/5'}`}>{count}</span>
-            </button>
-          );
-        })}
       </div>
 
       {/* Stat line */}
@@ -195,7 +184,7 @@ export default function Development() {
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
-                  {appTab === 'all' && (
+                  {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>
@@ -225,7 +214,7 @@ export default function Development() {
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
-                  {appTab === 'all' && (
+                  {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>
@@ -252,7 +241,7 @@ export default function Development() {
                 {task.description && <p className="text-slate-600 text-xs mt-1 line-through">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
-                  {appTab === 'all' && (
+                  {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>

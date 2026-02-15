@@ -1,13 +1,30 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { icons, apps } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
   if (digits.length <= 3) return digits.length ? `(${digits}` : '';
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`;
+  return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? 's' : ''} ago`;
 }
 
 type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
@@ -71,17 +88,75 @@ const tabs = [
 ];
 
 export default function AllUsers() {
+  const { appSlug } = useParams<{ appSlug?: string }>();
+  const currentApp = appSlug
+    ? apps.find(a => a.name.toLowerCase().replace(/\s+/g, '-') === appSlug)?.name || null
+    : null;
+
   const [activeTab, setActiveTab] = useState('users');
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
-  const [appFilter, setAppFilter] = useState<string>('all');
+  const [appFilter, setAppFilter] = useState<string>(currentApp || 'all');
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', email: '', phone: '', role: '' as string, status: '' as string, app: '' });
+  const [saving, setSaving] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showAppInfo, setShowAppInfo] = useState<string | null>(null);
   const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'dealer' as string, app: '' });
+  const [users, setUsers] = useState<AppUser[]>(mockUsers);
+  const [loading, setLoading] = useState(true);
+  const [appRegistry, setAppRegistry] = useState<Record<string, string>>({});
 
-  const filtered = mockUsers.filter((u) => {
+  useEffect(() => {
+    setAppFilter(currentApp || 'all');
+  }, [currentApp]);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      setLoading(true);
+      try {
+        // Fetch all users across all projects via edge function
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || supabaseAnonKey;
+
+        const res = await fetch(
+          `${supabaseUrl}/functions/v1/all-users`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (!res.ok) throw new Error(`Edge function error: ${res.status}`);
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: AppUser[] = data.map((u: any) => {
+            const name = u.name || 'Unknown';
+            const initials = name.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+            const roleMap: Record<string, UserRole> = { super_admin: 'admin', admin: 'admin', Admin: 'admin', manager: 'manager', Manager: 'manager', consultant: 'user', Salesperson: 'user', user: 'user', viewer: 'viewer' };
+            return {
+              id: u.id,
+              name,
+              email: u.email || '',
+              avatar: initials || 'U',
+              role: roleMap[u.role] || 'user',
+              status: (u.status || 'active') as UserStatus,
+              app: u.app || 'Unknown',
+              lastSeen: u.last_sign_in_at ? formatRelativeTime(u.last_sign_in_at) : 'Never',
+              createdAt: u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+            };
+          });
+          setUsers(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch users, using mock data:', err);
+        setUsers(mockUsers);
+      }
+      setLoading(false);
+    }
+    fetchUsers();
+  }, []);
+
+  const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
     const matchStatus = statusFilter === 'all' || u.status === statusFilter;
@@ -90,10 +165,10 @@ export default function AllUsers() {
   });
 
   const counts = {
-    total: mockUsers.length,
-    active: mockUsers.filter((u) => u.status === 'active').length,
-    inactive: mockUsers.filter((u) => u.status === 'inactive').length,
-    suspended: mockUsers.filter((u) => u.status === 'suspended').length,
+    total: users.length,
+    active: users.filter((u) => u.status === 'active').length,
+    inactive: users.filter((u) => u.status === 'inactive').length,
+    suspended: users.filter((u) => u.status === 'suspended').length,
   };
 
   return (
@@ -101,8 +176,12 @@ export default function AllUsers() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
-          <p className="text-slate-500 mt-1">Manage users across all applications.</p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp} Users` : 'Users'}
+          </h2>
+          <p className="text-slate-500 mt-1">
+            {currentApp ? `Manage users for ${currentApp}.` : 'Manage users across all applications.'}
+          </p>
         </div>
         {activeTab === 'users' && (
           <button
@@ -162,16 +241,18 @@ export default function AllUsers() {
                 className="w-full pl-10 pr-4 py-2 rounded-lg text-sm bg-slate-900 border border-white/5 focus:outline-none focus:border-blue-500"
               />
             </div>
-            <select
-              value={appFilter}
-              onChange={(e) => setAppFilter(e.target.value)}
-              className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-            >
-              <option value="all">All Apps</option>
-              {apps.filter(a => a.status === 'live').map((app) => (
-                <option key={app.name} value={app.name}>{app.name}</option>
-              ))}
-            </select>
+            {!currentApp && (
+              <select
+                value={appFilter}
+                onChange={(e) => setAppFilter(e.target.value)}
+                className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="all">All Apps</option>
+                {apps.filter(a => a.status === 'live').map((app) => (
+                  <option key={app.name} value={app.name}>{app.name}</option>
+                ))}
+              </select>
+            )}
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as any)}
@@ -247,7 +328,19 @@ export default function AllUsers() {
                     <td className="p-4 text-xs text-slate-400">{user.createdAt}</td>
                     <td className="p-4">
                       <button
-                        onClick={() => setEditingUser(user)}
+                        onClick={() => {
+                          const parts = user.name.split(' ');
+                          setEditForm({
+                            firstName: parts[0] || '',
+                            lastName: parts.slice(1).join(' ') || '',
+                            email: user.email,
+                            phone: '',
+                            role: user.role,
+                            status: user.status,
+                            app: user.app,
+                          });
+                          setEditingUser(user);
+                        }}
                         className="text-slate-500 hover:text-slate-200 transition-colors"
                       >
                         <icons.more />
@@ -614,7 +707,29 @@ export default function AllUsers() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
               </button>
             </div>
-            <form className="p-6 space-y-5" onSubmit={(e) => { e.preventDefault(); setEditingUser(null); }}>
+            <form className="p-6 space-y-5" onSubmit={async (e) => {
+              e.preventDefault();
+              setSaving(true);
+              try {
+                const res = await fetch(`${supabaseUrl}/functions/v1/update-user`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${supabaseAnonKey}` },
+                  body: JSON.stringify({ userId: editingUser.id, app: editingUser.app, fields: editForm }),
+                });
+                const result = await res.json();
+                if (!res.ok) { alert(`Error: ${result.error}`); return; }
+                // Update local state
+                setUsers(prev => prev.map(u => u.id === editingUser.id ? {
+                  ...u,
+                  name: [editForm.firstName, editForm.lastName].filter(Boolean).join(' ') || u.name,
+                  email: editForm.email || u.email,
+                  role: (editForm.role || u.role) as UserRole,
+                  status: (editForm.status || u.status) as UserStatus,
+                } : u));
+                setEditingUser(null);
+              } catch (err) { alert(`Save failed: ${(err as Error).message}`); }
+              finally { setSaving(false); }
+            }}>
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white shadow-lg">
                   {editingUser.avatar}
@@ -630,7 +745,8 @@ export default function AllUsers() {
                   <label className="text-xs font-bold text-slate-500 uppercase">First Name</label>
                   <input
                     type="text"
-                    defaultValue={editingUser.name.split(' ')[0]}
+                    value={editForm.firstName}
+                    onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -638,7 +754,8 @@ export default function AllUsers() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Last Name</label>
                   <input
                     type="text"
-                    defaultValue={editingUser.name.split(' ').slice(1).join(' ')}
+                    value={editForm.lastName}
+                    onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -649,7 +766,8 @@ export default function AllUsers() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
                   <input
                     type="email"
-                    defaultValue={editingUser.email}
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -657,10 +775,11 @@ export default function AllUsers() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Mobile Number</label>
                   <input
                     type="tel"
-                    placeholder="(555) 123-4567"
+                    value={editForm.phone}
                     maxLength={14}
-                    onChange={(e) => { e.target.value = formatPhone(e.target.value); }}
+                    onChange={(e) => setEditForm({ ...editForm, phone: formatPhone(e.target.value) })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                    placeholder="(555) 123-4567"
                   />
                 </div>
               </div>
@@ -669,19 +788,22 @@ export default function AllUsers() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Assigned App</label>
                   <select
-                    defaultValue={editingUser.app}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    value={editForm.app}
+                    disabled
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 opacity-60"
                   >
                     {apps.map((app) => (
                       <option key={app.name} value={app.name}>
                         {app.icon} {app.name} ({app.status})
                       </option>
                     ))}
+                    <option value="Watchtower">Watchtower</option>
+                    <option value="Demolight">Demolight</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Role</label>
-                  <select defaultValue={editingUser.role} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
                     <option value="user">User</option>
@@ -690,7 +812,7 @@ export default function AllUsers() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select defaultValue={editingUser.status} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
@@ -715,8 +837,8 @@ export default function AllUsers() {
                 <button type="button" onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                  Save Changes
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>

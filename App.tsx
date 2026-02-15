@@ -9,15 +9,41 @@ import AllUsers from './pages/AllUsers';
 import Settings from './pages/Settings';
 import Tickets from './pages/Tickets';
 import BITWManager from './pages/BITWManager';
+import DevelopmentOverview from './pages/DevelopmentOverview';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [expandedNav, setExpandedNav] = useState<string[]>([]);
   const location = useLocation();
+
+  // Auto-expand parent nav when a child route is active
+  useEffect(() => {
+    sidebarNav.forEach(item => {
+      if (item.children && item.children.some(c => c.path === location.pathname)) {
+        setExpandedNav(prev => prev.includes(item.label) ? prev : [...prev, item.label]);
+      }
+    });
+  }, [location.pathname]);
+
+  const toggleNavExpand = (label: string) => {
+    setExpandedNav(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
+  };
 
   const getBreadcrumb = () => {
     const path = location.pathname;
-    const findItem = sidebarNav.find(i => i.path === path);
-    return findItem ? findItem.label : 'Dashboard';
+    for (const item of sidebarNav) {
+      if (item.path === path && !item.children) return item.label;
+      if (item.children) {
+        const child = item.children.find(c => c.path === path);
+        if (child) return child.path === item.path ? item.label : `${item.label} / ${child.label}`;
+      }
+    }
+    // Handle dynamic /development/:slug not in static children
+    if (path.startsWith('/development/')) {
+      const slug = path.split('/')[2];
+      return `Development / ${slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`;
+    }
+    return 'Dashboard';
   };
 
   return (
@@ -32,18 +58,78 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
         <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
           {sidebarNav.map((item) => {
             const Icon = (icons as any)[item.icon];
-            const isActive = location.pathname === item.path;
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedNav.includes(item.label);
+            const isParentActive = hasChildren
+              ? location.pathname.startsWith(item.path)
+              : location.pathname === item.path;
+
+            if (hasChildren) {
+              return (
+                <div key={item.label}>
+                  <button
+                    onClick={() => toggleNavExpand(item.label)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all group relative ${
+                      isParentActive
+                        ? (darkMode ? 'bg-blue-600/10 text-blue-500' : 'bg-blue-50 text-blue-600')
+                        : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className={`${isParentActive ? 'text-blue-500' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                      <Icon />
+                    </div>
+                    {!isSidebarCollapsed && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <icons.chevronDown className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </>
+                    )}
+                    {isSidebarCollapsed && (
+                      <div className="absolute left-14 bg-slate-900 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                        {item.label}
+                      </div>
+                    )}
+                  </button>
+                  {isExpanded && !isSidebarCollapsed && (
+                    <div className="ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-3">
+                      {item.children!.map(child => {
+                        const isChildActive = location.pathname === child.path;
+                        return (
+                          <Link
+                            key={child.path}
+                            to={child.path}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
+                              isChildActive
+                                ? (darkMode ? 'text-blue-400 bg-blue-600/5' : 'text-blue-600 bg-blue-50')
+                                : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                            }`}
+                          >
+                            {child.icon && child.icon.length <= 3 ? (
+                              <span className="text-sm">{child.icon}</span>
+                            ) : child.icon && (icons as any)[child.icon] ? (
+                              <span className="text-slate-500">{React.createElement((icons as any)[child.icon])}</span>
+                            ) : null}
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.label}
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all group relative ${
-                  isActive
+                  isParentActive
                     ? (darkMode ? 'bg-blue-600/10 text-blue-500 border-l-2 border-blue-600 rounded-l-none' : 'bg-blue-50 text-blue-600 border-l-2 border-blue-600 rounded-l-none')
                     : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'
                 }`}
               >
-                <div className={`${isActive ? 'text-blue-500' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                <div className={`${isParentActive ? 'text-blue-500' : 'text-slate-500 group-hover:text-slate-300'}`}>
                   <Icon />
                 </div>
                 {!isSidebarCollapsed && <span>{item.label}</span>}
@@ -133,8 +219,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/apps" element={<AppRegistry />} />
-          <Route path="/development" element={<Development />} />
-          <Route path="/users" element={<AllUsers />} />
+          <Route path="/development/overview" element={<DevelopmentOverview />} />
+          <Route path="/development/:appSlug?" element={<Development />} />
+          <Route path="/users/:appSlug?" element={<AllUsers />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/bitw" element={<BITWManager />} />
           <Route path="/settings" element={<Settings />} />
