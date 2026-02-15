@@ -2,6 +2,7 @@
 import React from 'react';
 import { AppEntry, ActivityEntry, GraduationStage, NavItem } from './types';
 
+// Static fallback data — sidebar nav uses this directly (stays static)
 export const apps: AppEntry[] = [
   // Live
   { name: "SalesboardHQ", icon: "📊", status: "live", db: "Dedicated (suykcdomvqmkjwmbtyzk)", users: 23, lastActivity: "2026-02-01", url: "https://salesboardhq.netlify.app", category: "Sales", description: "Real-time leaderboard and sales performance tracker.", schemaPrefix: "sb_", tableCount: 12 },

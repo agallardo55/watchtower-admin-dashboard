@@ -13,6 +13,10 @@ export interface AppEntry {
   description?: string;
   schemaPrefix?: string;
   tableCount?: number;
+  id?: string;
+  slug?: string;
+  graduationStage?: string | null;
+  pipelineNote?: string | null;
 }
 
 export interface ActivityEntry {

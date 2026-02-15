@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { apps, recentActivity, icons } from '../constants';
+import { useStats } from '../hooks/useStats';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const chartData = [
@@ -12,12 +13,7 @@ const chartData = [
   { name: 'Feb 05', buybid: 12, salesboard: 23 },
 ];
 
-const dashboardStats = [
-  { label: 'Total Apps', value: '10', sublabel: '6 public, 4 internal', trend: '+2 this month', color: 'blue', icon: 'grid' },
-  { label: 'Total Users', value: '47', sublabel: 'Across all apps', trend: '+12 this week', color: 'emerald', icon: 'users' },
-  { label: 'Database Tables', value: '36', sublabel: 'Watchtower shared DB', trend: '3 schemas', color: 'purple', icon: 'database' },
-  { label: 'Pending Invitations', value: '8', sublabel: '5 accepted this week', trend: '62% acceptance', color: 'orange', icon: 'mail' },
-];
+// KPI stats are now driven by useStats() hook inside the component
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -26,8 +22,16 @@ const tabs = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { stats, loading: statsLoading } = useStats();
   const liveApps = apps.filter(a => a.status === 'live');
   const totalUsers = apps.reduce((sum, a) => sum + a.users, 0);
+
+  const dashboardStats = [
+    { label: 'Total Apps', value: String(stats.totalApps), sublabel: `${stats.liveApps} public, ${stats.internalApps} internal`, trend: `${stats.liveApps} live`, color: 'blue', icon: 'grid' },
+    { label: 'Total Users', value: String(stats.totalUsers), sublabel: 'Across all apps', trend: 'Live count', color: 'emerald', icon: 'users' },
+    { label: 'Database Tables', value: String(stats.totalTables), sublabel: 'Watchtower shared DB', trend: `${stats.schemaCount} schemas`, color: 'purple', icon: 'database' },
+    { label: 'Pending Invitations', value: '8', sublabel: '5 accepted this week', trend: '62% acceptance', color: 'orange', icon: 'mail' },
+  ];
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
