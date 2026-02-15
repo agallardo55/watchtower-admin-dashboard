@@ -19,7 +19,7 @@ export const apps: AppEntry[] = [
 
 export const sidebarNav: NavItem[] = [
   { label: "Dashboard", icon: "home", path: "/" },
-  { label: "Apps", icon: "grid", path: "/apps" },
+  { label: "BITW Manager", icon: "globe", path: "/bitw" },
   { label: "Development", icon: "edit", path: "/development", children: [
     { label: "Overview", icon: "chart", path: "/development/overview" },
     { label: "All Apps", icon: "grid", path: "/development" },
@@ -30,7 +30,6 @@ export const sidebarNav: NavItem[] = [
     ...apps.map(a => ({ label: a.name, icon: a.icon, path: `/users/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
   ]},
   { label: "Tickets", icon: "ticket", path: "/tickets" },
-  { label: "BITW Manager", icon: "globe", path: "/bitw" },
   { label: "Settings", icon: "settings", path: "/settings" },
 ];
 

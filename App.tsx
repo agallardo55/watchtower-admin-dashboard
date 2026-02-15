@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { icons, sidebarNav } from './constants';
 import Dashboard from './pages/Dashboard';
-import AppRegistry from './pages/AppRegistry';
 import Development from './pages/Development';
 import AllUsers from './pages/AllUsers';
 import Settings from './pages/Settings';
@@ -218,7 +217,6 @@ export default function App() {
       <Layout darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/apps" element={<AppRegistry />} />
           <Route path="/development/overview" element={<DevelopmentOverview />} />
           <Route path="/development/:appSlug?" element={<Development />} />
           <Route path="/users/:appSlug?" element={<AllUsers />} />
