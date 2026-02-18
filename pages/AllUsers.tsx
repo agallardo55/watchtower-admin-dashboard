@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { icons, apps } from '../constants';
+import { EdgeFunctionUser } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
@@ -104,9 +105,26 @@ export default function AllUsers() {
   const [showInvite, setShowInvite] = useState(false);
   const [showAppInfo, setShowAppInfo] = useState<string | null>(null);
   const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'dealer' as string, app: '' });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [inviting, setInviting] = useState(false);
   const [users, setUsers] = useState<AppUser[]>(mockUsers);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [appRegistry, setAppRegistry] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    const errors = { ...formErrors };
+    if (field === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      errors.email = 'Enter a valid email address';
+    } else if (field === 'firstName' && !value.trim()) {
+      errors.firstName = 'First name is required';
+    } else if (field === 'lastName' && !value.trim()) {
+      errors.lastName = 'Last name is required';
+    } else {
+      delete errors[field];
+    }
+    setFormErrors(errors);
+  };
 
   useEffect(() => {
     setAppFilter(currentApp || 'all');
@@ -129,7 +147,7 @@ export default function AllUsers() {
         const data = await res.json();
 
         if (Array.isArray(data) && data.length > 0) {
-          const mapped: AppUser[] = data.map((u: any) => {
+          const mapped: AppUser[] = data.map((u: EdgeFunctionUser) => {
             const name = u.name || 'Unknown';
             const initials = name.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
             const roleMap: Record<string, UserRole> = { super_admin: 'admin', admin: 'admin', Admin: 'admin', manager: 'manager', Manager: 'manager', consultant: 'user', Salesperson: 'user', user: 'user', viewer: 'viewer' };
@@ -147,8 +165,8 @@ export default function AllUsers() {
           });
           setUsers(mapped);
         }
-      } catch (err) {
-        console.error('Failed to fetch users, using mock data:', err);
+      } catch {
+        // Fall back to mock data silently
         setUsers(mockUsers);
       }
       setLoading(false);
@@ -174,9 +192,9 @@ export default function AllUsers() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
             {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp} Users` : 'Users'}
           </h2>
           <p className="text-slate-500 mt-1">
@@ -195,7 +213,7 @@ export default function AllUsers() {
       </div>
 
       {/* Compact Stat Bar */}
-      <div className="glass rounded-xl px-6 py-3 flex items-center gap-8">
+      <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-slate-100">{counts.total}</span>
           <span className="text-xs text-slate-500">users</span>
@@ -225,10 +243,31 @@ export default function AllUsers() {
       </div>
 
       {/* All Users Tab */}
-      {activeTab === 'users' && (
+      {activeTab === 'users' && loading && (
+        <div className="glass rounded-xl p-12 text-center animate-pulse">
+          <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
+          <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
+        </div>
+      )}
+
+      {activeTab === 'users' && !loading && users.length === 0 && (
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">👥</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No users yet</h3>
+          <p className="text-sm text-slate-500 mb-6">Add your first admin user to get started.</p>
+          <button
+            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+          >
+            Add Admin User
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'users' && !loading && users.length > 0 && (
         <>
           {/* Filters */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 lg:gap-4">
             <div className="relative flex-1 max-w-sm">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                 <icons.search />
@@ -255,7 +294,7 @@ export default function AllUsers() {
             )}
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
+              onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
               className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Roles</option>
@@ -266,7 +305,7 @@ export default function AllUsers() {
             </select>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as UserStatus | 'all')}
               className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Statuses</option>
@@ -277,9 +316,54 @@ export default function AllUsers() {
             </select>
           </div>
 
-          {/* Table */}
-          <div className="glass rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-3">
+            {filtered.map((user) => (
+              <div key={user.id} className="glass rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                      {user.avatar}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const parts = user.name.split(' ');
+                      setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app });
+                      setEditingUser(user);
+                    }}
+                    className="text-slate-500 hover:text-slate-200 transition-colors p-2"
+                  >
+                    <icons.more />
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${roleColors[user.role]}`}>{user.role}</span>
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase ${statusColors[user.status]}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
+                    {user.status}
+                  </span>
+                  <button onClick={() => setShowAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">{user.app}</button>
+                </div>
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>Last seen: {user.lastSeen}</span>
+                  <span>Joined: {user.createdAt}</span>
+                </div>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <div className="glass rounded-xl p-12 text-center text-slate-500">No users match your filters.</div>
+            )}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="glass rounded-xl overflow-hidden hidden lg:block">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/5 text-left">
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
@@ -350,11 +434,12 @@ export default function AllUsers() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="p-12 text-center text-slate-500">No users match your filters.</td>
+                    <td colSpan={7} className="p-12 text-center text-slate-500">No users match your filters.</td>
                   </tr>
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}
@@ -400,13 +485,13 @@ export default function AllUsers() {
             </div>
 
             {/* Engagement Bar Chart */}
-            <div className="glass rounded-xl p-6">
+            <div className="glass rounded-xl p-4 lg:p-6">
               <div className="mb-6">
                 <h3 className="font-bold text-lg">Total Engagement by App</h3>
                 <p className="text-xs text-slate-500">Active sessions per app in the last 30 days</p>
               </div>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={barData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} hide />
@@ -432,11 +517,11 @@ export default function AllUsers() {
 
       {/* Add Admin User Modal */}
       {showInvite && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
+            <div className="p-4 lg:p-6 border-b border-white/5 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold">Add Admin User</h3>
+                <h3 className="text-lg lg:text-xl font-bold">Add Admin User</h3>
                 <p className="text-xs text-slate-500 mt-1">Create a new admin user and assign them to an application.</p>
               </div>
               <button onClick={() => setShowInvite(false)} className="text-slate-500 hover:text-slate-200">
@@ -444,14 +529,21 @@ export default function AllUsers() {
               </button>
             </div>
             <form
-              className="p-6 space-y-5"
+              className="p-4 lg:p-6 space-y-4 lg:space-y-5"
               onSubmit={(e) => {
                 e.preventDefault();
-                setShowInvite(false);
+                if (Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app) return;
+                setInviting(true);
+                // Simulate API call
+                setTimeout(() => {
+                  setInviting(false);
+                  setShowInvite(false);
+                  setFormErrors({});
+                }, 500);
               }}
             >
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">First Name</label>
                   <input
                     type="text"
@@ -459,10 +551,12 @@ export default function AllUsers() {
                     placeholder="e.g. John"
                     value={newUser.firstName}
                     onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                    onBlur={(e) => validateField('firstName', e.target.value)}
+                    className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.firstName ? 'border-red-500/50' : 'border-white/10'}`}
                   />
+                  {formErrors.firstName && <p className="text-xs text-red-400">{formErrors.firstName}</p>}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase">Last Name</label>
                   <input
                     type="text"
@@ -470,12 +564,14 @@ export default function AllUsers() {
                     placeholder="e.g. Smith"
                     value={newUser.lastName}
                     onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                    onBlur={(e) => validateField('lastName', e.target.value)}
+                    className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.lastName ? 'border-red-500/50' : 'border-white/10'}`}
                   />
+                  {formErrors.lastName && <p className="text-xs text-red-400">{formErrors.lastName}</p>}
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
                 <input
                   type="email"
@@ -483,8 +579,10 @@ export default function AllUsers() {
                   placeholder="user@company.com"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                  onBlur={(e) => validateField('email', e.target.value)}
+                  className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.email ? 'border-red-500/50' : 'border-white/10'}`}
                 />
+                {formErrors.email && <p className="text-xs text-red-400">{formErrors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -499,7 +597,7 @@ export default function AllUsers() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Assign to App</label>
                   <select
@@ -571,9 +669,10 @@ export default function AllUsers() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
+                  disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
                 >
-                  Add User
+                  {inviting ? 'Adding...' : 'Add User'}
                 </button>
               </div>
             </form>
@@ -588,9 +687,9 @@ export default function AllUsers() {
         const activeCount = appUsers.filter(u => u.status === 'active').length;
         const roleBreakdown = appUsers.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc; }, {} as Record<string, number>);
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-            <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
+            <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
+              <div className="p-4 lg:p-6 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {appData && (
                     <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-2xl">
@@ -608,7 +707,7 @@ export default function AllUsers() {
               </div>
               <div className="p-6 space-y-5">
                 {/* Stats row */}
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
                   <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-center">
                     <p className="text-lg font-bold">{appUsers.length}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Total Users</p>
@@ -699,8 +798,8 @@ export default function AllUsers() {
 
       {/* Edit Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h3 className="text-xl font-bold">Manage User</h3>
               <button onClick={() => setEditingUser(null)} className="text-slate-500 hover:text-slate-200">
@@ -784,7 +883,7 @@ export default function AllUsers() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Assigned App</label>
                   <select

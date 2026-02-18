@@ -85,16 +85,16 @@ export default function Tickets() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Tickets</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
         <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {stats.map(s => {
-          const Icon = (icons as any)[s.icon];
+          const Icon = (icons as Record<string, React.FC>)[s.icon];
           return (
-            <div key={s.label} className="glass p-5 rounded-xl">
+            <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`p-2 rounded-lg ${s.bg}`}><Icon /></div>
                 <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
@@ -132,10 +132,35 @@ export default function Tickets() {
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* Table */}
-        <div className={`glass rounded-xl overflow-hidden flex-1 transition-all ${selected ? 'max-w-[60%]' : ''}`}>
-          <table className="w-full text-sm">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Mobile Cards */}
+        <div className={`lg:hidden flex-1 space-y-3 ${selected ? 'hidden' : ''}`}>
+          {filtered.map(t => (
+            <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`glass rounded-xl p-4 cursor-pointer transition-colors ${selected?.id === t.id ? 'border-blue-500 border' : 'border border-white/5 hover:border-white/10'}`}>
+              <p className="font-medium text-sm text-slate-200 mb-2">{t.title}</p>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
+              </div>
+              <div className="flex justify-between text-xs text-slate-500">
+                <span>{t.app}</span>
+                <span>{new Date(t.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="glass rounded-xl p-12 text-center">
+              <div className="text-4xl mb-4">🎫</div>
+              <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets found</h3>
+              <p className="text-sm text-slate-500">Try adjusting your filters.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className={`glass rounded-xl overflow-hidden flex-1 transition-all hidden lg:block ${selected ? 'lg:max-w-[60%]' : ''}`}>
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-3">Title</th>
@@ -162,11 +187,12 @@ export default function Tickets() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Detail Panel */}
         {selected && (
-          <div className="w-[400px] glass rounded-xl p-6 space-y-5 animate-in slide-in-from-right">
+          <div className="w-full lg:w-[400px] glass rounded-xl p-4 lg:p-6 space-y-5 animate-in slide-in-from-right">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-100">{selected.title}</h3>

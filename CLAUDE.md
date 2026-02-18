@@ -86,3 +86,14 @@ Every app gets a "Try Demo" button. Pattern: mock data file + demo context + ban
 - Check existing edge functions for patterns
 - Check `package.json` for available scripts
 - If truly blocked, commit what you have with a clear message about what's left
+
+
+## Autonomous Build Rules
+
+Before asking the user ANY question:
+1. Read DECISIONS.md for a matching pattern
+2. If found → follow it, log to DECISIONS-LOG.md
+3. If not found → make your best call, log it, continue
+4. NEVER stop and wait for user input during autonomous/overnight builds
+
+Read STANDARDS.md for universal build quality requirements.

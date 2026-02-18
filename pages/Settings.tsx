@@ -58,7 +58,7 @@ export default function Settings() {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Settings</h2>
         <p className="text-slate-500 mt-1">Manage your account, security, and preferences.</p>
       </div>
 
@@ -83,8 +83,8 @@ export default function Settings() {
       {activeTab === 'profile' && (
         <div className="space-y-6">
           {/* Avatar + name header */}
-          <div className="glass rounded-xl p-6">
-            <div className="flex items-center gap-5">
+          <div className="glass rounded-xl p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-5">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
                 AG
               </div>
@@ -103,7 +103,7 @@ export default function Settings() {
           <div className="glass rounded-xl p-6 space-y-5">
             <h3 className="font-semibold text-lg">Personal Information</h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">First Name</label>
                 <input
@@ -124,7 +124,7 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
                 <input
@@ -146,7 +146,7 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Company / Org</label>
                 <input
@@ -215,7 +215,7 @@ export default function Settings() {
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">New Password</label>
                     <input

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useApps } from '../hooks/useApps';
-import { updatePipelineNote } from '../services/apps';
+import { updatePipelineNote, updateGraduationStage } from '../services/apps';
 import { AppEntryWithMeta } from '../services/apps';
 
 interface PipelineStageConfig {
@@ -17,6 +17,7 @@ const stageConfigs: PipelineStageConfig[] = [
   { stage: 'Wired', key: 'wired', color: 'yellow' },
   { stage: 'QA', key: 'qa', color: 'orange' },
   { stage: 'Live', key: 'live', color: 'emerald' },
+  { stage: 'Marketing', key: 'marketing', color: 'pink' },
 ];
 
 const colorMap: Record<string, { border: string; bg: string; text: string }> = {
@@ -26,30 +27,39 @@ const colorMap: Record<string, { border: string; bg: string; text: string }> = {
   yellow:  { border: 'border-yellow-500',  bg: 'bg-yellow-500/10',  text: 'text-yellow-400' },
   orange:  { border: 'border-orange-500',  bg: 'bg-orange-500/10',  text: 'text-orange-400' },
   emerald: { border: 'border-emerald-500', bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
+  pink:    { border: 'border-pink-500',    bg: 'bg-pink-500/10',    text: 'text-pink-400' },
 };
 
 export default function DevelopmentOverview() {
-  const { apps, loading, refetch } = useApps();
+  const { apps, loading, error: fetchError, refetch } = useApps();
   const [editing, setEditing] = useState<AppEntryWithMeta | null>(null);
   const [editNote, setEditNote] = useState('');
+  const [editStage, setEditStage] = useState('');
   const [saving, setSaving] = useState(false);
 
   const openEdit = (app: AppEntryWithMeta) => {
     setEditing(app);
     setEditNote(app.pipelineNote || '');
+    setEditStage(app.graduationStage || 'idea');
   };
 
-  const saveNote = async () => {
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const saveChanges = async () => {
     if (!editing) return;
     setSaving(true);
+    setSaveError(null);
     try {
       await updatePipelineNote(editing.id, editNote);
+      if (editStage !== (editing.graduationStage || 'idea')) {
+        await updateGraduationStage(editing.id, editStage);
+      }
       await refetch();
+      setEditing(null);
     } catch (err) {
-      console.error('Failed to save note:', err);
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
     }
     setSaving(false);
-    setEditing(null);
   };
 
   // Group apps by graduation_stage
@@ -60,10 +70,39 @@ export default function DevelopmentOverview() {
     groupedApps[key].push(app);
   }
 
+  if (loading) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto animate-pulse">
+        <div>
+          <div className="h-8 bg-slate-800 rounded w-64 mb-2" />
+          <div className="h-4 bg-slate-800 rounded w-96" />
+        </div>
+        <div className="glass rounded-xl p-6">
+          <div className="flex gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="flex-1 h-64 bg-slate-800 rounded-xl" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError && apps.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[40vh] text-center">
+        <div className="text-4xl mb-4">⚠️</div>
+        <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load apps</h3>
+        <p className="text-sm text-slate-500 mb-6">{fetchError}</p>
+        <button onClick={refetch} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Development Overview</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Development Overview</h2>
         <p className="text-slate-500 mt-1">Portfolio-wide development metrics and readiness.</p>
       </div>
 
@@ -134,6 +173,18 @@ export default function DevelopmentOverview() {
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Stage</label>
+                <select
+                  value={editStage}
+                  onChange={e => setEditStage(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-slate-200"
+                >
+                  {stageConfigs.map(s => (
+                    <option key={s.key} value={s.key}>{s.stage}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Note</label>
                 <textarea
                   rows={4}
@@ -143,11 +194,16 @@ export default function DevelopmentOverview() {
                   placeholder="Add context, blockers, next steps..."
                 />
               </div>
+              {saveError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400">
+                  {saveError}
+                </div>
+              )}
               <div className="flex gap-3">
-                <button onClick={() => setEditing(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
+                <button onClick={() => { setEditing(null); setSaveError(null); }} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
                   Cancel
                 </button>
-                <button onClick={saveNote} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                <button onClick={saveChanges} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
                   {saving ? 'Saving...' : 'Save Note'}
                 </button>
               </div>

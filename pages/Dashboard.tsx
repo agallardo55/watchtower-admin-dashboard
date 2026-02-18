@@ -22,7 +22,7 @@ const tabs = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const { stats, loading: statsLoading } = useStats();
+  const { stats, loading: statsLoading, error: statsError, refetch: refetchStats } = useStats();
   const liveApps = apps.filter(a => a.status === 'live');
   const totalUsers = apps.reduce((sum, a) => sum + a.users, 0);
 
@@ -33,12 +33,42 @@ export default function Dashboard() {
     { label: 'Pending Invitations', value: '8', sublabel: '5 accepted this week', trend: '62% acceptance', color: 'orange', icon: 'mail' },
   ];
 
+  if (statsLoading) {
+    return (
+      <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="glass p-4 lg:p-6 rounded-xl h-36">
+              <div className="h-4 bg-slate-800 rounded w-24 mb-4" />
+              <div className="h-8 bg-slate-800 rounded w-16 mb-2" />
+              <div className="h-3 bg-slate-800 rounded w-32" />
+            </div>
+          ))}
+        </div>
+        <div className="glass rounded-xl h-64" />
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[40vh] text-center">
+        <div className="text-4xl mb-4">⚠️</div>
+        <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load dashboard</h3>
+        <p className="text-sm text-slate-500 mb-6">{statsError}</p>
+        <button onClick={refetchStats} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {dashboardStats.map((stat) => {
-          const Icon = (icons as any)[stat.icon];
+          const Icon = (icons as Record<string, React.FC>)[stat.icon];
           const colorMap: Record<string, string> = {
             blue: 'text-blue-500 bg-blue-500/10',
             emerald: 'text-emerald-500 bg-emerald-500/10',
@@ -46,7 +76,7 @@ export default function Dashboard() {
             orange: 'text-orange-500 bg-orange-500/10',
           };
           return (
-            <div key={stat.label} className="glass p-6 rounded-xl flex flex-col justify-between hover:border-white/10 transition-colors">
+            <div key={stat.label} className="glass p-4 lg:p-6 rounded-xl flex flex-col justify-between hover:border-white/10 transition-colors">
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-2 rounded-lg ${colorMap[stat.color]}`}>
                   <Icon />
@@ -56,7 +86,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <div>
-                <h4 className="text-3xl font-bold mb-1 tracking-tight">{stat.value}</h4>
+                <h4 className="text-2xl lg:text-3xl font-bold mb-1 tracking-tight">{stat.value}</h4>
                 <p className="text-sm font-medium text-slate-300 mb-1">{stat.label}</p>
                 <p className="text-[11px] text-slate-500">{stat.sublabel}</p>
               </div>
@@ -77,7 +107,7 @@ export default function Dashboard() {
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* App Status Table */}
           <div className="lg:col-span-2 glass rounded-xl overflow-hidden flex flex-col">
             <div className="p-5 border-b border-white/5 flex items-center justify-between">
@@ -187,8 +217,8 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorBuybid" x1="0" y1="0" x2="0" y2="1">
@@ -215,7 +245,7 @@ export default function Dashboard() {
           </div>
 
           {/* Per-App Breakdown */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {liveApps.map((app) => (
               <div key={app.name} className="glass rounded-xl p-6 hover:border-white/10 transition-colors">
                 <div className="flex items-center gap-3 mb-4">

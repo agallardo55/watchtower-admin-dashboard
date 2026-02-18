@@ -108,17 +108,26 @@ export default function Development() {
     setEditingTask(null);
   };
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
   const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-    setEditingTask(null);
+    setShowDeleteConfirm(id);
+  };
+
+  const confirmDelete = () => {
+    if (showDeleteConfirm) {
+      setTasks(prev => prev.filter(t => t.id !== showDeleteConfirm));
+      setShowDeleteConfirm(null);
+      setEditingTask(null);
+    }
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
             {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'Development'}
           </h2>
           <p className="text-slate-500 mt-1">
@@ -146,7 +155,7 @@ export default function Development() {
       </p>
 
       {/* Category filter pills */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {categories.map(cat => (
           <button
             key={cat}
@@ -163,9 +172,10 @@ export default function Development() {
       </div>
 
       {/* 3-column kanban */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto pb-4 lg:pb-0 -mx-1 px-1">
+        {/* Each column needs min-width on mobile for horizontal scroll */}
         {/* To Do */}
-        <div>
+        <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">To Do</h2>
             <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{todoTasks.length}</span>
@@ -195,7 +205,7 @@ export default function Development() {
         </div>
 
         {/* Review */}
-        <div>
+        <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">Review</h2>
             <span className="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full">{reviewTasks.length}</span>
@@ -225,7 +235,7 @@ export default function Development() {
         </div>
 
         {/* Done */}
-        <div>
+        <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">Done</h2>
             <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full">{doneTasks.length}</span>
@@ -316,6 +326,20 @@ export default function Development() {
                 <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">Add Task</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border-white/10 p-6 space-y-4">
+            <h3 className="text-lg font-bold text-red-400">Delete Task</h3>
+            <p className="text-sm text-slate-400">Are you sure? This cannot be undone.</p>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">Delete</button>
+            </div>
           </div>
         </div>
       )}

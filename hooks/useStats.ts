@@ -22,8 +22,8 @@ export function useStats() {
       const data = await getDashboardStats();
       setStats(data);
     } catch (err) {
-      console.error('Failed to fetch stats, using fallback:', err);
-      setError((err as Error).message);
+      const message = err instanceof Error ? err.message : 'Failed to load stats';
+      setError(message);
       setStats(FALLBACK_STATS);
     }
     setLoading(false);

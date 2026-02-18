@@ -14,9 +14,9 @@ export function useApps() {
       const data = await getApps();
       setApps(data);
     } catch (err) {
-      console.error('Failed to fetch apps, using fallback:', err);
-      setError((err as Error).message);
-      // Map DEMO_APPS to include the extra fields
+      const message = err instanceof Error ? err.message : 'Failed to load apps';
+      setError(message);
+      // Map DEMO_APPS to include the extra fields as fallback
       setApps(DEMO_APPS.map((a, i) => ({
         ...a,
         id: `demo-${i}`,

@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 export type AppStatus = 'idea' | 'beta' | 'live' | 'paused';
 
 export interface AppEntry {
@@ -71,4 +73,22 @@ export interface WaitlistEntry {
   app: string;
   email: string;
   createdAt: string;
+}
+
+/** SVG icon component props — allows className and all SVG attributes */
+export type IconProps = Record<string, unknown>;
+
+/** Record of icon name → component */
+export type IconMap = Record<string, React.FC<IconProps>>;
+
+/** Edge function user response shape */
+export interface EdgeFunctionUser {
+  id: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  status?: string;
+  app?: string;
+  last_sign_in_at?: string;
+  created_at?: string;
 }

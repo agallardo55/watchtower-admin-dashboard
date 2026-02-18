@@ -54,14 +54,14 @@ export default function BITWManager() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Build In The Wild</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
         <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {stats.map(s => (
-          <div key={s.label} className="glass p-5 rounded-xl">
+          <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
             <div className={`text-2xl font-bold mt-2 ${s.color}`}>{s.value}</div>
             <span className="text-xs text-slate-500 mt-1 block">{s.sub}</span>
@@ -72,7 +72,7 @@ export default function BITWManager() {
       {/* Tabs */}
       <div className="flex gap-1 border-b border-white/5">
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as any)} className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${tab === t.id ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
+          <button key={t.id} onClick={() => setTab(t.id as 'showroom' | 'votes' | 'waitlist')} className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${tab === t.id ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
             {t.label}
             {tab === t.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t"></div>}
           </button>
@@ -82,6 +82,14 @@ export default function BITWManager() {
       {/* Showroom Tab */}
       {tab === 'showroom' && (
         <div className="space-y-4">
+          {publicApps.length === 0 ? (
+            <div className="glass rounded-xl p-12 text-center">
+              <div className="text-4xl mb-4">🌐</div>
+              <h3 className="text-lg font-semibold text-slate-200 mb-2">No public apps yet</h3>
+              <p className="text-sm text-slate-500">Apps with a public URL will appear here.</p>
+            </div>
+          ) : (
+          <>
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">Drag items to reorder priority</span>
           </div>
@@ -109,13 +117,23 @@ export default function BITWManager() {
               )}
             </div>
           ))}
+          </>
+          )}
         </div>
       )}
 
       {/* Votes Tab */}
-      {tab === 'votes' && (
+      {tab === 'votes' && mockVotes.length === 0 && (
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">👍</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No votes yet</h3>
+          <p className="text-sm text-slate-500">Votes from the public showroom will appear here.</p>
+        </div>
+      )}
+      {tab === 'votes' && mockVotes.length > 0 && (
         <div className="glass rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-3">App</th>
@@ -135,11 +153,19 @@ export default function BITWManager() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {/* Waitlist Tab */}
-      {tab === 'waitlist' && (
+      {tab === 'waitlist' && mockWaitlist.length === 0 && (
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">📋</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No signups yet</h3>
+          <p className="text-sm text-slate-500">Waitlist signups will appear here when people join.</p>
+        </div>
+      )}
+      {tab === 'waitlist' && mockWaitlist.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-end">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
@@ -147,7 +173,8 @@ export default function BITWManager() {
             </button>
           </div>
           <div className="glass rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[400px]">
               <thead>
                 <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
                   <th className="px-4 py-3">Email</th>
@@ -165,6 +192,7 @@ export default function BITWManager() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
