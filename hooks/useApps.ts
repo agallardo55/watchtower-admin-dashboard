@@ -21,8 +21,19 @@ export function useApps() {
         ...a,
         id: `demo-${i}`,
         slug: a.name.toLowerCase().replace(/\s+/g, '-'),
+        iconEmoji: a.icon || '',
+        iconUrl: '',
+        dbStatus: a.status === 'live' ? 'live' : 'idea',
+        appUrl: a.url || '',
+        repoUrl: '',
+        schemaPrefix: a.schemaPrefix || '',
+        supabaseProjectId: '',
         graduationStage: a.status === 'live' ? 'live' : 'idea',
         pipelineNote: a.description || null,
+        overview: '',
+        targetUsers: [] as string[],
+        roadmap: [] as { text: string; done: boolean }[],
+        screenshots: [] as string[],
       })));
     }
     setLoading(false);
