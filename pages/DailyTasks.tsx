@@ -1,10 +1,32 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
 import { apps } from '../constants';
 
 // --- Types ---
 
-type Priority = 'low' | 'medium' | 'high';
+type Priority = 'low' | 'medium' | 'high' | 'critical';
 type TaskStatus = 'todo' | 'in_progress' | 'done';
+
+interface WtAppRegistry {
+  name: string;
+}
+
+interface TaskRow {
+  id: string;
+  title: string;
+  description: string | null;
+  app_id: string | null;
+  assigned_to: string | null;
+  category: string | null;
+  priority: Priority;
+  status: TaskStatus;
+  due_date: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  wt_app_registry: WtAppRegistry | null;
+}
 
 interface Task {
   id: string;
@@ -13,22 +35,25 @@ interface Task {
   priority: Priority;
   status: TaskStatus;
   app: string;
+  app_id: string | null;
+  category: string | null;
+  assigned_to: string | null;
   dueDate: string | null;
   createdAt: string;
-  rolledOver: boolean;
+  completedAt: string | null;
 }
 
 // --- Constants ---
 
-const STORAGE_KEY = 'watchtower_daily_tasks';
-
 const priorityBorder: Record<Priority, string> = {
+  critical: 'border-l-rose-600',
   high: 'border-l-red-500',
   medium: 'border-l-amber-400',
   low: 'border-l-slate-500',
 };
 
 const priorityBadge: Record<Priority, string> = {
+  critical: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   high: 'bg-red-500/10 text-red-400 border-red-500/20',
   medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   low: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
@@ -56,10 +81,6 @@ function dateStr(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
-}
-
-function generateId(): string {
-  return `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 // Get Sunday of the week containing the given date
@@ -96,30 +117,21 @@ function formatDayHeader(d: Date): { dayName: string; dayNum: string; monthStr: 
   };
 }
 
-// --- Persistence ---
-
-function loadTasks(): Task[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Task[];
-  } catch {
-    return [];
-  }
-}
-
-function saveTasks(tasks: Task[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
-
-function processRollover(tasks: Task[]): Task[] {
-  const today = todayStr();
-  return tasks.map(t => {
-    if (t.status !== 'done' && t.dueDate && t.dueDate < today && !t.rolledOver) {
-      return { ...t, rolledOver: true };
-    }
-    return t;
-  });
+function rowToTask(row: TaskRow): Task {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? '',
+    priority: row.priority,
+    status: row.status,
+    app: row.wt_app_registry?.name ?? row.category ?? '',
+    app_id: row.app_id,
+    category: row.category,
+    assigned_to: row.assigned_to,
+    dueDate: row.due_date,
+    createdAt: row.created_at,
+    completedAt: row.completed_at,
+  };
 }
 
 // --- Modal Component ---
@@ -128,11 +140,12 @@ interface TaskModalProps {
   task: Partial<Task> | null;
   isEdit: boolean;
   defaultDate?: string;
-  onSave: (task: Omit<Task, 'id' | 'createdAt' | 'rolledOver'> & { id?: string }) => void;
+  onSave: (task: { id?: string; title: string; description: string; priority: Priority; status: TaskStatus; app: string; dueDate: string | null }) => void;
   onClose: () => void;
+  saving: boolean;
 }
 
-function TaskModal({ task, isEdit, defaultDate, onSave, onClose }: TaskModalProps) {
+function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving }: TaskModalProps) {
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [priority, setPriority] = useState<Priority>(task?.priority || 'medium');
@@ -140,7 +153,6 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose }: TaskModalProp
   const [dueDate, setDueDate] = useState(task?.dueDate || defaultDate || '');
   const [status, setStatus] = useState<TaskStatus>(task?.status || 'todo');
   const [titleError, setTitleError] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,19 +160,15 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose }: TaskModalProp
       setTitleError('Title is required');
       return;
     }
-    setSaving(true);
-    setTimeout(() => {
-      onSave({
-        ...(isEdit && task?.id ? { id: task.id } : {}),
-        title: title.trim(),
-        description: description.trim(),
-        priority,
-        status,
-        app,
-        dueDate: dueDate || null,
-      });
-      setSaving(false);
-    }, 150);
+    onSave({
+      ...(isEdit && task?.id ? { id: task.id } : {}),
+      title: title.trim(),
+      description: description.trim(),
+      priority,
+      status,
+      app,
+      dueDate: dueDate || null,
+    });
   };
 
   return (
@@ -206,6 +214,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose }: TaskModalProp
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
+                  <option value="critical">Critical</option>
                 </select>
               </div>
               <div>
@@ -271,7 +280,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose }: TaskModalProp
 
 // --- Delete Confirmation ---
 
-function DeleteConfirm({ taskTitle, onConfirm, onCancel }: { taskTitle: string; onConfirm: () => void; onCancel: () => void }) {
+function DeleteConfirm({ taskTitle, onConfirm, onCancel, deleting }: { taskTitle: string; onConfirm: () => void; onCancel: () => void; deleting: boolean }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
@@ -281,8 +290,13 @@ function DeleteConfirm({ taskTitle, onConfirm, onCancel }: { taskTitle: string; 
           Are you sure you want to delete "<span className="text-slate-200">{taskTitle}</span>"? This cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors">Cancel</button>
-          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors">Delete</button>
+          <button onClick={onCancel} disabled={deleting} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors disabled:opacity-50">Cancel</button>
+          <button onClick={onConfirm} disabled={deleting} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50 flex items-center gap-2">
+            {deleting && (
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            )}
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -337,9 +351,6 @@ function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCa
             <span className={`px-1 py-0 rounded text-[9px] font-medium border ${priorityBadge[task.priority]}`}>
               {task.priority[0].toUpperCase()}
             </span>
-            {task.rolledOver && (
-              <span className="text-[9px] text-orange-400" title="Rolled over">🔄</span>
-            )}
           </div>
         </div>
 
@@ -402,7 +413,8 @@ function Backlog({ tasks, onEdit, onDelete, onStatusCycle, onDragStart, onDragOv
 
 export default function DailyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalDefaultDate, setModalDefaultDate] = useState<string>('');
@@ -411,6 +423,8 @@ export default function DailyTasks() {
   const [appFilter, setAppFilter] = useState('all');
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
   const [showBacklog, setShowBacklog] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const weekStart = useMemo(() => {
     const base = getWeekStart(new Date());
@@ -421,17 +435,29 @@ export default function DailyTasks() {
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
   const today = todayStr();
 
-  useEffect(() => {
-    const raw = loadTasks();
-    const processed = processRollover(raw);
-    setTasks(processed);
-    saveTasks(processed);
-    setLoaded(true);
+  // --- Fetch tasks from Supabase ---
+  const fetchTasks = useCallback(async () => {
+    const { data, error: fetchError } = await supabase
+      .from('wt_tasks')
+      .select('*, wt_app_registry(name)')
+      .is('deleted_at', null)
+      .order('due_date');
+
+    if (fetchError) {
+      setError(fetchError.message);
+      setLoading(false);
+      return;
+    }
+
+    const mapped = (data as TaskRow[]).map(rowToTask);
+    setTasks(mapped);
+    setError(null);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (loaded) saveTasks(tasks);
-  }, [tasks, loaded]);
+    fetchTasks();
+  }, [fetchTasks]);
 
   const filteredTasks = useMemo(() => {
     if (appFilter === 'all') return tasks;
@@ -453,11 +479,10 @@ export default function DailyTasks() {
       } else if (map[t.dueDate]) {
         map[t.dueDate].push(t);
       }
-      // tasks outside this week aren't shown (except backlog)
     });
 
     // Sort each day: high first, done last
-    const priorityWeight: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
+    const priorityWeight: Record<Priority, number> = { critical: 0, high: 1, medium: 2, low: 3 };
     const statusWeight: Record<TaskStatus, number> = { in_progress: 0, todo: 1, done: 2 };
     Object.values(map).forEach(arr => {
       arr.sort((a, b) => statusWeight[a.status] - statusWeight[b.status] || priorityWeight[a.priority] - priorityWeight[b.priority]);
@@ -472,51 +497,155 @@ export default function DailyTasks() {
     return tasks.filter(t => t.dueDate && t.dueDate < weekStartStr && t.status !== 'done').length;
   }, [tasks, weekStart]);
 
-  const handleAddTask = useCallback((data: Omit<Task, 'id' | 'createdAt' | 'rolledOver'> & { id?: string }) => {
-    const newTask: Task = {
-      id: generateId(),
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      app: data.app,
-      dueDate: data.dueDate,
-      createdAt: new Date().toISOString(),
-      rolledOver: false,
-    };
-    setTasks(prev => [newTask, ...prev]);
+  // --- Create task ---
+  const handleAddTask = useCallback(async (data: { title: string; description: string; priority: Priority; status: TaskStatus; app: string; dueDate: string | null }) => {
+    setSaving(true);
+    const { error: insertError } = await supabase
+      .from('wt_tasks')
+      .insert({
+        title: data.title,
+        description: data.description || null,
+        priority: data.priority,
+        status: data.status,
+        category: data.app || null,
+        due_date: data.dueDate,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      setError(insertError.message);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
     setModalOpen(false);
     setModalDefaultDate('');
-  }, []);
+    await fetchTasks();
+  }, [fetchTasks]);
 
-  const handleEditTask = useCallback((data: Omit<Task, 'id' | 'createdAt' | 'rolledOver'> & { id?: string }) => {
+  // --- Edit task ---
+  const handleEditTask = useCallback(async (data: { id?: string; title: string; description: string; priority: Priority; status: TaskStatus; app: string; dueDate: string | null }) => {
     if (!data.id) return;
-    setTasks(prev => prev.map(t => t.id === data.id ? { ...t, ...data } : t));
+    setSaving(true);
+
+    const updates: Record<string, string | null> = {
+      title: data.title,
+      description: data.description || null,
+      priority: data.priority,
+      status: data.status,
+      category: data.app || null,
+      due_date: data.dueDate,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.status === 'done') {
+      updates.completed_at = new Date().toISOString();
+    }
+
+    const { error: updateError } = await supabase
+      .from('wt_tasks')
+      .update(updates)
+      .eq('id', data.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      setError(updateError.message);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
     setEditingTask(null);
-  }, []);
+    await fetchTasks();
+  }, [fetchTasks]);
 
-  const handleStatusCycle = useCallback((task: Task) => {
+  // --- Status cycle ---
+  const handleStatusCycle = useCallback(async (task: Task) => {
     const next: Record<TaskStatus, TaskStatus> = { todo: 'in_progress', in_progress: 'done', done: 'todo' };
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next[t.status] } : t));
-  }, []);
+    const newStatus = next[task.status];
 
-  const handleDelete = useCallback(() => {
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completedAt: newStatus === 'done' ? new Date().toISOString() : null } : t));
+
+    const updates: Record<string, string | null> = {
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (newStatus === 'done') {
+      updates.completed_at = new Date().toISOString();
+    } else {
+      updates.completed_at = null;
+    }
+
+    const { error: updateError } = await supabase
+      .from('wt_tasks')
+      .update(updates)
+      .eq('id', task.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      setError(updateError.message);
+      await fetchTasks(); // revert optimistic update
+    }
+  }, [fetchTasks]);
+
+  // --- Soft delete ---
+  const handleDelete = useCallback(async () => {
     if (!deletingTask) return;
-    setTasks(prev => prev.filter(t => t.id !== deletingTask.id));
-    setDeletingTask(null);
-  }, [deletingTask]);
+    setDeleting(true);
 
-  const handleMoveOverdueToToday = useCallback(() => {
+    const { error: deleteError } = await supabase
+      .from('wt_tasks')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', deletingTask.id);
+
+    if (deleteError) {
+      setError(deleteError.message);
+      setDeleting(false);
+      return;
+    }
+
+    setDeleting(false);
+    setDeletingTask(null);
+    await fetchTasks();
+  }, [deletingTask, fetchTasks]);
+
+  // --- Move overdue to today ---
+  const handleMoveOverdueToToday = useCallback(async () => {
     const weekStartStr = dateStr(weekStart);
+    const overdueTasks = tasks.filter(t => t.dueDate && t.dueDate < weekStartStr && t.status !== 'done');
+
+    // Optimistic update
     setTasks(prev => prev.map(t => {
       if (t.dueDate && t.dueDate < weekStartStr && t.status !== 'done') {
-        return { ...t, dueDate: today, rolledOver: true };
+        return { ...t, dueDate: today };
       }
       return t;
     }));
-  }, [weekStart, today]);
 
-  // Drag and drop
+    // Update each overdue task
+    const promises = overdueTasks.map(t =>
+      supabase
+        .from('wt_tasks')
+        .update({ due_date: today, updated_at: new Date().toISOString() })
+        .eq('id', t.id)
+    );
+
+    const results = await Promise.all(promises);
+    const failed = results.some(r => r.error);
+
+    if (failed) {
+      setError('Some tasks failed to update');
+      await fetchTasks();
+    }
+  }, [weekStart, today, tasks, fetchTasks]);
+
+  // --- Drag and drop ---
   const handleDragStart = useCallback((e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';
@@ -528,14 +657,30 @@ export default function DailyTasks() {
     setDragOverTarget(target);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, targetDate: string | null) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, targetDate: string | null) => {
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
-    if (id) {
-      setTasks(prev => prev.map(t => t.id === id ? { ...t, dueDate: targetDate } : t));
+    if (!id) {
+      setDragOverTarget(null);
+      return;
     }
+
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, dueDate: targetDate } : t));
     setDragOverTarget(null);
-  }, []);
+
+    const { error: updateError } = await supabase
+      .from('wt_tasks')
+      .update({ due_date: targetDate, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      setError(updateError.message);
+      await fetchTasks(); // revert optimistic update
+    }
+  }, [fetchTasks]);
 
   // Stats
   const weekTaskCount = useMemo(() => {
@@ -549,7 +694,8 @@ export default function DailyTasks() {
     return { total, done };
   }, [weekDates, tasksByDate]);
 
-  if (!loaded) {
+  // --- Loading state ---
+  if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-8 bg-slate-800 rounded-lg w-64" />
@@ -562,8 +708,35 @@ export default function DailyTasks() {
     );
   }
 
+  // --- Error state ---
+  if (error && tasks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        </div>
+        <h2 className="text-lg font-semibold mb-1">Failed to load tasks</h2>
+        <p className="text-sm text-slate-400 mb-4">{error}</p>
+        <button
+          onClick={() => { setLoading(true); setError(null); fetchTasks(); }}
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {/* Inline error banner */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 flex items-center justify-between">
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 text-xs ml-4">Dismiss</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -629,108 +802,127 @@ export default function DailyTasks() {
               onClick={handleMoveOverdueToToday}
               className="text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1"
             >
-              🔄 {overdueCount} overdue — move to today
+              {overdueCount} overdue — move to today
             </button>
           )}
         </div>
       </div>
 
+      {/* Empty state */}
+      {tasks.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 border border-white/5 rounded-xl bg-slate-900/30">
+          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          </div>
+          <h2 className="text-lg font-semibold mb-1">No tasks yet</h2>
+          <p className="text-sm text-slate-400 mb-4">Create your first task to get started</p>
+          <button
+            onClick={() => { setModalDefaultDate(today); setModalOpen(true); }}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+          >
+            Add Task
+          </button>
+        </div>
+      )}
+
       {/* Weekly Grid + Backlog */}
-      <div className={`grid gap-2 ${showBacklog ? 'grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_180px]' : 'grid-cols-7'}`}>
-        {/* 7 Day Columns */}
-        {weekDates.map(d => {
-          const key = dateStr(d);
-          const isToday = key === today;
-          const isPast = key < today;
-          const dayTasks = tasksByDate[key] || [];
-          const isDragOver = dragOverTarget === key;
-          const { dayName, dayNum } = formatDayHeader(d);
+      {tasks.length > 0 && (
+        <div className={`grid gap-2 ${showBacklog ? 'grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_180px]' : 'grid-cols-7'}`}>
+          {/* 7 Day Columns */}
+          {weekDates.map(d => {
+            const key = dateStr(d);
+            const isToday = key === today;
+            const isPast = key < today;
+            const dayTasks = tasksByDate[key] || [];
+            const isDragOver = dragOverTarget === key;
+            const { dayName, dayNum } = formatDayHeader(d);
 
-          return (
-            <div
-              key={key}
-              className={`bg-slate-900/30 border rounded-xl overflow-hidden transition-colors flex flex-col ${
-                isDragOver ? 'border-blue-500/50 bg-blue-500/5' :
-                isToday ? 'border-blue-500/30 bg-blue-500/[0.03]' :
-                'border-white/5'
-              }`}
-              onDragOver={e => handleDragOver(e, key)}
-              onDragLeave={() => setDragOverTarget(null)}
-              onDrop={e => handleDrop(e, key)}
-            >
-              {/* Day header */}
-              <div className={`px-2 py-2 border-b border-white/5 flex items-center justify-between ${isToday ? 'bg-blue-500/10' : ''}`}>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-500'}`}>
-                    {dayName}
-                  </span>
-                  <span className={`text-sm font-bold ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-300'}`}>
-                    {dayNum}
-                  </span>
+            return (
+              <div
+                key={key}
+                className={`bg-slate-900/30 border rounded-xl overflow-hidden transition-colors flex flex-col ${
+                  isDragOver ? 'border-blue-500/50 bg-blue-500/5' :
+                  isToday ? 'border-blue-500/30 bg-blue-500/[0.03]' :
+                  'border-white/5'
+                }`}
+                onDragOver={e => handleDragOver(e, key)}
+                onDragLeave={() => setDragOverTarget(null)}
+                onDrop={e => handleDrop(e, key)}
+              >
+                {/* Day header */}
+                <div className={`px-2 py-2 border-b border-white/5 flex items-center justify-between ${isToday ? 'bg-blue-500/10' : ''}`}>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-500'}`}>
+                      {dayName}
+                    </span>
+                    <span className={`text-sm font-bold ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-300'}`}>
+                      {dayNum}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => { setModalDefaultDate(key); setModalOpen(true); }}
+                    className="p-0.5 rounded hover:bg-white/10 text-slate-600 hover:text-slate-300 transition-colors"
+                    title={`Add task to ${DAY_NAMES_FULL[d.getDay()]}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  </button>
                 </div>
-                <button
-                  onClick={() => { setModalDefaultDate(key); setModalOpen(true); }}
-                  className="p-0.5 rounded hover:bg-white/10 text-slate-600 hover:text-slate-300 transition-colors"
-                  title={`Add task to ${DAY_NAMES_FULL[d.getDay()]}`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                </button>
-              </div>
 
-              {/* Tasks */}
-              <div className="p-1.5 space-y-1.5 flex-1 min-h-[120px] overflow-y-auto">
-                {dayTasks.length === 0 ? (
-                  <p className="text-[10px] text-slate-700 text-center py-6">
-                    {isPast ? '—' : ''}
-                  </p>
-                ) : (
-                  dayTasks.map(task => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onEdit={setEditingTask}
-                      onDelete={setDeletingTask}
-                      onStatusCycle={handleStatusCycle}
-                      onDragStart={handleDragStart}
-                    />
-                  ))
+                {/* Tasks */}
+                <div className="p-1.5 space-y-1.5 flex-1 min-h-[120px] overflow-y-auto">
+                  {dayTasks.length === 0 ? (
+                    <p className="text-[10px] text-slate-700 text-center py-6">
+                      {isPast ? '—' : ''}
+                    </p>
+                  ) : (
+                    dayTasks.map(task => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={setEditingTask}
+                        onDelete={setDeletingTask}
+                        onStatusCycle={handleStatusCycle}
+                        onDragStart={handleDragStart}
+                      />
+                    ))
+                  )}
+                </div>
+
+                {/* Day task count */}
+                {dayTasks.length > 0 && (
+                  <div className="px-2 py-1 border-t border-white/5 text-[10px] text-slate-600">
+                    {dayTasks.filter(t => t.status === 'done').length}/{dayTasks.length}
+                  </div>
                 )}
               </div>
+            );
+          })}
 
-              {/* Day task count */}
-              {dayTasks.length > 0 && (
-                <div className="px-2 py-1 border-t border-white/5 text-[10px] text-slate-600">
-                  {dayTasks.filter(t => t.status === 'done').length}/{dayTasks.length}
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Backlog column */}
-        {showBacklog && (
-          <Backlog
-            tasks={tasksByDate.backlog || []}
-            onEdit={setEditingTask}
-            onDelete={setDeletingTask}
-            onStatusCycle={handleStatusCycle}
-            onDragStart={handleDragStart}
-            onDragOver={e => handleDragOver(e, 'backlog')}
-            onDrop={e => handleDrop(e, null)}
-            isDragOver={dragOverTarget === 'backlog'}
-          />
-        )}
-      </div>
+          {/* Backlog column */}
+          {showBacklog && (
+            <Backlog
+              tasks={tasksByDate.backlog || []}
+              onEdit={setEditingTask}
+              onDelete={setDeletingTask}
+              onStatusCycle={handleStatusCycle}
+              onDragStart={handleDragStart}
+              onDragOver={e => handleDragOver(e, 'backlog')}
+              onDrop={e => handleDrop(e, null)}
+              isDragOver={dragOverTarget === 'backlog'}
+            />
+          )}
+        </div>
+      )}
 
       {/* Modals */}
       {modalOpen && (
-        <TaskModal task={null} isEdit={false} defaultDate={modalDefaultDate} onSave={handleAddTask} onClose={() => { setModalOpen(false); setModalDefaultDate(''); }} />
+        <TaskModal task={null} isEdit={false} defaultDate={modalDefaultDate} onSave={handleAddTask} onClose={() => { setModalOpen(false); setModalDefaultDate(''); }} saving={saving} />
       )}
       {editingTask && (
-        <TaskModal task={editingTask} isEdit={true} onSave={handleEditTask} onClose={() => setEditingTask(null)} />
+        <TaskModal task={editingTask} isEdit={true} onSave={handleEditTask} onClose={() => setEditingTask(null)} saving={saving} />
       )}
       {deletingTask && (
-        <DeleteConfirm taskTitle={deletingTask.title} onConfirm={handleDelete} onCancel={() => setDeletingTask(null)} />
+        <DeleteConfirm taskTitle={deletingTask.title} onConfirm={handleDelete} onCancel={() => setDeletingTask(null)} deleting={deleting} />
       )}
     </div>
   );

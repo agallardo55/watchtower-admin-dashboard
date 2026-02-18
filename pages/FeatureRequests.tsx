@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { apps } from '../constants';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
 
 // --- Types ---
 
@@ -8,8 +8,28 @@ type FeatureStatus = 'new' | 'planned' | 'in-progress' | 'shipped' | 'declined';
 type SortField = 'date' | 'priority' | 'status' | 'votes';
 type SortDir = 'asc' | 'desc';
 
+interface FeedbackMetadata {
+  priority: Priority;
+  status: FeatureStatus;
+  votes: number;
+  requestedBy: string;
+}
+
+interface FeedbackRow {
+  id: string;
+  app_id: string;
+  type: string;
+  subject: string;
+  message: string;
+  user_email: string;
+  metadata: FeedbackMetadata;
+  created_at: string;
+  wt_app_registry: { name: string } | null;
+}
+
 interface FeatureRequest {
   id: string;
+  app_id: string;
   app: string;
   title: string;
   description: string;
@@ -19,12 +39,15 @@ interface FeatureRequest {
   dateSubmitted: string;
   votes: number;
   createdAt: string;
+  metadata: FeedbackMetadata;
+}
+
+interface AppOption {
+  id: string;
+  name: string;
 }
 
 // --- Constants ---
-
-const STORAGE_KEY = 'watchtower_feature_requests';
-const appList = apps.map(a => a.name);
 
 const priorities: Priority[] = ['low', 'medium', 'high', 'critical'];
 const statuses: FeatureStatus[] = ['new', 'planned', 'in-progress', 'shipped', 'declined'];
@@ -55,28 +78,26 @@ const priorityBadge: Record<Priority, string> = {
 const priorityOrder: Record<Priority, number> = { critical: 4, high: 3, medium: 2, low: 1 };
 const statusOrder: Record<FeatureStatus, number> = { 'new': 1, 'planned': 2, 'in-progress': 3, 'shipped': 4, 'declined': 5 };
 
-function generateId(): string {
-  return `fr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// --- Persistence ---
-
-function loadRequests(): FeatureRequest[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as FeatureRequest[];
-  } catch {
-    return [];
-  }
-}
-
-function saveRequests(requests: FeatureRequest[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+function mapRow(row: FeedbackRow): FeatureRequest {
+  const meta = row.metadata;
+  return {
+    id: row.id,
+    app_id: row.app_id,
+    app: row.wt_app_registry?.name ?? 'Unknown',
+    title: row.subject,
+    description: row.message,
+    priority: meta?.priority ?? 'medium',
+    status: meta?.status ?? 'new',
+    requestedBy: meta?.requestedBy ?? '',
+    dateSubmitted: row.created_at ? row.created_at.slice(0, 10) : todayStr(),
+    votes: meta?.votes ?? 0,
+    createdAt: row.created_at,
+    metadata: meta,
+  };
 }
 
 // --- CSV ---
@@ -98,92 +119,66 @@ function exportCsv(requests: FeatureRequest[]): void {
   URL.revokeObjectURL(url);
 }
 
-function parseCsv(text: string): Partial<FeatureRequest>[] {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) return [];
-  // Skip header row
-  const dataLines = lines.slice(1);
-  const results: Partial<FeatureRequest>[] = [];
-
-  for (const line of dataLines) {
-    // Simple CSV parse handling quoted fields
-    const fields: string[] = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inQuotes) {
-        if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
-        else if (ch === '"') { inQuotes = false; }
-        else { current += ch; }
-      } else {
-        if (ch === '"') { inQuotes = true; }
-        else if (ch === ',') { fields.push(current); current = ''; }
-        else { current += ch; }
-      }
-    }
-    fields.push(current);
-
-    if (fields.length >= 7) {
-      results.push({
-        app: fields[1] || '',
-        title: fields[2] || 'Untitled',
-        description: fields[3] || '',
-        priority: (priorities.includes(fields[4] as Priority) ? fields[4] : 'medium') as Priority,
-        status: (statuses.includes(fields[5] as FeatureStatus) ? fields[5] : 'new') as FeatureStatus,
-        requestedBy: fields[6] || 'unknown',
-        dateSubmitted: fields[7] || todayStr(),
-        votes: parseInt(fields[8]) || 0,
-      });
-    }
-  }
-  return results;
-}
-
 // --- Modal Component ---
 
 interface RequestModalProps {
   request: Partial<FeatureRequest> | null;
   isEdit: boolean;
-  onSave: (data: Omit<FeatureRequest, 'id' | 'createdAt'> & { id?: string }) => void;
+  apps: AppOption[];
+  onSave: (data: {
+    id?: string;
+    app_id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    status: FeatureStatus;
+    requestedBy: string;
+    votes: number;
+    user_email: string;
+  }) => Promise<void>;
   onClose: () => void;
 }
 
-function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
-  const [app, setApp] = useState(request?.app || '');
+function RequestModal({ request, isEdit, apps, onSave, onClose }: RequestModalProps) {
+  const [appId, setAppId] = useState(request?.app_id || '');
   const [title, setTitle] = useState(request?.title || '');
   const [description, setDescription] = useState(request?.description || '');
   const [priority, setPriority] = useState<Priority>(request?.priority || 'medium');
   const [status, setStatus] = useState<FeatureStatus>(request?.status || 'new');
   const [requestedBy, setRequestedBy] = useState(request?.requestedBy || '');
-  const [dateSubmitted, setDateSubmitted] = useState(request?.dateSubmitted || todayStr());
   const [votes, setVotes] = useState(request?.votes ?? 0);
   const [titleError, setTitleError] = useState('');
   const [appError, setAppError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let valid = true;
     if (!title.trim()) { setTitleError('Title is required'); valid = false; }
-    if (!app) { setAppError('App is required'); valid = false; }
+    if (!appId) { setAppError('App is required'); valid = false; }
     if (!valid) return;
 
     setSaving(true);
-    setTimeout(() => {
-      onSave({
+    setSaveError('');
+    try {
+      await onSave({
         ...(isEdit && request?.id ? { id: request.id } : {}),
-        app,
+        app_id: appId,
         title: title.trim(),
         description: description.trim(),
         priority,
         status,
         requestedBy: requestedBy.trim() || 'internal',
-        dateSubmitted,
         votes,
+        user_email: requestedBy.trim() || 'internal',
       });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save';
+      setSaveError(message);
+    } finally {
       setSaving(false);
-    }, 150);
+    }
   };
 
   return (
@@ -197,13 +192,13 @@ function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">App *</label>
               <select
-                value={app}
-                onChange={e => { setApp(e.target.value); setAppError(''); }}
-                onBlur={() => { if (!app) setAppError('App is required'); }}
+                value={appId}
+                onChange={e => { setAppId(e.target.value); setAppError(''); }}
+                onBlur={() => { if (!appId) setAppError('App is required'); }}
                 className={`w-full px-3 py-2 rounded-lg bg-slate-800 border text-sm focus:outline-none focus:border-blue-500 transition-colors ${appError ? 'border-red-500' : 'border-white/10'}`}
               >
                 <option value="">Select app...</option>
-                {appList.map(a => <option key={a} value={a}>{a}</option>)}
+                {apps.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
               {appError && <p className="text-xs text-red-400 mt-1">{appError}</p>}
             </div>
@@ -251,27 +246,16 @@ function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
               </div>
             </div>
 
-            {/* Requested By & Date */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Requested By</label>
-                <input
-                  type="text"
-                  value={requestedBy}
-                  onChange={e => setRequestedBy(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                  placeholder='Name, email, or "internal"'
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Date Submitted</label>
-                <input
-                  type="date"
-                  value={dateSubmitted}
-                  onChange={e => setDateSubmitted(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
+            {/* Requested By */}
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Requested By</label>
+              <input
+                type="text"
+                value={requestedBy}
+                onChange={e => setRequestedBy(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder='Name, email, or "internal"'
+              />
             </div>
 
             {/* Votes (edit only) */}
@@ -288,6 +272,13 @@ function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
               </div>
             )}
 
+            {/* Save error */}
+            {saveError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+                {saveError}
+              </div>
+            )}
+
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors">
@@ -295,7 +286,7 @@ function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
               </button>
               <button
                 type="submit"
-                disabled={saving || !title.trim() || !app}
+                disabled={saving || !title.trim() || !appId}
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {saving && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
@@ -311,7 +302,7 @@ function RequestModal({ request, isEdit, onSave, onClose }: RequestModalProps) {
 
 // --- Delete Confirmation ---
 
-function DeleteConfirm({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
+function DeleteConfirm({ title, deleting, onConfirm, onCancel }: { title: string; deleting: boolean; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
@@ -321,8 +312,11 @@ function DeleteConfirm({ title, onConfirm, onCancel }: { title: string; onConfir
           Are you sure you want to delete "<span className="text-slate-200">{title}</span>"? This cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors">Cancel</button>
-          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors">Delete</button>
+          <button onClick={onCancel} disabled={deleting} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors disabled:opacity-50">Cancel</button>
+          <button onClick={onConfirm} disabled={deleting} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50 flex items-center gap-2">
+            {deleting && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -333,10 +327,14 @@ function DeleteConfirm({ title, onConfirm, onCancel }: { title: string; onConfir
 
 export default function FeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<FeatureRequest | null>(null);
   const [deletingRequest, setDeletingRequest] = useState<FeatureRequest | null>(null);
+  const [deletingInProgress, setDeletingInProgress] = useState(false);
+  const [votingIds, setVotingIds] = useState<Set<string>>(new Set());
+  const [appOptions, setAppOptions] = useState<AppOption[]>([]);
 
   // Filters
   const [filterApp, setFilterApp] = useState('all');
@@ -347,18 +345,42 @@ export default function FeatureRequests() {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load
+  // Load apps for dropdown
   useEffect(() => {
-    setRequests(loadRequests());
-    setLoaded(true);
+    async function loadApps() {
+      const { data } = await supabase
+        .from('wt_app_registry')
+        .select('id, name')
+        .order('name');
+      if (data) {
+        setAppOptions(data as AppOption[]);
+      }
+    }
+    loadApps();
   }, []);
 
-  // Save on change
+  // Load feature requests
   useEffect(() => {
-    if (loaded) saveRequests(requests);
-  }, [requests, loaded]);
+    async function loadRequests() {
+      setLoading(true);
+      setError('');
+      const { data, error: fetchError } = await supabase
+        .from('wt_feedback')
+        .select('*, wt_app_registry(name)')
+        .eq('type', 'feature_request')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        setError(fetchError.message);
+        setLoading(false);
+        return;
+      }
+
+      setRequests((data as FeedbackRow[]).map(mapRow));
+      setLoading(false);
+    }
+    loadRequests();
+  }, []);
 
   // Filtered + sorted
   const filtered = useMemo(() => {
@@ -387,64 +409,135 @@ export default function FeatureRequests() {
     return { total: requests.length, ...byStatus };
   }, [requests]);
 
-  const handleAdd = useCallback((data: Omit<FeatureRequest, 'id' | 'createdAt'> & { id?: string }) => {
-    const newReq: FeatureRequest = {
-      id: generateId(),
-      app: data.app,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      requestedBy: data.requestedBy,
-      dateSubmitted: data.dateSubmitted,
-      votes: data.votes,
-      createdAt: new Date().toISOString(),
-    };
-    setRequests(prev => [newReq, ...prev]);
+  // Unique app names for filter dropdown (from loaded data)
+  const appNamesInData = useMemo(() => {
+    const names = new Set(requests.map(r => r.app));
+    return Array.from(names).sort();
+  }, [requests]);
+
+  const handleAdd = useCallback(async (data: {
+    app_id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    status: FeatureStatus;
+    requestedBy: string;
+    votes: number;
+    user_email: string;
+  }) => {
+    const { data: row, error: insertError } = await supabase
+      .from('wt_feedback')
+      .insert({
+        type: 'feature_request',
+        subject: data.title,
+        message: data.description,
+        app_id: data.app_id,
+        user_email: data.user_email,
+        metadata: {
+          priority: data.priority,
+          status: 'new' as FeatureStatus,
+          votes: 0,
+          requestedBy: data.requestedBy,
+        },
+      })
+      .select('*, wt_app_registry(name)')
+      .single();
+
+    if (insertError) throw new Error(insertError.message);
+    setRequests(prev => [mapRow(row as FeedbackRow), ...prev]);
     setModalOpen(false);
   }, []);
 
-  const handleEdit = useCallback((data: Omit<FeatureRequest, 'id' | 'createdAt'> & { id?: string }) => {
+  const handleEdit = useCallback(async (data: {
+    id?: string;
+    app_id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    status: FeatureStatus;
+    requestedBy: string;
+    votes: number;
+    user_email: string;
+  }) => {
     if (!data.id) return;
-    setRequests(prev => prev.map(r => r.id === data.id ? { ...r, ...data } : r));
-    setEditingRequest(null);
-  }, []);
 
-  const handleDelete = useCallback(() => {
+    const existing = requests.find(r => r.id === data.id);
+    if (!existing) return;
+
+    const { data: row, error: updateError } = await supabase
+      .from('wt_feedback')
+      .update({
+        subject: data.title,
+        message: data.description,
+        app_id: data.app_id,
+        user_email: data.user_email,
+        metadata: {
+          ...existing.metadata,
+          priority: data.priority,
+          status: data.status,
+          votes: data.votes,
+          requestedBy: data.requestedBy,
+        },
+      })
+      .eq('id', data.id)
+      .select('*, wt_app_registry(name)')
+      .single();
+
+    if (updateError) throw new Error(updateError.message);
+    setRequests(prev => prev.map(r => r.id === data.id ? mapRow(row as FeedbackRow) : r));
+    setEditingRequest(null);
+  }, [requests]);
+
+  const handleDelete = useCallback(async () => {
     if (!deletingRequest) return;
+    setDeletingInProgress(true);
+
+    const { error: deleteError } = await supabase
+      .from('wt_feedback')
+      .delete()
+      .eq('id', deletingRequest.id);
+
+    setDeletingInProgress(false);
+
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
+
     setRequests(prev => prev.filter(r => r.id !== deletingRequest.id));
     setDeletingRequest(null);
   }, [deletingRequest]);
 
-  const handleVote = useCallback((id: string) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, votes: r.votes + 1 } : r));
-  }, []);
+  const handleVote = useCallback(async (id: string) => {
+    const target = requests.find(r => r.id === id);
+    if (!target || votingIds.has(id)) return;
 
-  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const parsed = parseCsv(text);
-      const newReqs: FeatureRequest[] = parsed.map(p => ({
-        id: generateId(),
-        app: p.app || '',
-        title: p.title || 'Untitled',
-        description: p.description || '',
-        priority: p.priority || 'medium',
-        status: p.status || 'new',
-        requestedBy: p.requestedBy || 'imported',
-        dateSubmitted: p.dateSubmitted || todayStr(),
-        votes: p.votes || 0,
-        createdAt: new Date().toISOString(),
-      }));
-      setRequests(prev => [...newReqs, ...prev]);
-    };
-    reader.readAsText(file);
-    // Reset input so same file can be imported again
-    e.target.value = '';
-  }, []);
+    setVotingIds(prev => new Set(prev).add(id));
+
+    const newVotes = target.votes + 1;
+    const { error: voteError } = await supabase
+      .from('wt_feedback')
+      .update({
+        metadata: {
+          ...target.metadata,
+          votes: newVotes,
+        },
+      })
+      .eq('id', id);
+
+    setVotingIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+
+    if (voteError) {
+      setError(voteError.message);
+      return;
+    }
+
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, votes: newVotes, metadata: { ...r.metadata, votes: newVotes } } : r));
+  }, [requests, votingIds]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -452,12 +545,12 @@ export default function FeatureRequests() {
   };
 
   const sortIcon = (field: SortField) => {
-    if (sortField !== field) return '↕';
-    return sortDir === 'desc' ? '↓' : '↑';
+    if (sortField !== field) return '\u2195';
+    return sortDir === 'desc' ? '\u2193' : '\u2191';
   };
 
-  // Loading
-  if (!loaded) {
+  // Loading state
+  if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-8 bg-slate-800 rounded-lg w-64" />
@@ -469,8 +562,35 @@ export default function FeatureRequests() {
     );
   }
 
+  // Error state
+  if (error && requests.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        </div>
+        <h3 className="text-lg font-semibold mb-1">Failed to load feature requests</h3>
+        <p className="text-sm text-slate-500 mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Inline error banner */}
+      {error && requests.length > 0 && (
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-red-400 hover:text-red-300 ml-4">&times;</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -478,15 +598,6 @@ export default function FeatureRequests() {
           <p className="text-sm text-slate-500 mt-1">{stats.total} total requests across all apps</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Import */}
-          <input type="file" ref={fileInputRef} accept=".csv" onChange={handleImport} className="hidden" />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 bg-slate-800 border border-white/10 hover:border-white/20 transition-colors flex items-center gap-1.5"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-            Import
-          </button>
           {/* Export */}
           <button
             onClick={() => exportCsv(requests)}
@@ -528,7 +639,7 @@ export default function FeatureRequests() {
       <div className="flex flex-wrap items-center gap-3">
         <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
           <option value="all">All Apps</option>
-          {appList.map(a => <option key={a} value={a}>{a}</option>)}
+          {appNamesInData.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
           <option value="all">All Statuses</option>
@@ -612,7 +723,8 @@ export default function FeatureRequests() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => handleVote(r.id)}
-                        className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg hover:bg-blue-500/10 transition-colors group min-w-[40px]"
+                        disabled={votingIds.has(r.id)}
+                        className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg hover:bg-blue-500/10 transition-colors group min-w-[40px] disabled:opacity-50"
                         title="Upvote"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 group-hover:text-blue-400 transition-colors"><path d="m18 15-6-6-6 6"/></svg>
@@ -666,7 +778,8 @@ export default function FeatureRequests() {
                   </div>
                   <button
                     onClick={() => handleVote(r.id)}
-                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-800 border border-white/5 min-w-[44px] min-h-[44px] justify-center"
+                    disabled={votingIds.has(r.id)}
+                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-800 border border-white/5 min-w-[44px] min-h-[44px] justify-center disabled:opacity-50"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="m18 15-6-6-6 6"/></svg>
                     <span className="text-xs font-semibold text-blue-400">{r.votes}</span>
@@ -682,7 +795,7 @@ export default function FeatureRequests() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-slate-500">
-                    {r.requestedBy} · {r.dateSubmitted}
+                    {r.requestedBy} &middot; {r.dateSubmitted}
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => setEditingRequest(r)} className="p-2 rounded hover:bg-white/10 text-slate-400 hover:text-slate-200 min-w-[44px] min-h-[44px] flex items-center justify-center">
@@ -700,9 +813,9 @@ export default function FeatureRequests() {
       )}
 
       {/* Modals */}
-      {modalOpen && <RequestModal request={null} isEdit={false} onSave={handleAdd} onClose={() => setModalOpen(false)} />}
-      {editingRequest && <RequestModal request={editingRequest} isEdit={true} onSave={handleEdit} onClose={() => setEditingRequest(null)} />}
-      {deletingRequest && <DeleteConfirm title={deletingRequest.title} onConfirm={handleDelete} onCancel={() => setDeletingRequest(null)} />}
+      {modalOpen && <RequestModal request={null} isEdit={false} apps={appOptions} onSave={handleAdd} onClose={() => setModalOpen(false)} />}
+      {editingRequest && <RequestModal request={editingRequest} isEdit={true} apps={appOptions} onSave={handleEdit} onClose={() => setEditingRequest(null)} />}
+      {deletingRequest && <DeleteConfirm title={deletingRequest.title} deleting={deletingInProgress} onConfirm={handleDelete} onCancel={() => setDeletingRequest(null)} />}
     </div>
   );
 }

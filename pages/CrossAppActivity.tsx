@@ -1,22 +1,156 @@
 
-import React from 'react';
-import { apps, icons } from '../constants';
+import React, { useEffect, useState } from 'react';
+import { apps } from '../constants';
+import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const barData = apps.slice(0, 8).map(app => ({
-  name: app.name,
-  users: app.users + Math.floor(Math.random() * 10),
-  color: app.status === 'live' ? '#10b981' : app.status === 'beta' ? '#f59e0b' : '#325AE7'
-}));
+interface ActivityRow {
+  id: string;
+  app_id: string;
+  action: string;
+  actor: string;
+  description: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  wt_app_registry: { name: string } | null;
+}
 
-const overlapData = [
-  { appA: 'BuybidHQ', appB: 'SalesboardHQ', count: 12 },
-  { appA: 'BuybidHQ', appB: 'Copilot', count: 5 },
-  { appA: 'SalesboardHQ', appB: 'Copilot', count: 8 },
-  { appA: 'Demolight', appB: 'SalesLog', count: 14 }
-];
+interface BarDatum {
+  name: string;
+  count: number;
+  color: string;
+}
+
+interface PowerUser {
+  actor: string;
+  appCount: number;
+  appNames: string[];
+  totalActions: number;
+  lastSeen: string;
+}
+
+const APP_COLORS = ['#10b981', '#f59e0b', '#325AE7', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'];
 
 export default function CrossAppActivity() {
+  const [activities, setActivities] = useState<ActivityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchActivity() {
+      setLoading(true);
+      setError(null);
+      const { data, error: fetchError } = await supabase
+        .from('wt_activity_log')
+        .select('*, wt_app_registry(name)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (fetchError) {
+        setError(fetchError.message);
+      } else {
+        setActivities((data as ActivityRow[]) ?? []);
+      }
+      setLoading(false);
+    }
+    fetchActivity();
+  }, []);
+
+  // Compute bar chart data: group by app name, count activities
+  const barData: BarDatum[] = (() => {
+    const counts = new Map<string, number>();
+    for (const row of activities) {
+      const appName = row.wt_app_registry?.name ?? 'Unknown';
+      counts.set(appName, (counts.get(appName) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count], idx) => ({
+        name,
+        count,
+        color: APP_COLORS[idx % APP_COLORS.length],
+      }));
+  })();
+
+  // Compute power users: actors active in 3+ distinct apps
+  const powerUsers: PowerUser[] = (() => {
+    const actorMap = new Map<string, { apps: Set<string>; total: number; lastSeen: string }>();
+    for (const row of activities) {
+      const appName = row.wt_app_registry?.name ?? 'Unknown';
+      const existing = actorMap.get(row.actor);
+      if (existing) {
+        existing.apps.add(appName);
+        existing.total += 1;
+        if (row.created_at > existing.lastSeen) {
+          existing.lastSeen = row.created_at;
+        }
+      } else {
+        actorMap.set(row.actor, {
+          apps: new Set([appName]),
+          total: 1,
+          lastSeen: row.created_at,
+        });
+      }
+    }
+    return Array.from(actorMap.entries())
+      .filter(([, v]) => v.apps.size >= 3)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([actor, v]) => ({
+        actor,
+        appCount: v.apps.size,
+        appNames: Array.from(v.apps),
+        totalActions: v.total,
+        lastSeen: v.lastSeen,
+      }));
+  })();
+
+  function formatRelativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days === 1 ? '' : 's'} ago`;
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Cross-App Activity</h2>
+          <p className="text-slate-500 mt-1">Analyze how users move between and engage with multiple apps in the ecosystem.</p>
+        </div>
+        <div className="flex items-center justify-center py-24 text-slate-500">Loading activity data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Cross-App Activity</h2>
+          <p className="text-slate-500 mt-1">Analyze how users move between and engage with multiple apps in the ecosystem.</p>
+        </div>
+        <div className="flex items-center justify-center py-24 text-red-400">Failed to load activity data: {error}</div>
+      </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Cross-App Activity</h2>
+          <p className="text-slate-500 mt-1">Analyze how users move between and engage with multiple apps in the ecosystem.</p>
+        </div>
+        <div className="flex items-center justify-center py-24 text-slate-500">No activity recorded yet.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
@@ -31,34 +165,9 @@ export default function CrossAppActivity() {
             <h3 className="font-bold text-lg">User Overlap Heatmap</h3>
             <p className="text-xs text-slate-500">Number of shared users between different applications</p>
           </div>
-          
-          <div className="relative overflow-x-auto">
-             <table className="w-full text-xs border-collapse">
-               <thead>
-                 <tr>
-                   <th className="p-2"></th>
-                   {apps.slice(0, 5).map(app => (
-                     <th key={app.name} className="p-2 font-mono text-slate-500 -rotate-45 h-20 origin-bottom-left text-[10px]">{app.name}</th>
-                   ))}
-                 </tr>
-               </thead>
-               <tbody>
-                 {apps.slice(0, 5).map((appY, idxY) => (
-                   <tr key={appY.name}>
-                     <td className="p-2 font-bold text-right text-slate-500 border-r border-white/5">{appY.name}</td>
-                     {apps.slice(0, 5).map((appX, idxX) => {
-                       const count = idxX === idxY ? appY.users : Math.floor(Math.random() * 15);
-                       const intensity = idxX === idxY ? 'bg-blue-600/60' : count > 10 ? 'bg-blue-600/40' : count > 5 ? 'bg-blue-600/20' : 'bg-blue-600/5';
-                       return (
-                         <td key={appX.name} className={`p-4 border border-white/5 text-center ${intensity} font-bold text-slate-100`}>
-                           {count}
-                         </td>
-                       );
-                     })}
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
+
+          <div className="flex items-center justify-center py-12 text-slate-500 text-sm">
+            No overlap data yet
           </div>
         </div>
 
@@ -66,26 +175,30 @@ export default function CrossAppActivity() {
         <div className="glass rounded-xl p-6">
           <div className="mb-6">
             <h3 className="font-bold text-lg">Total Engagement by App</h3>
-            <p className="text-xs text-slate-500">Active sessions per app in the last 30 days</p>
+            <p className="text-xs text-slate-500">Activity count per app from recent logs</p>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} hide />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
-                <Tooltip 
-                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                  contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
-                  itemStyle={{color: '#f1f5f9'}}
-                />
-                <Bar dataKey="users" radius={[4, 4, 0, 0]}>
-                  {barData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {barData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} hide />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px' }}
+                    itemStyle={{ color: '#f1f5f9' }}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {barData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-500 text-sm">No chart data available</div>
+            )}
           </div>
         </div>
       </div>
@@ -97,41 +210,52 @@ export default function CrossAppActivity() {
             <h3 className="font-bold text-lg">Cross-App Power Users</h3>
             <p className="text-xs text-slate-500">Users active across 3 or more applications</p>
           </div>
-          <button className="text-xs font-bold text-blue-500 border border-blue-500/20 px-3 py-1 rounded-lg hover:bg-blue-500/10 transition-colors">Export Segment</button>
+          <button
+            title="Coming soon"
+            className="text-xs font-bold text-blue-500 border border-blue-500/20 px-3 py-1 rounded-lg hover:bg-blue-500/10 transition-colors"
+          >
+            Export Segment
+          </button>
         </div>
-        <table className="w-full text-left text-sm">
-          <thead className="bg-white/2 text-slate-500 border-b border-white/5">
-            <tr>
-              <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">User</th>
-              <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Email</th>
-              <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">App Access</th>
-              <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Total Sessions</th>
-              <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Last Seen</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {[
-              { name: 'John Doe', email: 'john@carsoft.com', active: ['🏷️', '📊', '🤖'], sessions: 142, last: '2 hours ago' },
-              { name: 'Sarah Wilson', email: 'sarah@dealers.io', active: ['🏷️', '📈', '🔄'], sessions: 98, last: '5 hours ago' },
-              { name: 'Mike Miller', email: 'mike@millerauto.net', active: ['📊', '📈', '🤝'], sessions: 84, last: '1 day ago' },
-              { name: 'Emma Watson', email: 'emma@watsonauto.com', active: ['🤖', '🔄', '📝'], sessions: 210, last: '12 mins ago' }
-            ].map((user, idx) => (
-              <tr key={idx} className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-semibold">{user.name}</td>
-                <td className="px-6 py-4 text-slate-400 text-xs">{user.email}</td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-1">
-                    {user.active.map((emoji, i) => (
-                      <span key={i} className="w-6 h-6 rounded bg-slate-900 border border-white/5 flex items-center justify-center text-xs shadow-inner" title="App Access">{emoji}</span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 font-mono font-bold text-blue-400">{user.sessions}</td>
-                <td className="px-6 py-4 text-slate-500 text-xs italic">{user.last}</td>
+        {powerUsers.length === 0 ? (
+          <div className="flex items-center justify-center py-12 text-slate-500 text-sm">
+            No power users found (requires activity in 3+ apps)
+          </div>
+        ) : (
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/2 text-slate-500 border-b border-white/5">
+              <tr>
+                <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Actor</th>
+                <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Apps</th>
+                <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">App Count</th>
+                <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Total Actions</th>
+                <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Last Seen</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {powerUsers.map((user) => (
+                <tr key={user.actor} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4 font-semibold">{user.actor}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-1 flex-wrap">
+                      {user.appNames.map((name) => (
+                        <span
+                          key={name}
+                          className="px-2 py-0.5 rounded bg-slate-900 border border-white/5 text-xs text-slate-300"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 font-mono font-bold text-blue-400">{user.appCount}</td>
+                  <td className="px-6 py-4 font-mono font-bold text-blue-400">{user.totalActions}</td>
+                  <td className="px-6 py-4 text-slate-500 text-xs italic">{formatRelativeTime(user.lastSeen)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

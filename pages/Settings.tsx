@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { icons } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -17,15 +17,19 @@ const tabs = [
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Profile state
   const [profile, setProfile] = useState({
-    firstName: 'Adam',
-    lastName: 'Gallardo',
-    email: 'adam@buybidhq.com',
-    mobile: '(555) 901-2345',
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobile: '',
     company: 'CMIG Partners',
-    title: 'Super Admin',
+    title: '',
     timezone: 'America/Los_Angeles',
   });
 
@@ -54,6 +58,87 @@ export default function Settings() {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Load profile on mount
+  useEffect(() => {
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUserId(user.id);
+
+      const { data: wtUser } = await supabase
+        .from('wt_users')
+        .select('display_name, role, mfa_phone')
+        .eq('id', user.id)
+        .single();
+
+      const names = (wtUser?.display_name || '').split(' ');
+      setProfile({
+        firstName: names[0] || '',
+        lastName: names.slice(1).join(' ') || '',
+        email: user.email || '',
+        mobile: wtUser?.mfa_phone ? formatPhone(wtUser.mfa_phone.replace('+1', '')) : '',
+        company: 'CMIG Partners',
+        title: wtUser?.role || '',
+        timezone: 'America/Los_Angeles',
+      });
+      setLoading(false);
+    }
+    loadProfile();
+  }, []);
+
+  const handleSaveProfile = async () => {
+    if (!userId) return;
+    setSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Update wt_users via edge function
+      const phone = profile.mobile.replace(/\D/g, '');
+      const formattedPhone = phone ? `+1${phone}` : '';
+
+      const { data, error: fnError } = await supabase.functions.invoke('update-user', {
+        body: {
+          userId,
+          app: 'Watchtower',
+          fields: {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            phone: formattedPhone || undefined,
+          },
+        },
+      });
+
+      if (fnError || data?.error) {
+        setSaveMessage({ type: 'error', text: data?.error || 'Failed to save profile.' });
+      } else {
+        // Also update mfa_phone directly for password reset SMS
+        if (formattedPhone) {
+          await supabase
+            .from('wt_users')
+            .update({ mfa_phone: formattedPhone })
+            .eq('id', userId);
+        }
+        setSaveMessage({ type: 'success', text: 'Profile saved successfully.' });
+      }
+    } catch {
+      setSaveMessage({ type: 'error', text: 'Something went wrong.' });
+    }
+
+    setSaving(false);
+    setTimeout(() => setSaveMessage(null), 4000);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-slate-500 text-sm">Loading settings...</div>
+      </div>
+    );
+  }
+
+  const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase() || 'U';
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -77,21 +162,18 @@ export default function Settings() {
         ))}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════ */}
-      {/* PROFILE TAB                                               */}
-      {/* ══════════════════════════════════════════════════════════ */}
+      {/* PROFILE TAB */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
           {/* Avatar + name header */}
           <div className="glass rounded-xl p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-5">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                AG
+                {initials}
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold">{profile.firstName} {profile.lastName}</h3>
                 <p className="text-sm text-slate-500">{profile.title} &bull; {profile.company}</p>
-                <p className="text-xs text-slate-600 mt-1">Member since June 2025</p>
               </div>
               <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors">
                 Change Avatar
@@ -102,6 +184,16 @@ export default function Settings() {
           {/* Profile form */}
           <div className="glass rounded-xl p-6 space-y-5">
             <h3 className="font-semibold text-lg">Personal Information</h3>
+
+            {saveMessage && (
+              <div className={`rounded-lg px-4 py-3 text-sm ${
+                saveMessage.type === 'success'
+                  ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                  : 'bg-red-500/10 border border-red-500/20 text-red-400'
+              }`}>
+                {saveMessage.text}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -130,9 +222,10 @@ export default function Settings() {
                 <input
                   type="email"
                   value={profile.email}
-                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  disabled
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 opacity-60 cursor-not-allowed"
                 />
+                <p className="text-[10px] text-slate-600">Email changes require re-verification</p>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Mobile Number</label>
@@ -143,6 +236,7 @@ export default function Settings() {
                   onChange={(e) => setProfile({ ...profile, mobile: formatPhone(e.target.value) })}
                   className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
+                <p className="text-[10px] text-slate-600">Used for MFA and password reset</p>
               </div>
             </div>
 
@@ -173,17 +267,19 @@ export default function Settings() {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                Save Profile
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════ */}
-      {/* SECURITY TAB                                              */}
-      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SECURITY TAB */}
       {activeTab === 'security' && (
         <div className="space-y-6">
           {/* Change Password */}
@@ -303,9 +399,7 @@ export default function Settings() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════ */}
-      {/* NOTIFICATIONS TAB                                         */}
-      {/* ══════════════════════════════════════════════════════════ */}
+      {/* NOTIFICATIONS TAB */}
       {activeTab === 'notifications' && (
         <div className="space-y-6">
           {/* Email Notifications */}
@@ -331,7 +425,7 @@ export default function Settings() {
                     onClick={() => toggleNotif(item.key)}
                     className={`w-10 h-5 rounded-full transition-colors relative ${notifications[item.key] ? 'bg-blue-600' : 'bg-slate-700'}`}
                   >
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${notifications[item.key] ? 'left-5.5 right-0.5' : 'left-0.5'}`}
+                    <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all`}
                       style={{ left: notifications[item.key] ? '22px' : '2px' }}
                     />
                   </button>

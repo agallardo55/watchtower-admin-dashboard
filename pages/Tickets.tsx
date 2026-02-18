@@ -1,34 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { icons } from '../constants';
+import { supabase } from '../lib/supabase';
+
+interface AppRegistry {
+  name: string;
+}
 
 interface Ticket {
   id: string;
   title: string;
-  app: string;
+  app_id: string;
+  assigned_to: string | null;
+  category: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'wont_fix';
-  category: string;
-  aiSummary: string;
-  feedbackMessage: string;
+  ai_summary: string | null;
+  feedback_id: string | null;
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  wt_app_registry: AppRegistry | null;
 }
-
-const mockTickets: Ticket[] = [
-  { id: '1', title: 'Stripe checkout returns 500 on annual plan', app: 'SalesLogHQ', priority: 'critical', status: 'open', category: 'Billing', aiSummary: 'Stripe webhook failing for annual plan tier. Price ID mismatch between sl_plans and Stripe Dashboard. Likely caused by test vs live mode key confusion.', feedbackMessage: 'I tried to subscribe to the annual plan but got a server error after clicking Pay. Monthly works fine.', tags: ['stripe', 'checkout', 'pricing'], createdAt: '2026-02-14T08:30:00Z', updatedAt: '2026-02-14T08:30:00Z' },
-  { id: '2', title: 'VIN decoder returns wrong trim for 2024 Tacoma', app: 'BuybidHQ', priority: 'high', status: 'open', category: 'Data', aiSummary: 'CarAPI returns incorrect trim level for certain Toyota VINs. NHTSA fallback also lacks trim data. May need to add a manual override field.', feedbackMessage: 'Entered VIN for a 2024 Tacoma TRD Pro and it came back as SR5. Wrong trim entirely.', tags: ['vin', 'carapi', 'toyota'], createdAt: '2026-02-14T07:15:00Z', updatedAt: '2026-02-14T07:15:00Z' },
-  { id: '3', title: 'Camera permission denied on iOS 17.3', app: 'Demolight', priority: 'high', status: 'in_progress', category: 'Mobile', aiSummary: 'iOS 17.3 changed camera permission flow. App requests permission but iOS shows a blank dialog. Likely needs NSCameraUsageDescription update in Info.plist.', feedbackMessage: 'Camera just shows black screen on my iPhone 15. Android works fine.', tags: ['ios', 'camera', 'permissions'], createdAt: '2026-02-13T16:00:00Z', updatedAt: '2026-02-14T09:00:00Z' },
-  { id: '4', title: 'Voting widget not persisting votes', app: 'Build In The Wild', priority: 'medium', status: 'open', category: 'Feature', aiSummary: 'Voting widget currently logs to console only. Needs wiring to wt_votes table via Supabase client or edge function.', feedbackMessage: 'I clicked thumbs up on SalesLogHQ but when I refresh the page it doesn\'t show my vote.', tags: ['voting', 'supabase', 'persistence'], createdAt: '2026-02-13T14:20:00Z', updatedAt: '2026-02-13T14:20:00Z' },
-  { id: '5', title: 'Demo mode shows stale data after login', app: 'SalesLogHQ', priority: 'medium', status: 'open', category: 'Auth', aiSummary: 'When user logs into real account after using demo mode, some demo data persists in state. DemoContext cleanup needed on auth state change.', feedbackMessage: 'Played with the demo first, then created an account. Still seeing the fake dealership name in the header.', tags: ['demo-mode', 'auth', 'state'], createdAt: '2026-02-13T11:00:00Z', updatedAt: '2026-02-13T11:00:00Z' },
-  { id: '6', title: 'Commission tracker rounding error on splits', app: 'SalesLogHQ', priority: 'low', status: 'open', category: 'Calculation', aiSummary: 'Split commission calculations show $0.01 discrepancy on odd amounts due to floating point. Should use integer cents math.', feedbackMessage: 'My 50/50 split on a $1,501 deal shows $750.51 and $750.50. Penny discrepancy.', tags: ['money', 'rounding', 'splits'], createdAt: '2026-02-12T09:30:00Z', updatedAt: '2026-02-12T09:30:00Z' },
-  { id: '7', title: 'Bid notification email has wrong vehicle photo', app: 'BuybidHQ', priority: 'medium', status: 'resolved', category: 'Email', aiSummary: 'Email template pulls first photo from vehicle_photos array, but array order isn\'t guaranteed. Should use is_primary flag or sort by position.', feedbackMessage: 'Got a bid notification but the car photo was of a completely different vehicle than what I bid on.', tags: ['email', 'photos', 'resend'], createdAt: '2026-02-11T15:00:00Z', updatedAt: '2026-02-13T10:00:00Z' },
-  { id: '8', title: 'Waitlist form accepts invalid emails', app: 'Build In The Wild', priority: 'low', status: 'open', category: 'Validation', aiSummary: 'Email input on waitlist form only checks for @ symbol. Needs proper regex validation and blur-on-validate pattern.', feedbackMessage: 'I accidentally typed "test@" without a domain and it still submitted.', tags: ['validation', 'email', 'forms'], createdAt: '2026-02-11T12:00:00Z', updatedAt: '2026-02-11T12:00:00Z' },
-  { id: '9', title: 'Leaderboard not updating in real-time', app: 'SalesboardHQ', priority: 'medium', status: 'in_progress', category: 'Performance', aiSummary: 'Supabase realtime subscription drops after ~30 min idle. Need to implement reconnection logic or polling fallback.', feedbackMessage: 'Board freezes after lunch break. Have to refresh to see updated numbers.', tags: ['realtime', 'supabase', 'websocket'], createdAt: '2026-02-10T14:00:00Z', updatedAt: '2026-02-13T16:00:00Z' },
-  { id: '10', title: 'Test drive timer doesn\'t stop on app background', app: 'Demolight', priority: 'high', status: 'open', category: 'Mobile', aiSummary: 'Timer component uses setInterval which pauses when app is backgrounded on iOS. Need to use absolute timestamps and calculate elapsed on foreground.', feedbackMessage: 'Started a test drive timer, locked my phone for 10 minutes. Timer only shows 2 minutes when I come back.', tags: ['timer', 'background', 'ios'], createdAt: '2026-02-10T11:00:00Z', updatedAt: '2026-02-10T11:00:00Z' },
-  { id: '11', title: 'PDF export cuts off vehicle condition notes', app: 'BuybidHQ', priority: 'low', status: 'closed', category: 'Export', aiSummary: 'Long condition notes overflow PDF page boundary. Need page break logic or text truncation with "see full report" link.', feedbackMessage: 'Exported a bid sheet and half the condition notes are missing on the printout.', tags: ['pdf', 'export', 'overflow'], createdAt: '2026-02-09T09:00:00Z', updatedAt: '2026-02-12T14:00:00Z' },
-  { id: '12', title: 'Mobile nav hamburger menu overlaps header on Android', app: 'SalesLogHQ', priority: 'low', status: 'open', category: 'UI', aiSummary: 'Hamburger menu z-index conflicts with sticky header on Android Chrome. Need z-index audit on mobile breakpoints.', feedbackMessage: 'On my Galaxy S24 the menu button is behind the logo. Can\'t tap it.', tags: ['mobile', 'android', 'z-index'], createdAt: '2026-02-08T16:00:00Z', updatedAt: '2026-02-08T16:00:00Z' },
-];
 
 const priorityColors: Record<string, string> = {
   critical: 'bg-red-500/10 text-red-400 border border-red-500/20',
@@ -53,27 +46,110 @@ const statusLabels: Record<string, string> = {
   wont_fix: "Won't Fix",
 };
 
-const allApps = [...new Set(mockTickets.map(t => t.app))];
+const statusOptions: { value: string; label: string }[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'wont_fix', label: "Won't Fix" },
+];
+
+function getAppName(ticket: Ticket): string {
+  return ticket.wt_app_registry?.name ?? 'Unknown App';
+}
 
 export default function Tickets() {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [appFilter, setAppFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Ticket | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [statusDropdown, setStatusDropdown] = useState(false);
 
-  const filtered = mockTickets.filter(t => {
+  const fetchTickets = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error: fetchError } = await supabase
+      .from('wt_tickets')
+      .select('*, wt_app_registry(name)')
+      .order('created_at', { ascending: false });
+
+    if (fetchError) {
+      setError(fetchError.message);
+      setLoading(false);
+      return;
+    }
+
+    setTickets((data as Ticket[]) ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  const updateTicketStatus = async (ticketId: string, newStatus: string) => {
+    setUpdating(true);
+    setUpdateError(null);
+
+    const now = new Date().toISOString();
+    const updates: Record<string, string> = { status: newStatus, updated_at: now };
+    if (newStatus === 'resolved') {
+      updates.resolved_at = now;
+    }
+
+    const { error: updateErr } = await supabase
+      .from('wt_tickets')
+      .update(updates)
+      .eq('id', ticketId);
+
+    if (updateErr) {
+      setUpdateError(updateErr.message);
+      setUpdating(false);
+      return;
+    }
+
+    setTickets(prev =>
+      prev.map(t =>
+        t.id === ticketId
+          ? { ...t, status: newStatus as Ticket['status'], updated_at: now, ...(newStatus === 'resolved' ? { resolved_at: now } : {}) }
+          : t
+      )
+    );
+
+    if (selected?.id === ticketId) {
+      setSelected(prev =>
+        prev ? { ...prev, status: newStatus as Ticket['status'], updated_at: now, ...(newStatus === 'resolved' ? { resolved_at: now } : {}) } : null
+      );
+    }
+
+    setStatusDropdown(false);
+    setUpdating(false);
+  };
+
+  const allApps = [...new Set(tickets.map(t => getAppName(t)))].sort();
+
+  const filtered = tickets.filter(t => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false;
     if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
-    if (appFilter !== 'all' && t.app !== appFilter) return false;
-    if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.app.toLowerCase().includes(search.toLowerCase())) return false;
+    if (appFilter !== 'all' && getAppName(t) !== appFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!t.title.toLowerCase().includes(q) && !getAppName(t).toLowerCase().includes(q)) return false;
+    }
     return true;
   });
 
-  const openCount = mockTickets.filter(t => t.status === 'open').length;
-  const criticalCount = mockTickets.filter(t => t.priority === 'critical' && t.status !== 'closed' && t.status !== 'resolved').length;
-  const resolvedToday = mockTickets.filter(t => t.status === 'resolved' && t.updatedAt.startsWith('2026-02-14')).length;
-  const feedbackToday = mockTickets.filter(t => t.createdAt.startsWith('2026-02-14')).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const openCount = tickets.filter(t => t.status === 'open').length;
+  const criticalCount = tickets.filter(t => t.priority === 'critical' && t.status !== 'closed' && t.status !== 'resolved').length;
+  const resolvedToday = tickets.filter(t => t.status === 'resolved' && t.updated_at.startsWith(today)).length;
+  const feedbackToday = tickets.filter(t => t.created_at.startsWith(today)).length;
 
   const stats = [
     { label: 'Open Tickets', value: openCount, color: 'text-blue-400', bg: 'bg-blue-500/10', icon: 'mail' },
@@ -81,6 +157,56 @@ export default function Tickets() {
     { label: 'Resolved Today', value: resolvedToday, color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'archive' },
     { label: 'New Feedback', value: feedbackToday, color: 'text-purple-400', bg: 'bg-purple-500/10', icon: 'bell' },
   ];
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
+          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-slate-400 text-sm">Loading tickets...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
+          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+        </div>
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load tickets</h3>
+          <p className="text-sm text-slate-500 mb-4">{error}</p>
+          <button onClick={fetchTickets} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (tickets.length === 0) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
+          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+        </div>
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">🎫</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets yet</h3>
+          <p className="text-sm text-slate-500">Tickets are created from user feedback via the AI triage system.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -143,8 +269,8 @@ export default function Tickets() {
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
               </div>
               <div className="flex justify-between text-xs text-slate-500">
-                <span>{t.app}</span>
-                <span>{new Date(t.createdAt).toLocaleDateString()}</span>
+                <span>{getAppName(t)}</span>
+                <span>{new Date(t.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           ))}
@@ -175,11 +301,11 @@ export default function Tickets() {
               {filtered.map(t => (
                 <tr key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`hover:bg-white/5 cursor-pointer transition-colors ${selected?.id === t.id ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}>
                   <td className="px-4 py-3 font-medium text-slate-200 max-w-[280px] truncate">{t.title}</td>
-                  <td className="px-4 py-3 text-slate-400">{t.app}</td>
+                  <td className="px-4 py-3 text-slate-400">{getAppName(t)}</td>
                   <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span></td>
                   <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span></td>
                   <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{t.category}</td>
-                  <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{new Date(t.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{new Date(t.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
@@ -196,9 +322,9 @@ export default function Tickets() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-100">{selected.title}</h3>
-                <p className="text-xs text-slate-500 mt-1">{selected.app} · {selected.category}</p>
+                <p className="text-xs text-slate-500 mt-1">{getAppName(selected)} · {selected.category}</p>
               </div>
-              <button onClick={() => setSelected(null)} className="text-slate-500 hover:text-slate-300 transition-colors">✕</button>
+              <button onClick={() => { setSelected(null); setStatusDropdown(false); }} className="text-slate-500 hover:text-slate-300 transition-colors">✕</button>
             </div>
 
             <div className="flex gap-3">
@@ -212,44 +338,77 @@ export default function Tickets() {
               </div>
             </div>
 
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">🤖 AI Summary</label>
-              <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 rounded-lg p-3 border border-white/5">{selected.aiSummary}</p>
-            </div>
-
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">💬 Original Feedback</label>
-              <p className="text-sm text-slate-400 leading-relaxed italic">"{selected.feedbackMessage}"</p>
-            </div>
-
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Tags</label>
-              <div className="flex flex-wrap gap-1.5">
-                {selected.tags.map(tag => (
-                  <span key={tag} className="bg-slate-800 text-slate-400 text-xs px-2 py-0.5 rounded-md border border-white/5">{tag}</span>
-                ))}
+            {selected.ai_summary && (
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">🤖 AI Summary</label>
+                <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 rounded-lg p-3 border border-white/5">{selected.ai_summary}</p>
               </div>
-            </div>
+            )}
+
+            {selected.tags && selected.tags.length > 0 && (
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Tags</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {selected.tags.map(tag => (
+                    <span key={tag} className="bg-slate-800 text-slate-400 text-xs px-2 py-0.5 rounded-md border border-white/5">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="border-t border-white/5 pt-4">
               <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Timeline</label>
               <div className="space-y-2 text-xs text-slate-500">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                  <span>Created {new Date(selected.createdAt).toLocaleString()}</span>
+                  <span>Created {new Date(selected.created_at).toLocaleString()}</span>
                 </div>
-                {selected.updatedAt !== selected.createdAt && (
+                {selected.updated_at !== selected.created_at && (
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                    <span>Updated {new Date(selected.updatedAt).toLocaleString()}</span>
+                    <span>Updated {new Date(selected.updated_at).toLocaleString()}</span>
+                  </div>
+                )}
+                {selected.resolved_at && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <span>Resolved {new Date(selected.resolved_at).toLocaleString()}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Update Status</button>
-              <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/5">Assign</button>
+            <div className="relative pt-2">
+              {updateError && (
+                <p className="text-xs text-red-400 mb-2">{updateError}</p>
+              )}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <button
+                    onClick={() => setStatusDropdown(!statusDropdown)}
+                    disabled={updating}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {updating ? 'Updating...' : 'Update Status'}
+                  </button>
+                  {statusDropdown && (
+                    <div className="absolute bottom-full left-0 mb-1 w-full bg-slate-800 border border-white/10 rounded-lg overflow-hidden shadow-xl z-10">
+                      {statusOptions
+                        .filter(opt => opt.value !== selected.status)
+                        .map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => updateTicketStatus(selected.id, opt.value)}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors"
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/5">Assign</button>
+              </div>
             </div>
           </div>
         )}

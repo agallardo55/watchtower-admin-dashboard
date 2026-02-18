@@ -1,55 +1,132 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apps, icons } from '../constants';
+import { supabase } from '../lib/supabase';
 
 const publicApps = apps.filter(a => a.url);
 
-const mockVotes = [
-  { id: '1', app: 'SalesLogHQ', vote: 'up' as const, reason: 'Finally a simple sales tracker that doesn\'t require 3 days of training.', createdAt: '2026-02-14T09:15:00Z' },
-  { id: '2', app: 'BuybidHQ', vote: 'up' as const, reason: 'Love the VIN decoder integration. Saves so much time.', createdAt: '2026-02-14T08:30:00Z' },
-  { id: '3', app: 'Demolight', vote: 'down' as const, reason: 'Needs Android support. Most of our sales team uses Samsung.', createdAt: '2026-02-13T16:00:00Z' },
-  { id: '4', app: 'SalesboardHQ', vote: 'up' as const, reason: 'Our team checks this more than their email now.', createdAt: '2026-02-13T14:20:00Z' },
-  { id: '5', app: 'SalesLogHQ', vote: 'up' as const, reason: null, createdAt: '2026-02-13T11:00:00Z' },
-  { id: '6', app: 'BuybidHQ', vote: 'up' as const, reason: 'Need this in our wholesale department ASAP.', createdAt: '2026-02-12T15:30:00Z' },
-  { id: '7', app: 'Demolight', vote: 'up' as const, reason: 'Solves a real problem. We lose track of test drives all the time.', createdAt: '2026-02-12T10:00:00Z' },
-  { id: '8', app: 'SalesboardHQ', vote: 'down' as const, reason: 'Would be better with CRM integration.', createdAt: '2026-02-11T14:00:00Z' },
-  { id: '9', app: 'SalesLogHQ', vote: 'up' as const, reason: 'Clean UI. My reps would actually use this.', createdAt: '2026-02-11T09:00:00Z' },
-  { id: '10', app: 'BuybidHQ', vote: 'up' as const, reason: null, createdAt: '2026-02-10T16:00:00Z' },
-];
+interface VoteRow {
+  id: string;
+  app_id: string;
+  vote: string;
+  ip_hash: string;
+  reason: string | null;
+  created_at: string;
+  wt_app_registry: { name: string } | null;
+}
 
-const mockWaitlist = [
-  { id: '1', app: 'SalesLogHQ', email: 'mike.thompson@lakecityauto.com', createdAt: '2026-02-14T08:00:00Z' },
-  { id: '2', app: 'BuybidHQ', email: 'sarah.j@northwestmotors.com', createdAt: '2026-02-13T15:30:00Z' },
-  { id: '3', app: 'Demolight', email: 'operations@bellevueauto.com', createdAt: '2026-02-13T12:00:00Z' },
-  { id: '4', app: 'SalesLogHQ', email: 'jared.k@premiergroup.com', createdAt: '2026-02-12T10:00:00Z' },
-  { id: '5', app: 'SalesboardHQ', email: 'lisa.m@soundtoyota.com', createdAt: '2026-02-11T14:00:00Z' },
-  { id: '6', app: 'SalesLogHQ', email: 'david.chen@luxuryimports.com', createdAt: '2026-02-10T09:00:00Z' },
-];
+interface WaitlistRow {
+  id: string;
+  app_id: string;
+  email: string;
+  created_at: string;
+  wt_app_registry: { name: string } | null;
+}
 
 export default function BITWManager() {
   const [tab, setTab] = useState<'showroom' | 'votes' | 'waitlist'>('showroom');
+  const [votes, setVotes] = useState<VoteRow[]>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const upVotes = mockVotes.filter(v => v.vote === 'up').length;
-  const downVotes = mockVotes.filter(v => v.vote === 'down').length;
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  // Count votes per app
+    const [votesRes, waitlistRes] = await Promise.all([
+      supabase.from('wt_votes').select('*, wt_app_registry(name)'),
+      supabase.from('wt_waitlist').select('*, wt_app_registry(name)'),
+    ]);
+
+    if (votesRes.error) {
+      setError(`Failed to load votes: ${votesRes.error.message}`);
+      setLoading(false);
+      return;
+    }
+    if (waitlistRes.error) {
+      setError(`Failed to load waitlist: ${waitlistRes.error.message}`);
+      setLoading(false);
+      return;
+    }
+
+    setVotes(votesRes.data as VoteRow[]);
+    setWaitlist(waitlistRes.data as WaitlistRow[]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const upVotes = votes.filter(v => v.vote === 'up').length;
+  const downVotes = votes.filter(v => v.vote === 'down').length;
+
   const votesByApp: Record<string, number> = {};
-  mockVotes.filter(v => v.vote === 'up').forEach(v => {
-    votesByApp[v.app] = (votesByApp[v.app] || 0) + 1;
+  votes.filter(v => v.vote === 'up').forEach(v => {
+    const appName = v.wt_app_registry?.name ?? 'Unknown';
+    votesByApp[appName] = (votesByApp[appName] || 0) + 1;
   });
   const topVoted = Object.entries(votesByApp).sort((a, b) => b[1] - a[1])[0];
 
   const stats = [
-    { label: 'Total Votes', value: mockVotes.length, sub: `👍 ${upVotes}  👎 ${downVotes}`, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'Waitlist Signups', value: mockWaitlist.length, sub: `${new Set(mockWaitlist.map(w => w.app)).size} apps`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Total Votes', value: votes.length, sub: `👍 ${upVotes}  👎 ${downVotes}`, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { label: 'Waitlist Signups', value: waitlist.length, sub: `${new Set(waitlist.map(w => w.wt_app_registry?.name).filter(Boolean)).size} apps`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
     { label: 'Top Voted', value: topVoted?.[0] || '—', sub: `${topVoted?.[1] || 0} upvotes`, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     { label: 'Public Apps', value: publicApps.length, sub: 'In showroom', color: 'text-orange-400', bg: 'bg-orange-500/10' },
   ];
 
   const tabs = [
     { id: 'showroom', label: 'Public Showroom' },
-    { id: 'votes', label: `Votes (${mockVotes.length})` },
-    { id: 'waitlist', label: `Waitlist (${mockWaitlist.length})` },
+    { id: 'votes', label: `Votes (${votes.length})` },
+    { id: 'waitlist', label: `Waitlist (${waitlist.length})` },
   ];
+
+  const exportCsv = () => {
+    const header = 'Email,App,Signed Up\n';
+    const rows = waitlist.map(w =>
+      `"${w.email}","${w.wt_app_registry?.name ?? 'Unknown'}","${new Date(w.created_at).toLocaleDateString()}"`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'waitlist-export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
+          <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-slate-500 text-sm">Loading data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
+          <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
+        </div>
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load data</h3>
+          <p className="text-sm text-slate-500 mb-4">{error}</p>
+          <button onClick={fetchData} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -123,14 +200,14 @@ export default function BITWManager() {
       )}
 
       {/* Votes Tab */}
-      {tab === 'votes' && mockVotes.length === 0 && (
+      {tab === 'votes' && votes.length === 0 && (
         <div className="glass rounded-xl p-12 text-center">
           <div className="text-4xl mb-4">👍</div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No votes yet</h3>
           <p className="text-sm text-slate-500">Votes from the public showroom will appear here.</p>
         </div>
       )}
-      {tab === 'votes' && mockVotes.length > 0 && (
+      {tab === 'votes' && votes.length > 0 && (
         <div className="glass rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[500px]">
@@ -143,12 +220,12 @@ export default function BITWManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {mockVotes.map(v => (
+              {votes.map(v => (
                 <tr key={v.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-200">{v.app}</td>
+                  <td className="px-4 py-3 font-medium text-slate-200">{v.wt_app_registry?.name ?? 'Unknown'}</td>
                   <td className="px-4 py-3 text-lg">{v.vote === 'up' ? '👍' : '👎'}</td>
                   <td className="px-4 py-3 text-slate-400 max-w-[400px] truncate">{v.reason || <span className="text-slate-600 italic">No reason given</span>}</td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(v.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-slate-500">{new Date(v.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -158,17 +235,17 @@ export default function BITWManager() {
       )}
 
       {/* Waitlist Tab */}
-      {tab === 'waitlist' && mockWaitlist.length === 0 && (
+      {tab === 'waitlist' && waitlist.length === 0 && (
         <div className="glass rounded-xl p-12 text-center">
           <div className="text-4xl mb-4">📋</div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No signups yet</h3>
           <p className="text-sm text-slate-500">Waitlist signups will appear here when people join.</p>
         </div>
       )}
-      {tab === 'waitlist' && mockWaitlist.length > 0 && (
+      {tab === 'waitlist' && waitlist.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <button onClick={exportCsv} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
               <icons.externalLink /> Export CSV
             </button>
           </div>
@@ -183,11 +260,11 @@ export default function BITWManager() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {mockWaitlist.map(w => (
+                {waitlist.map(w => (
                   <tr key={w.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-200">{w.email}</td>
-                    <td className="px-4 py-3 text-slate-400">{w.app}</td>
-                    <td className="px-4 py-3 text-slate-500">{new Date(w.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-slate-400">{w.wt_app_registry?.name ?? 'Unknown'}</td>
+                    <td className="px-4 py-3 text-slate-500">{new Date(w.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
