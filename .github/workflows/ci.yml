@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Security — no secrets in code
+        run: |
+          if grep -rn "sk_live\|sk_test\|supabase_service_role\|SUPABASE_SERVICE_ROLE\|service_role" src/ --include="*.ts" --include="*.tsx"; then
+            echo "❌ Possible secret found in source code!"
+            exit 1
+          fi
+
+      - name: Security — no .env committed
+        run: |
+          if [ -f .env ]; then
+            echo "❌ .env file is tracked in git!"
+            exit 1
+          fi
+
+      - name: Quality — console.log check
+        run: |
+          COUNT=$(grep -rn "console\.log" src/ --include="*.ts" --include="*.tsx" | grep -v "// debug" | wc -l | tr -d ' ')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "⚠️ Found $COUNT console.log statements:"
+            grep -rn "console\.log" src/ --include="*.ts" --include="*.tsx" | grep -v "// debug"
+            echo "Remove before shipping to production."
+          fi
+
+      - name: Security — npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
