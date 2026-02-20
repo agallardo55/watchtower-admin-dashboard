@@ -16,6 +16,8 @@ import DailyTasks from './pages/DailyTasks';
 import FeatureRequests from './pages/FeatureRequests';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import ActivityOverview from './pages/ActivityOverview';
+import AppActivity from './pages/AppActivity';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -348,6 +350,8 @@ export default function App() {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/bitw" element={<BITWManager />} />
           <Route path="/daily-tasks" element={<DailyTasks />} />
+          <Route path="/activity" element={<ActivityOverview />} />
+          <Route path="/activity/:appSlug" element={<AppActivity />} />
           <Route path="/feature-requests" element={<FeatureRequests />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

@@ -75,6 +75,16 @@ export interface WaitlistEntry {
   createdAt: string;
 }
 
+export interface AppActivity {
+  id: string;
+  app_slug: string;
+  event_type: string;
+  user_email: string | null;
+  user_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
 /** SVG icon component props — allows className and all SVG attributes */
 export type IconProps = Record<string, unknown>;
 
