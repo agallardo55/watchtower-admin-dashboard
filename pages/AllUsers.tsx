@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { icons, apps } from '../constants';
+import { icons } from '../constants';
+import { useApps } from '../hooks/useApps';
 import { EdgeFunctionUser } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { supabase, supabaseAdmin, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -43,18 +44,6 @@ interface AppUser {
   createdAt: string;
 }
 
-const mockUsers: AppUser[] = [
-  { id: '1', name: 'Adam Gallardo', email: 'adam@buybidhq.com', avatar: 'AG', role: 'admin', status: 'active', app: 'Watchtower', lastSeen: '2 min ago', createdAt: '2025-06-01' },
-  { id: '2', name: 'Maria Santos', email: 'maria@dealership.com', avatar: 'MS', role: 'manager', status: 'active', app: 'BuybidHQ', lastSeen: '1 hour ago', createdAt: '2025-08-15' },
-  { id: '3', name: 'Jake Turner', email: 'jake@autogroup.com', avatar: 'JT', role: 'user', status: 'active', app: 'SalesboardHQ', lastSeen: '3 hours ago', createdAt: '2025-09-22' },
-  { id: '4', name: 'Priya Patel', email: 'priya@carsales.io', avatar: 'PP', role: 'user', status: 'active', app: 'BuybidHQ', lastSeen: '5 hours ago', createdAt: '2025-10-10' },
-  { id: '5', name: 'Derek Mitchell', email: 'derek@wholesale.net', avatar: 'DM', role: 'manager', status: 'inactive', app: 'SalesboardHQ', lastSeen: '2 weeks ago', createdAt: '2025-07-03' },
-  { id: '6', name: 'Lauren Chen', email: 'lauren@motors.com', avatar: 'LC', role: 'user', status: 'suspended', app: 'SalesboardHQ', lastSeen: '1 month ago', createdAt: '2025-11-18' },
-  { id: '7', name: 'Carlos Reyes', email: 'carlos@autobuy.com', avatar: 'CR', role: 'viewer', status: 'active', app: 'BuybidHQ', lastSeen: '30 min ago', createdAt: '2026-01-05' },
-  { id: '8', name: 'Nina Brooks', email: 'nina@fleet.co', avatar: 'NB', role: 'user', status: 'invited', app: 'BuybidHQ', lastSeen: 'Never', createdAt: '2026-02-07' },
-  { id: '9', name: 'Omar Hassan', email: 'omar@dealernet.com', avatar: 'OH', role: 'user', status: 'active', app: 'SalesboardHQ', lastSeen: '12 hours ago', createdAt: '2025-12-01' },
-  { id: '10', name: 'Sophie Tran', email: 'sophie@autocorp.io', avatar: 'ST', role: 'viewer', status: 'active', app: 'SalesboardHQ', lastSeen: '1 day ago', createdAt: '2026-01-20' },
-];
 
 const roleColors: Record<UserRole, string> = {
   admin: 'bg-red-500/10 text-red-400',
@@ -77,22 +66,158 @@ const statusDot: Record<UserStatus, string> = {
   invited: 'bg-sky-400',
 };
 
-const barData = apps.slice(0, 8).map(app => ({
-  name: app.name,
-  users: app.users + Math.floor(Math.random() * 10),
-  color: app.status === 'live' ? '#10b981' : app.status === 'paused' ? '#f59e0b' : '#325AE7'
-}));
-
 const tabs = [
   { id: 'users', label: 'All Users' },
+  { id: 'salesloghq', label: 'SaleslogHQ' },
+  { id: 'buybidhq', label: 'BuybidHQ' },
+  { id: 'salesboardhq', label: 'SalesboardHQ' },
+  { id: 'demolight', label: 'Demolight' },
   { id: 'activity', label: 'Activity' },
 ];
 
+// App tab IDs mapped to the app name returned by the all-users edge function
+const appTabMap: Record<string, string> = {
+  buybidhq: 'BuybidHQ',
+  salesboardhq: 'SalesboardHQ',
+  demolight: 'Demolight',
+};
+
+// Reusable user table for per-app tabs
+function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
+  users: AppUser[];
+  onEdit: (user: AppUser) => void;
+  onAppInfo: (app: string) => void;
+}) {
+  if (tableUsers.length === 0) {
+    return (
+      <div className="glass rounded-xl p-12 text-center text-slate-500">No users found.</div>
+    );
+  }
+
+  return (
+    <>
+      {/* Stat bar */}
+      <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-slate-100">{tableUsers.length}</span>
+          <span className="text-xs text-slate-500">total</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-emerald-400">{tableUsers.filter(u => u.status === 'active').length}</span>
+          <span className="text-xs text-slate-500">active</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-yellow-400">{tableUsers.filter(u => u.status === 'inactive').length}</span>
+          <span className="text-xs text-slate-500">inactive</span>
+        </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {tableUsers.map((user) => (
+          <div key={user.id} className="glass rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                  {user.avatar}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">{user.name}</p>
+                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                </div>
+              </div>
+              <button onClick={() => onEdit(user)} className="text-slate-500 hover:text-slate-200 transition-colors p-2">
+                <icons.more />
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${roleColors[user.role]}`}>{user.role}</span>
+              <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase ${statusColors[user.status]}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
+                {user.status}
+              </span>
+              <button onClick={() => onAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">{user.app}</button>
+            </div>
+            <div className="flex justify-between text-xs text-slate-500">
+              <span>Last seen: {user.lastSeen}</span>
+              <span>Joined: {user.createdAt}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="glass rounded-xl overflow-hidden hidden lg:block">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
+            <thead>
+              <tr className="border-b border-white/5 text-left">
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Role</th>
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status</th>
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">App</th>
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last Seen</th>
+                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Joined</th>
+                <th className="p-4 w-10"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableUsers.map((user) => (
+                <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                        {user.avatar}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{user.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${roleColors[user.role]}`}>{user.role}</span>
+                  </td>
+                  <td className="p-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase ${statusColors[user.status]}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <button onClick={() => onAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">
+                      {user.app}
+                    </button>
+                  </td>
+                  <td className="p-4 text-xs text-slate-400">{user.lastSeen}</td>
+                  <td className="p-4 text-xs text-slate-400">{user.createdAt}</td>
+                  <td className="p-4">
+                    <button onClick={() => onEdit(user)} className="text-slate-500 hover:text-slate-200 transition-colors">
+                      <icons.more />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function AllUsers() {
+  const { apps } = useApps();
   const { appSlug } = useParams<{ appSlug?: string }>();
   const currentApp = appSlug
     ? apps.find(a => a.name.toLowerCase().replace(/\s+/g, '-') === appSlug)?.name || null
     : null;
+
+  const barData = apps.slice(0, 8).map(app => ({
+    name: app.name,
+    users: app.users + Math.floor(Math.random() * 10),
+    color: app.status === 'live' ? '#10b981' : app.status === 'paused' ? '#f59e0b' : '#325AE7'
+  }));
 
   const [activeTab, setActiveTab] = useState('users');
   const [search, setSearch] = useState('');
@@ -107,10 +232,26 @@ export default function AllUsers() {
   const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'dealer' as string, app: '' });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [inviting, setInviting] = useState(false);
-  const [users, setUsers] = useState<AppUser[]>(mockUsers);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [appRegistry, setAppRegistry] = useState<Record<string, string>>({});
+
+  // SaleslogHQ state
+  interface SlUser {
+    id: string;
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    role: string | null;
+    is_active: boolean;
+    hire_date: string | null;
+    employee_number: string | null;
+    created_at: string;
+    sl_dealerships: { name: string } | null;
+  }
+  const [slUsers, setSlUsers] = useState<SlUser[]>([]);
+  const [slLoading, setSlLoading] = useState(false);
 
   const validateField = (field: string, value: string) => {
     const errors = { ...formErrors };
@@ -133,20 +274,23 @@ export default function AllUsers() {
   useEffect(() => {
     async function fetchUsers() {
       setLoading(true);
+      setFetchError(null);
       try {
-        // Fetch all users across all projects via edge function
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token || supabaseAnonKey;
+        // Fetch all users across all projects via edge function (service role bypasses JWT auth)
+        const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
         const res = await fetch(
           `${supabaseUrl}/functions/v1/all-users`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${serviceKey}` } }
         );
 
-        if (!res.ok) throw new Error(`Edge function error: ${res.status}`);
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`Edge function error ${res.status}: ${body}`);
+        }
         const data = await res.json();
 
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           const mapped: AppUser[] = data.map((u: EdgeFunctionUser) => {
             const name = u.name || 'Unknown';
             const initials = name.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
@@ -164,29 +308,61 @@ export default function AllUsers() {
             };
           });
           setUsers(mapped);
+        } else {
+          console.error('all-users returned non-array:', data);
+          setFetchError('Unexpected response from user service');
+          setUsers([]);
         }
-      } catch {
-        // Fall back to mock data silently
-        setUsers(mockUsers);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to load users';
+        console.error('fetchUsers error:', msg);
+        setFetchError(msg);
+        setUsers([]);
       }
       setLoading(false);
     }
     fetchUsers();
   }, []);
 
-  const filtered = users.filter((u) => {
+  // Fetch SaleslogHQ users when tab is active
+  useEffect(() => {
+    if (activeTab !== 'salesloghq' || slUsers.length > 0) return;
+    async function fetchSlUsers() {
+      setSlLoading(true);
+      try {
+        const { data, error } = await supabaseAdmin
+          .from('sl_users')
+          .select('id, display_name, email, phone, role, is_active, hire_date, employee_number, created_at, sl_dealerships(name)')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        // Supabase returns joined relations as arrays; flatten to single object
+        const normalized = (data || []).map((row: any) => ({
+          ...row,
+          sl_dealerships: Array.isArray(row.sl_dealerships) ? row.sl_dealerships[0] || null : row.sl_dealerships,
+        }));
+        setSlUsers(normalized as SlUser[]);
+      } catch {
+        setSlUsers([]);
+      }
+      setSlLoading(false);
+    }
+    fetchSlUsers();
+  }, [activeTab]);
+
+  const displayUsers = currentApp ? users.filter(u => u.app === currentApp) : users;
+
+  const filtered = displayUsers.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
     const matchStatus = statusFilter === 'all' || u.status === statusFilter;
     const matchApp = appFilter === 'all' || u.app === appFilter;
     return matchSearch && matchRole && matchStatus && matchApp;
   });
-
   const counts = {
-    total: users.length,
-    active: users.filter((u) => u.status === 'active').length,
-    inactive: users.filter((u) => u.status === 'inactive').length,
-    suspended: users.filter((u) => u.status === 'suspended').length,
+    total: displayUsers.length,
+    active: displayUsers.filter((u) => u.status === 'active').length,
+    inactive: displayUsers.filter((u) => u.status === 'inactive').length,
+    suspended: displayUsers.filter((u) => u.status === 'suspended').length,
   };
 
   return (
@@ -232,15 +408,17 @@ export default function AllUsers() {
         </div>
       </div>
 
-      {/* Tab Bar */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-            }`}>{tab.label}</button>
-        ))}
-      </div>
+      {/* Tab Bar — only on main /users route */}
+      {!currentApp && (
+        <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}>{tab.label}</button>
+          ))}
+        </div>
+      )}
 
       {/* All Users Tab */}
       {activeTab === 'users' && loading && (
@@ -250,11 +428,11 @@ export default function AllUsers() {
         </div>
       )}
 
-      {activeTab === 'users' && !loading && users.length === 0 && (
+      {activeTab === 'users' && !loading && displayUsers.length === 0 && (
         <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">👥</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">No users yet</h3>
-          <p className="text-sm text-slate-500 mb-6">Add your first admin user to get started.</p>
+          <div className="text-4xl mb-4">{fetchError ? '⚠️' : '👥'}</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">{fetchError ? 'Failed to load users' : 'No users yet'}</h3>
+          <p className="text-sm text-slate-500 mb-6">{fetchError || (currentApp ? `No users found for ${currentApp}.` : 'Add your first admin user to get started.')}</p>
           <button
             onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
@@ -264,7 +442,7 @@ export default function AllUsers() {
         </div>
       )}
 
-      {activeTab === 'users' && !loading && users.length > 0 && (
+      {activeTab === 'users' && !loading && displayUsers.length > 0 && (
         <>
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3 lg:gap-4">
@@ -442,6 +620,143 @@ export default function AllUsers() {
             </div>
           </div>
         </>
+      )}
+
+      {/* SaleslogHQ Tab */}
+      {activeTab === 'salesloghq' && slLoading && (
+        <div className="glass rounded-xl p-12 text-center animate-pulse">
+          <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
+          <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
+        </div>
+      )}
+
+      {activeTab === 'salesloghq' && !slLoading && slUsers.length === 0 && (
+        <div className="glass rounded-xl p-12 text-center">
+          <div className="text-4xl mb-4">📝</div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No SaleslogHQ users yet</h3>
+          <p className="text-sm text-slate-500">Users will appear here once they're added to SaleslogHQ.</p>
+        </div>
+      )}
+
+      {activeTab === 'salesloghq' && !slLoading && slUsers.length > 0 && (
+        <>
+          <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-slate-100">{slUsers.length}</span>
+              <span className="text-xs text-slate-500">total</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-emerald-400">{slUsers.filter(u => u.is_active).length}</span>
+              <span className="text-xs text-slate-500">active</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-yellow-400">{slUsers.filter(u => !u.is_active).length}</span>
+              <span className="text-xs text-slate-500">inactive</span>
+            </div>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-3">
+            {slUsers.map((u) => (
+              <div key={u.id} className="glass rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                    {(u.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">{u.display_name || 'Unknown'}</p>
+                    <p className="text-xs text-slate-500 truncate">{u.email || '—'}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400">{u.role || 'user'}</span>
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase ${u.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${u.is_active ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
+                    {u.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  {u.sl_dealerships?.name && (
+                    <span className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-slate-400 font-medium">{u.sl_dealerships.name}</span>
+                  )}
+                </div>
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>{u.phone || '—'}</span>
+                  <span>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="glass rounded-xl overflow-hidden hidden lg:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-white/5 text-left">
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Role</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Dealership</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Phone</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Hire Date</th>
+                    <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {slUsers.map((u) => (
+                    <tr key={u.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                            {(u.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold truncate">{u.display_name || 'Unknown'}</p>
+                            <p className="text-xs text-slate-500 truncate">{u.email || '—'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400">
+                          {u.role || 'user'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold uppercase ${u.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${u.is_active ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
+                          {u.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs text-slate-400">{u.sl_dealerships?.name || '—'}</td>
+                      <td className="p-4 text-xs text-slate-400">{u.phone || '—'}</td>
+                      <td className="p-4 text-xs text-slate-400">{u.hire_date ? new Date(u.hire_date).toLocaleDateString() : '—'}</td>
+                      <td className="p-4 text-xs text-slate-400">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Per-App Tabs (BuybidHQ, SalesboardHQ, Demolight) */}
+      {appTabMap[activeTab] && (
+        loading ? (
+          <div className="glass rounded-xl p-12 text-center animate-pulse">
+            <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
+            <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
+          </div>
+        ) : (
+          <UserTable
+            users={users.filter(u => u.app === appTabMap[activeTab])}
+            onEdit={(user) => {
+              const parts = user.name.split(' ');
+              setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app });
+              setEditingUser(user);
+            }}
+            onAppInfo={setShowAppInfo}
+          />
+        )
       )}
 
       {/* Activity Tab */}
@@ -683,7 +998,7 @@ export default function AllUsers() {
       {/* App Info Modal */}
       {showAppInfo && (() => {
         const appData = apps.find(a => a.name === showAppInfo);
-        const appUsers = mockUsers.filter(u => u.app === showAppInfo);
+        const appUsers = users.filter(u => u.app === showAppInfo);
         const activeCount = appUsers.filter(u => u.status === 'active').length;
         const roleBreakdown = appUsers.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc; }, {} as Record<string, number>);
         return (

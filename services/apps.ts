@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { AppEntry } from '../types';
 
 export interface RoadmapItem {
   text: string;
@@ -31,8 +30,10 @@ interface DbApp {
 }
 
 function formatDb(row: DbApp): string {
-  if (row.supabase_project_id === 'fdcfdbjputcitgxosnyk') return `Dedicated (${row.supabase_project_id})`;
-  if (row.supabase_project_id === 'dedicated' || row.supabase_project_id === 'suykcdomvqmkjwmbtyzk') return `Dedicated (${row.supabase_project_id})`;
+  // If it has its own Supabase project (not the Watchtower ref), it's dedicated
+  if (row.supabase_project_id && row.supabase_project_id !== 'txlbhwvlzbceegzkoimr') {
+    return `Dedicated (${row.supabase_project_id})`;
+  }
   if (row.schema_prefix) return `Watchtower (${row.schema_prefix}*)`;
   return 'Watchtower';
 }
@@ -49,8 +50,8 @@ function formatRelativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-function mapStatus(dbStatus: string): AppEntry['status'] {
-  const map: Record<string, AppEntry['status']> = {
+function mapStatus(dbStatus: string): 'idea' | 'beta' | 'live' | 'paused' {
+  const map: Record<string, 'idea' | 'beta' | 'live' | 'paused'> = {
     idea: 'idea',
     spec: 'idea',
     building: 'idea',

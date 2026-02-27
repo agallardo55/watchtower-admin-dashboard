@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { apps, icons } from '../constants';
+import { icons } from '../constants';
+import { useApps } from '../hooks/useApps';
 import { supabase } from '../lib/supabase';
-
-const publicApps = apps.filter(a => a.url);
 
 interface VoteRow {
   id: string;
@@ -23,6 +22,8 @@ interface WaitlistRow {
 }
 
 export default function BITWManager() {
+  const { apps } = useApps();
+  const publicApps = apps.filter(a => a.appUrl);
   const [tab, setTab] = useState<'showroom' | 'votes' | 'waitlist'>('showroom');
   const [votes, setVotes] = useState<VoteRow[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistRow[]>([]);
@@ -187,8 +188,8 @@ export default function BITWManager() {
                 <div>{app.users} users</div>
                 <div className="mt-1">{votesByApp[app.name] || 0} 👍</div>
               </div>
-              {app.url && (
-                <a href={app.url} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-blue-400 transition-colors">
+              {app.appUrl && (
+                <a href={app.appUrl} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-blue-400 transition-colors">
                   <icons.externalLink />
                 </a>
               )}

@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDashboardStats, DashboardStats } from '../services/stats';
 
-const FALLBACK_STATS: DashboardStats = {
-  totalApps: 10,
-  liveApps: 2,
-  internalApps: 8,
-  totalUsers: 47,
-  totalTables: 36,
-  schemaCount: 3,
-};
-
 export function useStats() {
-  const [stats, setStats] = useState<DashboardStats>(FALLBACK_STATS);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalApps: 0,
+    liveApps: 0,
+    internalApps: 0,
+    totalUsers: 0,
+    totalTables: 0,
+    schemaCount: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +22,6 @@ export function useStats() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load stats';
       setError(message);
-      setStats(FALLBACK_STATS);
     }
     setLoading(false);
   }, []);

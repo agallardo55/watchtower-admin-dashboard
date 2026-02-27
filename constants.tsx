@@ -1,80 +1,25 @@
 
 import React from 'react';
-import { AppEntry, ActivityEntry, GraduationStage, NavItem, IconProps } from './types';
+import { NavItem, IconProps } from './types';
 
-// Static fallback data — sidebar nav uses this directly (stays static)
-export const apps: AppEntry[] = [
-  // Live
-  { name: "SalesboardHQ", icon: "📊", status: "live", db: "Dedicated (suykcdomvqmkjwmbtyzk)", users: 23, lastActivity: "2026-02-01", url: "https://salesboardhq.netlify.app", category: "Sales", description: "Real-time leaderboard and sales performance tracker.", schemaPrefix: "sb_", tableCount: 12 },
-  { name: "BuybidHQ", icon: "🏷️", status: "live", db: "Dedicated (fdcfdbjputcitgxosnyk)", users: 12, lastActivity: "2026-02-07", url: "https://sandbox-buybidhq.netlify.app", category: "Sales", description: "Strategic bidding and inventory management for auto wholesalers.", schemaPrefix: "bb_", tableCount: 14 },
-  // Idea
-  { name: "Agentflow", icon: "🔄", status: "idea", db: "Watchtower (af_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Operations", description: "Low-code automation for internal dealership workflows.", schemaPrefix: "af_", tableCount: 7 },
-  { name: "CUDL Rate Capture", icon: "📈", status: "idea", db: "Watchtower (cr_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Finance", description: "Rate tracking and comparison for credit union direct lending.", schemaPrefix: "cr_", tableCount: 6 },
-  { name: "Sidecar CRM", icon: "🤝", status: "idea", db: "Watchtower (sidecar_*)", users: 0, lastActivity: "2026-02-03", url: null, category: "Sales", description: "Lightweight CRM built specifically for high-velocity sales.", schemaPrefix: "sidecar_", tableCount: 3 },
-  { name: "Sidepilot", icon: "🤖", status: "idea", db: "Watchtower (copilot_*)", users: 0, lastActivity: "2026-02-07", url: null, category: "AI", description: "AI-driven customer outreach and deal closing assistant.", schemaPrefix: "copilot_", tableCount: 3 },
-  { name: "Demolight", icon: "🚗", status: "idea", db: "Watchtower (dl_*)", users: 0, lastActivity: "2026-01-15", url: null, category: "Operations", description: "Fleet tracking and demo drive management system.", schemaPrefix: "dl_", tableCount: 4 },
-  { name: "Dealerment", icon: "📄", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-01-20", url: null, category: "Finance", description: "Centralized document vault for dealer compliance.", schemaPrefix: "dd_", tableCount: 2 },
-  { name: "Marbitrage", icon: "💰", status: "idea", db: "Watchtower", users: 0, lastActivity: "2026-02-05", url: null, category: "AI", description: "Market data analysis for finding profitable vehicle trade spreads.", schemaPrefix: "mmr_", tableCount: 5 },
-  { name: "SaleslogHQ", icon: "📝", status: "idea", db: "Watchtower (saleslog_*)", users: 0, lastActivity: "2026-01-28", url: null, category: "Sales", description: "Real-time digital desk log for GMs and management. Track daily deals, gross, and consultant performance.", schemaPrefix: "saleslog_", tableCount: 2 }
-];
-
+// Static nav structure — app children are injected dynamically in App.tsx via useApps()
 export const sidebarNav: NavItem[] = [
   { label: "Dashboard", icon: "home", path: "/" },
   { label: "BITW Manager", icon: "globe", path: "/bitw" },
   { label: "Development", icon: "edit", path: "/development", children: [
     { label: "Overview", icon: "chart", path: "/development/overview" },
     { label: "All Apps", icon: "grid", path: "/development" },
-    ...apps.map(a => ({ label: a.name, icon: a.icon, path: `/development/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
   ]},
   { label: "Users", icon: "users", path: "/users", children: [
     { label: "All Users", icon: "users", path: "/users" },
-    ...apps.map(a => ({ label: a.name, icon: a.icon, path: `/users/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
   ]},
   { label: "Activity", icon: "activity", path: "/activity", children: [
     { label: "Overview", icon: "activity", path: "/activity" },
-    { label: "SaleslogHQ", icon: "chart", path: "/activity/salesloghq" },
-    { label: "BuybidHQ", icon: "chart", path: "/activity/buybidhq" },
-    { label: "Demolight", icon: "chart", path: "/activity/demolight" },
-    { label: "DealerScore", icon: "chart", path: "/activity/dealerscore" },
-    { label: "SalesboardHQ", icon: "chart", path: "/activity/salesboardhq" },
-    { label: "BITW", icon: "chart", path: "/activity/bitw" },
   ]},
   { label: "Daily Tasks", icon: "tasks", path: "/daily-tasks" },
   { label: "Feature Requests", icon: "lightbulb", path: "/feature-requests" },
   { label: "Tickets", icon: "ticket", path: "/tickets" },
   { label: "Settings", icon: "settings", path: "/settings" },
-];
-
-export const recentActivity: ActivityEntry[] = [
-  { app: "BuybidHQ", action: "VIN decoder wired with cascading dropdowns", time: "2 hours ago", type: "feature" },
-  { app: "Sidepilot", action: "Product spec completed (19KB)", time: "5 hours ago", type: "spec" },
-  { app: "Watchtower", action: "betahub_apps and betahub_feedback tables created", time: "1 day ago", type: "schema" },
-  { app: "BuybidHQ", action: "Stripe signup flow — 5 edge functions deployed", time: "2 days ago", type: "feature" },
-  { app: "Build In The Wild", action: "Landing page UI generated", time: "3 hours ago", type: "deploy" },
-  { app: "SalesboardHQ", action: "Launched on Product Hunt", time: "1 week ago", type: "launch" }
-];
-
-export const graduationStages: GraduationStage[] = [
-  {
-    stage: "Idea",
-    description: "Concept stage — spec or research in progress",
-    apps: apps.filter(a => a.status === 'idea').map(a => a.name)
-  },
-  {
-    stage: "Beta",
-    description: "In testing — early users and feedback",
-    apps: apps.filter(a => a.status === 'beta').map(a => a.name)
-  },
-  {
-    stage: "Live",
-    description: "Deployed and serving users",
-    apps: apps.filter(a => a.status === 'live').map(a => a.name)
-  },
-  {
-    stage: "Paused",
-    description: "On hold — not actively developed",
-    apps: apps.filter(a => a.status === 'paused').map(a => a.name)
-  }
 ];
 
 export const icons = {

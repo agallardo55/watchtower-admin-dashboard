@@ -36,11 +36,6 @@ export default function Settings() {
   // Security state
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' });
-  const [sessions] = useState([
-    { device: 'MacBook Air — Chrome', location: 'Los Angeles, CA', lastActive: 'Now', current: true },
-    { device: 'iPhone 15 Pro — Safari', location: 'Los Angeles, CA', lastActive: '2 hours ago', current: false },
-    { device: 'Mac Mini — Terminal', location: 'Los Angeles, CA', lastActive: '1 day ago', current: false },
-  ]);
 
   // Notification state
   const [notifications, setNotifications] = useState({
@@ -365,37 +360,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Active Sessions */}
-          <div className="glass rounded-xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg">Active Sessions</h3>
-                <p className="text-xs text-slate-500">Devices currently signed into your account</p>
-              </div>
-              <button className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors">
-                Revoke All Others
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {sessions.map((session, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${session.current ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                    <div>
-                      <p className="text-sm font-semibold">{session.device}</p>
-                      <p className="text-[10px] text-slate-500">{session.location} &bull; {session.lastActive}</p>
-                    </div>
-                  </div>
-                  {session.current ? (
-                    <span className="text-[10px] font-bold uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Current</span>
-                  ) : (
-                    <button className="text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors">Revoke</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

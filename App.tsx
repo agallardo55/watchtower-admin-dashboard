@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { icons, sidebarNav } from './constants';
 import { IconProps } from './types';
@@ -18,6 +18,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ActivityOverview from './pages/ActivityOverview';
 import AppActivity from './pages/AppActivity';
+import { useApps } from './hooks/useApps';
 
 const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleTheme: () => void }> = ({ children, darkMode, toggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -25,10 +26,44 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
   const [expandedNav, setExpandedNav] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const { apps } = useApps();
+
+  const dynamicNav = useMemo(() => {
+    return sidebarNav.map(item => {
+      if (item.label === 'Development' && item.children) {
+        return {
+          ...item,
+          children: [
+            ...item.children,
+            ...apps.map(a => ({ label: a.name, icon: a.icon || '📦', path: `/development/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
+          ],
+        };
+      }
+      if (item.label === 'Users' && item.children) {
+        return {
+          ...item,
+          children: [
+            ...item.children,
+            ...apps.map(a => ({ label: a.name, icon: a.icon || '📦', path: `/users/${a.name.toLowerCase().replace(/\s+/g, '-')}` })),
+          ],
+        };
+      }
+      if (item.label === 'Activity' && item.children) {
+        return {
+          ...item,
+          children: [
+            ...item.children,
+            ...apps.map(a => ({ label: a.name, icon: a.icon || '📦', path: `/activity/${a.slug || a.name.toLowerCase().replace(/\s+/g, '-')}` })),
+          ],
+        };
+      }
+      return item;
+    });
+  }, [apps]);
 
   // Auto-expand parent nav when a child route is active
   useEffect(() => {
-    sidebarNav.forEach(item => {
+    dynamicNav.forEach(item => {
       if (item.children && item.children.some(c => c.path === location.pathname)) {
         setExpandedNav(prev => prev.includes(item.label) ? prev : [...prev, item.label]);
       }
@@ -56,7 +91,7 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
 
   const getBreadcrumb = () => {
     const path = location.pathname;
-    for (const item of sidebarNav) {
+    for (const item of dynamicNav) {
       if (item.path === path && !item.children) return item.label;
       if (item.children) {
         const child = item.children.find(c => c.path === path);
@@ -87,7 +122,7 @@ const Layout: React.FC<{ children: React.ReactNode; darkMode: boolean; toggleThe
       </div>
 
       <nav className={`flex-1 overflow-y-auto py-4 space-y-1 ${isSidebarCollapsed ? 'px-2' : 'px-3 lg:px-4'}`}>
-        {sidebarNav.map((item) => {
+        {dynamicNav.map((item) => {
           const Icon = (icons as Record<string, React.FC<IconProps>>)[item.icon];
           const hasChildren = item.children && item.children.length > 0;
           const isExpanded = expandedNav.includes(item.label);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { apps } from '../constants';
+import { useApps } from '../hooks/useApps';
 
 // --- Types ---
 
@@ -66,8 +66,6 @@ const statusColors: Record<TaskStatus, { dot: string; label: string }> = {
 };
 
 const statusOrder: TaskStatus[] = ['todo', 'in_progress', 'done'];
-
-const appList = apps.map(a => a.name);
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -143,9 +141,10 @@ interface TaskModalProps {
   onSave: (task: { id?: string; title: string; description: string; priority: Priority; status: TaskStatus; app: string; dueDate: string | null }) => void;
   onClose: () => void;
   saving: boolean;
+  appList: string[];
 }
 
-function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving }: TaskModalProps) {
+function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList }: TaskModalProps) {
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [priority, setPriority] = useState<Priority>(task?.priority || 'medium');
@@ -412,6 +411,8 @@ function Backlog({ tasks, onEdit, onDelete, onStatusCycle, onDragStart, onDragOv
 // --- Main Page ---
 
 export default function DailyTasks() {
+  const { apps } = useApps();
+  const appList = apps.map(a => a.name);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -916,10 +917,10 @@ export default function DailyTasks() {
 
       {/* Modals */}
       {modalOpen && (
-        <TaskModal task={null} isEdit={false} defaultDate={modalDefaultDate} onSave={handleAddTask} onClose={() => { setModalOpen(false); setModalDefaultDate(''); }} saving={saving} />
+        <TaskModal task={null} isEdit={false} defaultDate={modalDefaultDate} onSave={handleAddTask} onClose={() => { setModalOpen(false); setModalDefaultDate(''); }} saving={saving} appList={appList} />
       )}
       {editingTask && (
-        <TaskModal task={editingTask} isEdit={true} onSave={handleEditTask} onClose={() => setEditingTask(null)} saving={saving} />
+        <TaskModal task={editingTask} isEdit={true} onSave={handleEditTask} onClose={() => setEditingTask(null)} saving={saving} appList={appList} />
       )}
       {deletingTask && (
         <DeleteConfirm taskTitle={deletingTask.title} onConfirm={handleDelete} onCancel={() => setDeletingTask(null)} deleting={deleting} />

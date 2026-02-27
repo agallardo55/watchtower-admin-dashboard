@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
       SalesboardHQ: { firstName: "name", email: "email", phone: "mobile", role: "role" },
       // Demolight public.users
       Demolight: { firstName: "first_name", lastName: "last_name", email: "email", phone: "phone", role: "role" },
-      // SalesLogHQ uses sl_users on Watchtower
-      SalesLogHQ: { firstName: "display_name", email: "email", phone: "phone", role: "role" },
+      // SaleslogHQ uses sl_users on Watchtower
+      SaleslogHQ: { firstName: "display_name", email: "email", phone: "phone", role: "role" },
     };
 
     const mapping = columnMap[app] || columnMap.Watchtower;
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
     // For Watchtower apps that use the view, route to the actual table
     if (app === "Watchtower") targetTable = "wt_users";
-    if (app === "SalesLogHQ") targetTable = "sl_users";
+    if (app === "SaleslogHQ") targetTable = "sl_users";
     if (app === "Agentflow") targetTable = "af_users";
     if (app === "CUDL Rate Capture") targetTable = "cr_users";
     if (app === "Demolight" && isLocal) targetTable = "dl_users";

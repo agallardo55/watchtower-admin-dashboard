@@ -1,19 +1,34 @@
 
-import React, { useState } from 'react';
-import { apps, recentActivity, icons } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { icons } from '../constants';
+import { useApps } from '../hooks/useApps';
 import { useStats } from '../hooks/useStats';
+import { supabaseAdmin } from '../lib/supabase';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const chartData = [
-  { name: 'Jan 10', buybid: 2, salesboard: 5 },
-  { name: 'Jan 15', buybid: 4, salesboard: 8 },
-  { name: 'Jan 20', buybid: 6, salesboard: 12 },
-  { name: 'Jan 25', buybid: 9, salesboard: 18 },
-  { name: 'Jan 30', buybid: 10, salesboard: 20 },
-  { name: 'Feb 05', buybid: 12, salesboard: 23 },
-];
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+  return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`;
+}
 
-// KPI stats are now driven by useStats() hook inside the component
+function guessActivityType(action: string): string {
+  if (!action) return 'feature';
+  const lower = action.toLowerCase();
+  if (lower.includes('deploy') || lower.includes('launch')) return 'deploy';
+  if (lower.includes('spec') || lower.includes('doc')) return 'spec';
+  if (lower.includes('schema') || lower.includes('table') || lower.includes('migration')) return 'schema';
+  if (lower.includes('launch') || lower.includes('release')) return 'launch';
+  return 'feature';
+}
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -23,14 +38,67 @@ const tabs = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const { stats, loading: statsLoading, error: statsError, refetch: refetchStats } = useStats();
+  const { apps } = useApps();
+
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [pendingInvitations, setPendingInvitations] = useState(0);
+
   const liveApps = apps.filter(a => a.status === 'live');
   const totalUsers = apps.reduce((sum, a) => sum + a.users, 0);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      // Daily stats for chart
+      const { data: statsData } = await supabaseAdmin
+        .from('wt_daily_stats')
+        .select('date, users_total, signups, app_id, wt_app_registry(name)')
+        .order('date', { ascending: true })
+        .limit(50);
+
+      if (statsData && statsData.length > 0) {
+        const byDate: Record<string, any> = {};
+        statsData.forEach((row: any) => {
+          const d = row.date;
+          if (!byDate[d]) byDate[d] = { name: new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
+          const appName = row.wt_app_registry?.name || 'Unknown';
+          byDate[d][appName.toLowerCase().replace(/\s+/g, '')] = row.users_total || 0;
+        });
+        setChartData(Object.values(byDate));
+      }
+
+      // Recent activity from wt_activity_log
+      const { data: activityData } = await supabaseAdmin
+        .from('wt_activity_log')
+        .select('id, action, actor, description, created_at, wt_app_registry(name)')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (activityData) {
+        setRecentActivity(activityData.map((a: any) => ({
+          app: a.wt_app_registry?.name || a.actor || 'Watchtower',
+          action: a.description || a.action,
+          time: formatRelativeTime(a.created_at),
+          type: guessActivityType(a.action),
+        })));
+      }
+
+      // Pending invitations
+      const { count } = await supabaseAdmin
+        .from('wt_invitations')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      setPendingInvitations(count || 0);
+    }
+    fetchDashboardData();
+  }, []);
 
   const dashboardStats = [
     { label: 'Total Apps', value: String(stats.totalApps), sublabel: `${stats.liveApps} public, ${stats.internalApps} internal`, trend: `${stats.liveApps} live`, color: 'blue', icon: 'grid' },
     { label: 'Total Users', value: String(stats.totalUsers), sublabel: 'Across all apps', trend: 'Live count', color: 'emerald', icon: 'users' },
     { label: 'Database Tables', value: String(stats.totalTables), sublabel: 'Watchtower shared DB', trend: `${stats.schemaCount} schemas`, color: 'purple', icon: 'database' },
-    { label: 'Pending Invitations', value: '8', sublabel: '5 accepted this week', trend: '62% acceptance', color: 'orange', icon: 'mail' },
+    { label: 'Pending Invitations', value: String(pendingInvitations), sublabel: 'Awaiting response', trend: pendingInvitations > 0 ? 'Needs attention' : 'All clear', color: 'orange', icon: 'mail' },
   ];
 
   if (statsLoading) {
@@ -170,30 +238,36 @@ export default function Dashboard() {
               <h3 className="font-semibold text-lg">Recent Activity</h3>
             </div>
             <div className="p-5 flex-1 space-y-6">
-              {recentActivity.map((activity, idx) => {
-                const colorType = {
-                  feature: 'bg-emerald-500',
-                  spec: 'bg-blue-500',
-                  schema: 'bg-purple-500',
-                  deploy: 'bg-orange-500',
-                  launch: 'bg-red-500',
-                };
-                return (
-                  <div key={idx} className="flex gap-4 relative">
-                    {idx !== recentActivity.length - 1 && (
-                      <div className="absolute top-6 left-[7px] w-px h-[calc(100%-12px)] bg-slate-800"></div>
-                    )}
-                    <div className={`mt-1.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950 z-10 ${colorType[activity.type]}`}></div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-100">{activity.app}</span>
-                        <span className="text-[10px] text-slate-500">{activity.time}</span>
+              {recentActivity.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                  <p className="text-sm text-slate-500">No recent activity</p>
+                </div>
+              ) : (
+                recentActivity.map((activity, idx) => {
+                  const colorType: Record<string, string> = {
+                    feature: 'bg-emerald-500',
+                    spec: 'bg-blue-500',
+                    schema: 'bg-purple-500',
+                    deploy: 'bg-orange-500',
+                    launch: 'bg-red-500',
+                  };
+                  return (
+                    <div key={idx} className="flex gap-4 relative">
+                      {idx !== recentActivity.length - 1 && (
+                        <div className="absolute top-6 left-[7px] w-px h-[calc(100%-12px)] bg-slate-800"></div>
+                      )}
+                      <div className={`mt-1.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950 z-10 ${colorType[activity.type] || 'bg-emerald-500'}`}></div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-100">{activity.app}</span>
+                          <span className="text-[10px] text-slate-500">{activity.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{activity.action}</p>
                       </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">{activity.action}</p>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -217,31 +291,37 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-            <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorBuybid" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#325AE7" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#325AE7" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
-                  <Tooltip
-                    contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
-                    itemStyle={{color: '#f1f5f9'}}
-                  />
-                  <Area type="monotone" dataKey="buybid" stroke="#325AE7" strokeWidth={2} fillOpacity={1} fill="url(#colorBuybid)" name="BuybidHQ" />
-                  <Area type="monotone" dataKey="salesboard" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" name="SalesboardHQ" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            {chartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[250px] lg:h-[300px]">
+                <p className="text-sm text-slate-500">No analytics data yet</p>
+              </div>
+            ) : (
+              <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorBuybid" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#325AE7" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#325AE7" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                    <Tooltip
+                      contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
+                      itemStyle={{color: '#f1f5f9'}}
+                    />
+                    <Area type="monotone" dataKey="buybid" stroke="#325AE7" strokeWidth={2} fillOpacity={1} fill="url(#colorBuybid)" name="BuybidHQ" />
+                    <Area type="monotone" dataKey="salesboard" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" name="SalesboardHQ" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
 
           {/* Per-App Breakdown */}

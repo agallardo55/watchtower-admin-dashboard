@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { apps } from '../constants';
+import { useApps } from '../hooks/useApps';
+import { supabaseAdmin } from '../lib/supabase';
 
-type TaskStatus = 'todo' | 'review' | 'done';
+type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
 interface Task {
   id: string;
   title: string;
@@ -13,36 +14,20 @@ interface Task {
   priority: 'high' | 'medium' | 'low';
   category: string;
   app: string;
+  app_id: string | null;
 }
 
-const initialTasks: Task[] = [
-  { id: '1', title: 'Dealerment spec', description: 'Onboarding workflow, account setup, copilot', completed: false, status: 'todo', priority: 'high', category: 'Specs', app: 'Dealerment' },
-  { id: '2', title: 'BITW consulting agency spec', description: 'Service offerings, pricing, positioning', completed: false, status: 'todo', priority: 'high', category: 'Specs', app: 'Watchtower' },
-  { id: '3', title: 'Substack charts', description: 'AI \u00d7 knowledge work convergence + atoms/physical work 20yr trend', completed: false, status: 'review', priority: 'medium', category: 'Content', app: 'Watchtower' },
-  { id: '4', title: 'Research: AI Mac file sync', description: 'How heavy users solve dedicated machine syncing', completed: false, status: 'todo', priority: 'medium', category: 'Research', app: 'Watchtower' },
-  { id: '5', title: 'Research: AirPods/Watch \u2192 Telegram', description: 'Seamless voice trigger to Kitt', completed: false, status: 'todo', priority: 'medium', category: 'Research', app: 'Sidepilot' },
-  { id: '6', title: 'Research: content repurposing', description: 'One video \u2192 YouTube + Twitter + Facebook + Substack', completed: false, status: 'review', priority: 'medium', category: 'Research', app: 'Watchtower' },
-  { id: '7', title: 'Research: token usage tracking', description: 'Measure output across all AI tools', completed: false, status: 'todo', priority: 'medium', category: 'Research', app: 'Watchtower' },
-  { id: '8', title: 'Research: local compute', description: 'Used Mac Minis for 24/7 inference', completed: false, status: 'todo', priority: 'low', category: 'Research', app: 'Watchtower' },
-  { id: '9', title: 'Sales manager workflow map', description: 'Full responsibility breakdown + token cost analysis', completed: false, status: 'todo', priority: 'medium', category: 'Research', app: 'SalesboardHQ' },
-  { id: '10', title: 'Apply SalesLogHQ schema', description: 'Run migration against Watchtower Supabase', completed: false, status: 'todo', priority: 'high', category: 'Infrastructure', app: 'SalesLogHQ' },
-  { id: '11', title: 'Fix NAS backup cron', description: 'Hung mount issue on WD MyCloud', completed: false, status: 'review', priority: 'medium', category: 'Infrastructure', app: 'Watchtower' },
-  { id: '12', title: 'Codex CLI re-auth', description: 'Needs escalated permissions', completed: false, status: 'todo', priority: 'medium', category: 'Infrastructure', app: 'Watchtower' },
-  { id: '13', title: 'Netlify CLI re-auth', description: 'netlify logout && netlify login', completed: false, status: 'todo', priority: 'low', category: 'Infrastructure', app: 'Watchtower' },
-  { id: '14', title: 'Kitt memory upgrade', description: 'Evaluate SQLite + vector DB', completed: false, status: 'todo', priority: 'low', category: 'Infrastructure', app: 'Sidepilot' },
-  { id: '15', title: 'Pipeline spec', description: 'Specs/build-in-the-wild/PIPELINE.md (11KB)', completed: true, status: 'done', priority: 'high', category: 'Specs', app: 'Watchtower' },
-  { id: '16', title: 'Human-in-the-loop gates', description: '2 gates: approve idea, approve product', completed: true, status: 'done', priority: 'high', category: 'Specs', app: 'Agentflow' },
-  { id: '17', title: 'Obsidian Sync setup', description: 'Vault at ~/Documents/CMIG Partners/', completed: true, status: 'done', priority: 'high', category: 'Infrastructure', app: 'Watchtower' },
-  { id: '18', title: 'Substack posts merged', description: 'Workflow V2 + Issue #2 combined', completed: true, status: 'done', priority: 'medium', category: 'Content', app: 'Watchtower' },
-  { id: '19', title: 'V2 bid response portal', description: 'Buyer-facing bid response page + SMS integration', completed: false, status: 'todo', priority: 'high', category: 'Specs', app: 'BuybidHQ' },
-  { id: '20', title: 'Wholesale order PDF export', description: 'WA Form #2060 download button', completed: false, status: 'review', priority: 'medium', category: 'Infrastructure', app: 'BuybidHQ' },
-];
-
 const categoryColors: Record<string, string> = {
-  'Specs': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'Research': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'Infrastructure': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  'Content': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'specs': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  'research': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  'infrastructure': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'content': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'development': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+};
+
+const categoryLabels: Record<string, string> = {
+  specs: 'Specs', research: 'Research', infrastructure: 'Infrastructure',
+  content: 'Content', development: 'Development',
 };
 
 const priorityColors: Record<string, string> = {
@@ -52,11 +37,49 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function Development() {
+  const { apps } = useApps();
   const { appSlug } = useParams<{ appSlug?: string }>();
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Build app lookup maps
+  const appIdToName = Object.fromEntries(apps.map(a => [a.id, a.name]));
+  const appNameToId = Object.fromEntries(apps.map(a => [a.name, a.id]));
+
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabaseAdmin
+      .from('wt_tasks')
+      .select('id, title, description, category, priority, status, app_id, completed_at')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch tasks:', error.message);
+      setTasks([]);
+    } else {
+      setTasks((data || []).map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description || undefined,
+        completed: row.status === 'done',
+        status: row.status as TaskStatus,
+        priority: row.priority,
+        category: row.category || 'development',
+        app: appIdToName[row.app_id] || 'Watchtower',
+        app_id: row.app_id,
+      })));
+    }
+    setLoading(false);
+  }, [apps.length]);
+
+  useEffect(() => {
+    if (apps.length > 0) fetchTasks();
+  }, [fetchTasks, apps.length]);
 
   // Resolve app name from slug
   const currentApp = appSlug
@@ -65,7 +88,7 @@ export default function Development() {
       || null
     : null;
 
-  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' as Task['priority'], category: 'Specs', status: 'todo' as TaskStatus, app: currentApp || 'Watchtower' });
+  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' as Task['priority'], category: 'specs', status: 'todo' as TaskStatus, app: currentApp || 'Watchtower' });
 
   // Filter by app from URL, then by category
   const appFiltered = currentApp ? tasks.filter(t => t.app === currentApp) : tasks;
@@ -73,7 +96,7 @@ export default function Development() {
 
   const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
   const byPriority = (a: Task, b: Task) => priorityOrder[a.priority] - priorityOrder[b.priority];
-  const todoTasks = filtered.filter(t => t.status === 'todo').sort(byPriority);
+  const todoTasks = filtered.filter(t => t.status === 'todo' || t.status === 'in_progress').sort(byPriority);
   const reviewTasks = filtered.filter(t => t.status === 'review').sort(byPriority);
   const doneTasks = filtered.filter(t => t.status === 'done').sort(byPriority);
   const categories = ['all', ...Array.from(new Set(tasks.map(t => t.category)))];
@@ -84,28 +107,54 @@ export default function Development() {
     high: appFiltered.filter(t => !t.completed && t.priority === 'high').length,
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!newTask.title.trim()) return;
-    const task: Task = {
-      id: Date.now().toString(),
-      title: newTask.title,
-      description: newTask.description || undefined,
-      completed: newTask.status === 'done',
-      status: newTask.status,
-      priority: newTask.priority,
-      category: newTask.category,
-      app: newTask.app,
-    };
-    setTasks(prev => [task, ...prev]);
-    setNewTask({ title: '', description: '', priority: 'medium', category: 'Specs', status: 'todo', app: currentApp || 'Watchtower' });
-    setShowAddTask(false);
+    setSaving(true);
+    const { error } = await supabaseAdmin
+      .from('wt_tasks')
+      .insert({
+        title: newTask.title,
+        description: newTask.description || null,
+        status: newTask.status,
+        priority: newTask.priority,
+        category: newTask.category,
+        app_id: appNameToId[newTask.app] || null,
+        completed_at: newTask.status === 'done' ? new Date().toISOString() : null,
+      });
+
+    if (error) {
+      console.error('Failed to create task:', error.message);
+    } else {
+      setNewTask({ title: '', description: '', priority: 'medium', category: 'specs', status: 'todo', app: currentApp || 'Watchtower' });
+      setShowAddTask(false);
+      fetchTasks();
+    }
+    setSaving(false);
   };
 
-  const saveEditTask = () => {
+  const saveEditTask = async () => {
     if (!editingTask) return;
-    const updated = { ...editingTask, completed: editingTask.status === 'done' };
-    setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
-    setEditingTask(null);
+    setSaving(true);
+    const { error } = await supabaseAdmin
+      .from('wt_tasks')
+      .update({
+        title: editingTask.title,
+        description: editingTask.description || null,
+        status: editingTask.status,
+        priority: editingTask.priority,
+        category: editingTask.category,
+        app_id: appNameToId[editingTask.app] || null,
+        completed_at: editingTask.status === 'done' ? new Date().toISOString() : null,
+      })
+      .eq('id', editingTask.id);
+
+    if (error) {
+      console.error('Failed to update task:', error.message);
+    } else {
+      setEditingTask(null);
+      fetchTasks();
+    }
+    setSaving(false);
   };
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -114,12 +163,22 @@ export default function Development() {
     setShowDeleteConfirm(id);
   };
 
-  const confirmDelete = () => {
-    if (showDeleteConfirm) {
-      setTasks(prev => prev.filter(t => t.id !== showDeleteConfirm));
+  const confirmDelete = async () => {
+    if (!showDeleteConfirm) return;
+    setSaving(true);
+    const { error } = await supabaseAdmin
+      .from('wt_tasks')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', showDeleteConfirm);
+
+    if (error) {
+      console.error('Failed to delete task:', error.message);
+    } else {
       setShowDeleteConfirm(null);
       setEditingTask(null);
+      fetchTasks();
     }
+    setSaving(false);
   };
 
   return (
@@ -166,10 +225,12 @@ export default function Development() {
                 : 'bg-slate-900 text-slate-500 border border-white/5 hover:text-slate-300'
             }`}
           >
-            {cat === 'all' ? 'All' : cat}
+            {cat === 'all' ? 'All' : (categoryLabels[cat] || cat)}
           </button>
         ))}
       </div>
+
+      {loading && <p className="text-slate-500 text-sm">Loading tasks...</p>}
 
       {/* 3-column kanban */}
       <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto pb-4 lg:pb-0 -mx-1 px-1">
@@ -193,7 +254,7 @@ export default function Development() {
                 </div>
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
@@ -223,7 +284,7 @@ export default function Development() {
                 </div>
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
@@ -250,7 +311,7 @@ export default function Development() {
                 <span className="font-medium text-sm line-through text-slate-500">{task.title}</span>
                 {task.description && <p className="text-slate-600 text-xs mt-1 line-through">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
                   )}
@@ -296,10 +357,11 @@ export default function Development() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
                   <select value={newTask.category} onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
-                    <option value="Specs">Specs</option>
-                    <option value="Research">Research</option>
-                    <option value="Infrastructure">Infrastructure</option>
-                    <option value="Content">Content</option>
+                    <option value="specs">Specs</option>
+                    <option value="research">Research</option>
+                    <option value="infrastructure">Infrastructure</option>
+                    <option value="content">Content</option>
+                    <option value="development">Development</option>
                   </select>
                 </div>
               </div>
@@ -316,6 +378,7 @@ export default function Development() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
                   <select value={newTask.status} onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
                     <option value="done">Done</option>
                   </select>
@@ -323,7 +386,7 @@ export default function Development() {
               </div>
               <div className="pt-4 flex gap-4">
                 <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">Add Task</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Add Task'}</button>
               </div>
             </form>
           </div>
@@ -338,7 +401,7 @@ export default function Development() {
             <p className="text-sm text-slate-400">Are you sure? This cannot be undone.</p>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-              <button onClick={confirmDelete} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">Delete</button>
+              <button onClick={confirmDelete} disabled={saving} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Deleting...' : 'Delete'}</button>
             </div>
           </div>
         </div>
@@ -379,10 +442,11 @@ export default function Development() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
                   <select value={editingTask.category} onChange={e => setEditingTask({ ...editingTask, category: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
-                    <option value="Specs">Specs</option>
-                    <option value="Research">Research</option>
-                    <option value="Infrastructure">Infrastructure</option>
-                    <option value="Content">Content</option>
+                    <option value="specs">Specs</option>
+                    <option value="research">Research</option>
+                    <option value="infrastructure">Infrastructure</option>
+                    <option value="content">Content</option>
+                    <option value="development">Development</option>
                   </select>
                 </div>
               </div>
@@ -399,16 +463,17 @@ export default function Development() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
                   <select value={editingTask.status} onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
                     <option value="done">Done</option>
                   </select>
                 </div>
               </div>
               <div className="pt-4 flex gap-4">
-                <button type="button" onClick={() => deleteTask(editingTask.id)} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-semibold transition-colors">Delete</button>
+                <button type="button" disabled={saving} onClick={() => deleteTask(editingTask.id)} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-semibold transition-colors">Delete</button>
                 <div className="flex-1" />
                 <button type="button" onClick={() => setEditingTask(null)} className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">Save Changes</button>
+                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
               </div>
             </form>
           </div>

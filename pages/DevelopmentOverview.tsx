@@ -45,7 +45,6 @@ function emptyFormData(): AppFormData {
     supabase_project_id: '',
     graduation_stage: 'idea',
     pipeline_note: '',
-    icon_url: '',
     app_url: '',
     repo_url: '',
     overview: '',

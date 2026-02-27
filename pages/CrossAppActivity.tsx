@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { apps } from '../constants';
+import { useApps } from '../hooks/useApps';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -32,6 +32,7 @@ interface PowerUser {
 const APP_COLORS = ['#10b981', '#f59e0b', '#325AE7', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'];
 
 export default function CrossAppActivity() {
+  const { apps } = useApps();
   const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

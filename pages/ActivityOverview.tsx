@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { AppActivity } from '../types';
 import { icons } from '../constants';
+import { useApps } from '../hooks/useApps';
 
 interface AppStats {
   app_slug: string;
@@ -31,15 +32,6 @@ function healthDot(lastActivity: string | null, totalEvents: number): { color: s
   return { color: 'bg-red-400', label: 'Inactive' };
 }
 
-const appDisplayNames: Record<string, string> = {
-  salesloghq: 'SaleslogHQ',
-  buybidhq: 'BuybidHQ',
-  demolight: 'Demolight',
-  dealerscore: 'DealerScore',
-  salesboardhq: 'SalesboardHQ',
-  bitw: 'BITW',
-};
-
 const eventRowClass = (eventType: string): string => {
   if (eventType === 'signup') return 'border-l-2 border-emerald-500';
   if (eventType === 'error') return 'border-l-2 border-red-500';
@@ -47,6 +39,12 @@ const eventRowClass = (eventType: string): string => {
 };
 
 export default function ActivityOverview() {
+  const { apps } = useApps();
+  const appDisplayNames: Record<string, string> = {};
+  apps.forEach(a => {
+    appDisplayNames[a.slug || a.name.toLowerCase().replace(/\s+/g, '')] = a.name;
+  });
+
   const [stats, setStats] = useState<AppStats[]>([]);
   const [events, setEvents] = useState<AppActivity[]>([]);
   const [loading, setLoading] = useState(true);

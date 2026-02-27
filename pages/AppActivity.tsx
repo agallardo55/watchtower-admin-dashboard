@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { AppActivity as AppActivityType } from '../types';
 import { icons } from '../constants';
+import { useApps } from '../hooks/useApps';
 
 function relativeTime(dateStr: string): string {
   const now = Date.now();
@@ -14,15 +15,6 @@ function relativeTime(dateStr: string): string {
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
   return `${Math.floor(diff / 604800)}w ago`;
 }
-
-const appDisplayNames: Record<string, string> = {
-  salesloghq: 'SaleslogHQ',
-  buybidhq: 'BuybidHQ',
-  demolight: 'Demolight',
-  dealerscore: 'DealerScore',
-  salesboardhq: 'SalesboardHQ',
-  bitw: 'BITW',
-};
 
 interface UserRow {
   email: string;
@@ -38,6 +30,12 @@ interface EventBreakdown {
 }
 
 export default function AppActivity() {
+  const { apps } = useApps();
+  const appDisplayNames: Record<string, string> = {};
+  apps.forEach(a => {
+    appDisplayNames[a.slug || a.name.toLowerCase().replace(/\s+/g, '')] = a.name;
+  });
+
   const { appSlug } = useParams<{ appSlug: string }>();
   const [events, setEvents] = useState<AppActivityType[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
