@@ -1240,6 +1240,58 @@ export default function AllUsers() {
                 </button>
               </div>
 
+              {/* Delete User */}
+              <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('delete-confirm-section');
+                    if (el) el.classList.toggle('hidden');
+                  }}
+                  className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Delete User Permanently
+                </button>
+                <div id="delete-confirm-section" className="hidden mt-3 space-y-3">
+                  <p className="text-xs text-slate-500">Type <span className="font-mono text-red-400">{editingUser.email}</span> to confirm deletion.</p>
+                  <input
+                    type="text"
+                    placeholder="Type email to confirm..."
+                    id="delete-confirm-input"
+                    className="w-full bg-slate-900 border border-red-500/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 placeholder-slate-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const input = document.getElementById('delete-confirm-input') as HTMLInputElement;
+                      if (input?.value !== editingUser.email) {
+                        alert('Email does not match');
+                        return;
+                      }
+                      try {
+                        const res = await fetch(`${supabaseUrl}/functions/v1/manage-demolight-user`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${supabaseAnonKey}` },
+                          body: JSON.stringify({ action: 'delete', userId: editingUser.id }),
+                        });
+                        if (!res.ok) {
+                          const err = await res.json();
+                          alert(`Delete failed: ${err.error || res.statusText}`);
+                          return;
+                        }
+                        setUsers(prev => prev.filter(u => u.id !== editingUser.id));
+                        setEditingUser(null);
+                      } catch (err) {
+                        alert(`Delete failed: ${(err as Error).message}`);
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Delete Permanently
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-4 flex gap-4">
                 <button type="button" onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
                   Cancel
