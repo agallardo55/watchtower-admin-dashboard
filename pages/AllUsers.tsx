@@ -239,7 +239,7 @@ export default function AllUsers() {
   const [saving, setSaving] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showAppInfo, setShowAppInfo] = useState<string | null>(null);
-  const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'dealer' as string, app: '' });
+  const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, plan: 'starter' as string, dealershipName: '' });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [inviting, setInviting] = useState(false);
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -391,7 +391,7 @@ export default function AllUsers() {
         </div>
         {activeTab === 'users' && (
           <button
-            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
+            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', plan: 'starter', dealershipName: '' }); setShowInvite(true); }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg flex items-center gap-2"
           >
             <icons.users className="w-4 h-4" />
@@ -446,7 +446,7 @@ export default function AllUsers() {
           <h3 className="text-lg font-semibold text-slate-200 mb-2">{fetchError ? 'Failed to load users' : 'No users yet'}</h3>
           <p className="text-sm text-slate-500 mb-6">{fetchError || (currentApp ? `No users found for ${currentApp}.` : 'Add your first admin user to get started.')}</p>
           <button
-            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
+            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', plan: 'starter', dealershipName: '' }); setShowInvite(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
           >
             Add Admin User
@@ -490,8 +490,7 @@ export default function AllUsers() {
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
               <option value="manager">Manager</option>
-              <option value="user">User</option>
-              <option value="viewer">Viewer</option>
+              <option value="user">Salesperson</option>
             </select>
             <select
               value={statusFilter}
@@ -864,7 +863,7 @@ export default function AllUsers() {
               className="p-4 lg:p-6 space-y-4 lg:space-y-5"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app) return;
+                if (Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.dealershipName) return;
                 setInviting(true);
                 // Simulate API call
                 setTimeout(() => {
@@ -929,34 +928,28 @@ export default function AllUsers() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Dealership Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Pacific Motors"
+                  value={newUser.dealershipName}
+                  onChange={(e) => setNewUser({ ...newUser, dealershipName: e.target.value })}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Assign to App</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Subscription Plan</label>
                   <select
-                    required
-                    value={newUser.app}
-                    onChange={(e) => setNewUser({ ...newUser, app: e.target.value })}
+                    value={newUser.plan}
+                    onChange={(e) => setNewUser({ ...newUser, plan: e.target.value })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option value="" disabled>Select an app...</option>
-                    {apps.map((app) => (
-                      <option key={app.name} value={app.name}>
-                        {app.icon} {app.name} ({app.status})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Account Type</label>
-                  <select
-                    value={newUser.accountType}
-                    onChange={(e) => setNewUser({ ...newUser, accountType: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="dealer">Dealer</option>
-                    <option value="wholesaler">Wholesaler</option>
-                    <option value="internal">Internal</option>
-                    <option value="partner">Partner</option>
+                    <option value="starter">Starter — $299/mo</option>
+                    <option value="professional">Professional — $699/mo</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -968,28 +961,18 @@ export default function AllUsers() {
                   >
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
-                    <option value="user">User</option>
-                    <option value="viewer">Viewer</option>
+                    <option value="user">Salesperson</option>
                   </select>
                 </div>
               </div>
 
-              {newUser.app && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
-                  <div className="text-2xl">{apps.find(a => a.name === newUser.app)?.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold">{newUser.app}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{apps.find(a => a.name === newUser.app)?.description}</p>
-                  </div>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                    apps.find(a => a.name === newUser.app)?.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' :
-                    apps.find(a => a.name === newUser.app)?.status === 'paused' ? 'bg-yellow-500/10 text-yellow-500' :
-                    'bg-slate-500/10 text-slate-500'
-                  }`}>
-                    {apps.find(a => a.name === newUser.app)?.status}
-                  </span>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">Demolight</p>
+                  <p className="text-[10px] text-slate-500">Test Drive Manager</p>
                 </div>
-              )}
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/10 text-emerald-500">live</span>
+              </div>
 
               <div className="pt-4 flex gap-4">
                 <button
@@ -1001,7 +984,7 @@ export default function AllUsers() {
                 </button>
                 <button
                   type="submit"
-                  disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app}
+                  disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.dealershipName}
                   className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
                 >
                   {inviting ? 'Adding...' : 'Add User'}
@@ -1215,30 +1198,23 @@ export default function AllUsers() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Assigned App</label>
-                  <select
-                    value={editForm.app}
-                    disabled
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 opacity-60"
-                  >
-                    {apps.map((app) => (
-                      <option key={app.name} value={app.name}>
-                        {app.icon} {app.name} ({app.status})
-                      </option>
-                    ))}
-                    <option value="Watchtower">Watchtower</option>
-                    <option value="Demolight">Demolight</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase">Dealership</label>
+                <input
+                  type="text"
+                  value={(editingUser as any)?.dealershipName || '—'}
+                  disabled
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm opacity-60"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Role</label>
                   <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
-                    <option value="user">User</option>
-                    <option value="viewer">Viewer</option>
+                    <option value="user">Salesperson</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -1254,13 +1230,13 @@ export default function AllUsers() {
               <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
                 <div>
                   <p className="text-sm font-semibold">Password Reset</p>
-                  <p className="text-[10px] text-slate-500">Send a password reset email to {editingUser.email}</p>
+                  <p className="text-[10px] text-slate-500">Send a password reset SMS to user&apos;s phone</p>
                 </div>
                 <button
                   type="button"
                   className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-xs font-semibold transition-colors"
                 >
-                  Send Reset Email
+                  Send Reset SMS
                 </button>
               </div>
 
