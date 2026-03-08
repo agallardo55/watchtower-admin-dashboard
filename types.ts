@@ -101,4 +101,12 @@ export interface EdgeFunctionUser {
   app?: string;
   last_sign_in_at?: string;
   created_at?: string;
+  dealership_name?: string;
+  account_type?: string;
 }
+
+/** Account types for Demolight users */
+export type AccountType = 'starter' | 'professional';
+
+/** Enhanced user roles including Demolight-specific roles */
+export type UserRole = 'super_admin' | 'admin' | 'manager' | 'user' | 'salesperson' | 'member' | 'viewer';

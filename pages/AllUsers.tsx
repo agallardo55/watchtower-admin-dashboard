@@ -29,8 +29,9 @@ function formatRelativeTime(dateStr: string): string {
   return `${Math.floor(days / 30)} month${Math.floor(days / 30) > 1 ? 's' : ''} ago`;
 }
 
-type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
+type UserRole = 'admin' | 'manager' | 'user' | 'salesperson' | 'viewer';
 type UserStatus = 'active' | 'inactive' | 'suspended' | 'invited';
+type AccountType = 'starter' | 'professional';
 
 interface AppUser {
   id: string;
@@ -42,6 +43,8 @@ interface AppUser {
   app: string;
   lastSeen: string;
   createdAt: string;
+  dealership_name?: string;
+  account_type?: AccountType;
 }
 
 
@@ -49,6 +52,7 @@ const roleColors: Record<UserRole, string> = {
   admin: 'bg-red-500/10 text-red-400',
   manager: 'bg-purple-500/10 text-purple-400',
   user: 'bg-blue-500/10 text-blue-400',
+  salesperson: 'bg-green-500/10 text-green-400',
   viewer: 'bg-slate-500/10 text-slate-400',
 };
 
@@ -225,11 +229,11 @@ export default function AllUsers() {
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
   const [appFilter, setAppFilter] = useState<string>(currentApp || 'all');
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', email: '', phone: '', role: '' as string, status: '' as string, app: '' });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', email: '', phone: '', role: '' as string, status: '' as string, app: '', dealershipName: '', accountType: '' as string });
   const [saving, setSaving] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showAppInfo, setShowAppInfo] = useState<string | null>(null);
-  const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'dealer' as string, app: '' });
+  const [newUser, setNewUser] = useState({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin' as UserRole, accountType: 'starter' as AccountType, app: '', dealershipName: '' });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [inviting, setInviting] = useState(false);
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -294,7 +298,7 @@ export default function AllUsers() {
           const mapped: AppUser[] = data.map((u: EdgeFunctionUser) => {
             const name = u.name || 'Unknown';
             const initials = name.split(' ').filter(Boolean).map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-            const roleMap: Record<string, UserRole> = { super_admin: 'admin', admin: 'admin', Admin: 'admin', manager: 'manager', Manager: 'manager', consultant: 'user', Salesperson: 'user', user: 'user', viewer: 'viewer' };
+            const roleMap: Record<string, UserRole> = { super_admin: 'admin', admin: 'admin', Admin: 'admin', manager: 'manager', Manager: 'manager', consultant: 'user', Salesperson: 'salesperson', salesperson: 'salesperson', user: 'user', viewer: 'viewer' };
             return {
               id: u.id,
               name,
@@ -305,6 +309,8 @@ export default function AllUsers() {
               app: u.app || 'Unknown',
               lastSeen: u.last_sign_in_at ? formatRelativeTime(u.last_sign_in_at) : 'Never',
               createdAt: u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+              dealership_name: u.dealership_name || undefined,
+              account_type: (u.account_type as AccountType) || undefined,
             };
           });
           setUsers(mapped);
@@ -379,7 +385,7 @@ export default function AllUsers() {
         </div>
         {activeTab === 'users' && (
           <button
-            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
+            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'starter', app: 'Demolight', dealershipName: '' }); setShowInvite(true); }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg flex items-center gap-2"
           >
             <icons.users className="w-4 h-4" />
@@ -434,7 +440,7 @@ export default function AllUsers() {
           <h3 className="text-lg font-semibold text-slate-200 mb-2">{fetchError ? 'Failed to load users' : 'No users yet'}</h3>
           <p className="text-sm text-slate-500 mb-6">{fetchError || (currentApp ? `No users found for ${currentApp}.` : 'Add your first admin user to get started.')}</p>
           <button
-            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'dealer', app: '' }); setShowInvite(true); }}
+            onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'starter', app: 'Demolight', dealershipName: '' }); setShowInvite(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
           >
             Add Admin User
@@ -479,6 +485,7 @@ export default function AllUsers() {
               <option value="admin">Admin</option>
               <option value="manager">Manager</option>
               <option value="user">User</option>
+              <option value="salesperson">Salesperson</option>
               <option value="viewer">Viewer</option>
             </select>
             <select
@@ -511,7 +518,7 @@ export default function AllUsers() {
                   <button
                     onClick={() => {
                       const parts = user.name.split(' ');
-                      setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app });
+                      setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app, dealershipName: user.dealership_name || '', accountType: user.account_type || 'starter' });
                       setEditingUser(user);
                     }}
                     className="text-slate-500 hover:text-slate-200 transition-colors p-2"
@@ -600,6 +607,8 @@ export default function AllUsers() {
                             role: user.role,
                             status: user.status,
                             app: user.app,
+                            dealershipName: user.dealership_name || '',
+                            accountType: user.account_type || 'starter',
                           });
                           setEditingUser(user);
                         }}
@@ -751,7 +760,7 @@ export default function AllUsers() {
             users={users.filter(u => u.app === appTabMap[activeTab])}
             onEdit={(user) => {
               const parts = user.name.split(' ');
-              setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app });
+              setEditForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', email: user.email, phone: '', role: user.role, status: user.status, app: user.app, dealershipName: user.dealership_name || '', accountType: user.account_type || 'starter' });
               setEditingUser(user);
             }}
             onAppInfo={setShowAppInfo}
@@ -845,16 +854,55 @@ export default function AllUsers() {
             </div>
             <form
               className="p-4 lg:p-6 space-y-4 lg:space-y-5"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 if (Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app) return;
+                if (newUser.app === 'Demolight' && !newUser.dealershipName) {
+                  setFormErrors({ dealershipName: 'Dealership name is required for Demolight users' });
+                  return;
+                }
                 setInviting(true);
-                // Simulate API call
-                setTimeout(() => {
-                  setInviting(false);
+                
+                try {
+                  const res = await fetch(`${supabaseUrl}/functions/v1/create-admin-user`, {
+                    method: 'POST',
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY}`
+                    },
+                    body: JSON.stringify({
+                      firstName: newUser.firstName,
+                      lastName: newUser.lastName,
+                      email: newUser.email,
+                      mobile: newUser.mobile,
+                      role: newUser.role,
+                      accountType: newUser.accountType,
+                      app: newUser.app,
+                      dealershipName: newUser.dealershipName
+                    }),
+                  });
+
+                  const result = await res.json();
+                  
+                  if (!res.ok) {
+                    alert(`Error: ${result.error}`);
+                    return;
+                  }
+                  
+                  alert(`Admin user created successfully! Welcome email sent to ${newUser.email}.`);
                   setShowInvite(false);
                   setFormErrors({});
-                }, 500);
+                  
+                  // Reset form
+                  setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'starter', app: 'Demolight', dealershipName: '' });
+                  
+                  // Refresh users list
+                  window.location.reload();
+                } catch (err) {
+                  alert(`Failed to create user: ${(err as Error).message}`);
+                }
+                
+                setInviting(false);
               }}
             >
               <div className="grid grid-cols-2 gap-4">
@@ -912,6 +960,20 @@ export default function AllUsers() {
                 />
               </div>
 
+              {newUser.app === 'Demolight' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Dealership Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Smith Auto Group"
+                    value={newUser.dealershipName}
+                    onChange={(e) => setNewUser({ ...newUser, dealershipName: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Assign to App</label>
@@ -933,13 +995,11 @@ export default function AllUsers() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Account Type</label>
                   <select
                     value={newUser.accountType}
-                    onChange={(e) => setNewUser({ ...newUser, accountType: e.target.value })}
+                    onChange={(e) => setNewUser({ ...newUser, accountType: e.target.value as AccountType })}
                     className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option value="dealer">Dealer</option>
-                    <option value="wholesaler">Wholesaler</option>
-                    <option value="internal">Internal</option>
-                    <option value="partner">Partner</option>
+                    <option value="starter">Starter</option>
+                    <option value="professional">Professional</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -952,6 +1012,7 @@ export default function AllUsers() {
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
                     <option value="user">User</option>
+                    <option value="salesperson">Salesperson</option>
                     <option value="viewer">Viewer</option>
                   </select>
                 </div>
@@ -984,7 +1045,7 @@ export default function AllUsers() {
                 </button>
                 <button
                   type="submit"
-                  disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app}
+                  disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app || (newUser.app === 'Demolight' && !newUser.dealershipName)}
                   className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
                 >
                   {inviting ? 'Adding...' : 'Add User'}
@@ -1198,6 +1259,19 @@ export default function AllUsers() {
                 </div>
               </div>
 
+              {editingUser?.app === 'Demolight' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Dealership Name</label>
+                  <input
+                    type="text"
+                    value={editForm.dealershipName}
+                    onChange={(e) => setEditForm({ ...editForm, dealershipName: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="e.g. Smith Auto Group"
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Assigned App</label>
@@ -1221,6 +1295,7 @@ export default function AllUsers() {
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
                     <option value="user">User</option>
+                    <option value="salesperson">Salesperson</option>
                     <option value="viewer">Viewer</option>
                   </select>
                 </div>
@@ -1234,17 +1309,46 @@ export default function AllUsers() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
-                <div>
-                  <p className="text-sm font-semibold">Password Reset</p>
-                  <p className="text-[10px] text-slate-500">Send a password reset email to {editingUser.email}</p>
+              {editingUser?.app === 'Demolight' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Account Type</label>
+                  <select
+                    value={editForm.accountType}
+                    onChange={(e) => setEditForm({ ...editForm, accountType: e.target.value })}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="starter">Starter</option>
+                    <option value="professional">Professional</option>
+                  </select>
                 </div>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-xs font-semibold transition-colors"
-                >
-                  Send Reset Email
-                </button>
+              )}
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
+                  <div>
+                    <p className="text-sm font-semibold">Password Reset</p>
+                    <p className="text-[10px] text-slate-500">Send a password reset SMS to {editingUser.email}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-xs font-semibold transition-colors"
+                  >
+                    Send Reset SMS
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-red-900/20 border border-red-500/20">
+                  <div>
+                    <p className="text-sm font-semibold text-red-400">Delete User</p>
+                    <p className="text-[10px] text-red-300">Permanently remove this user and all their data</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg text-xs font-semibold transition-colors"
+                  >
+                    Delete User
+                  </button>
+                </div>
               </div>
 
               <div className="pt-4 flex gap-4">

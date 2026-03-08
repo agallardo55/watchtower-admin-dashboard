@@ -16,6 +16,8 @@ interface NormalizedUser {
   app: string;
   created_at: string;
   last_sign_in_at: string | null;
+  dealership_name?: string | null;
+  account_type?: string | null;
 }
 
 // Map from app-specific schemas to normalized user
@@ -69,6 +71,8 @@ function normalizeUsers(rows: any[], appName: string, usersTable: string): Norma
       app: appName,
       created_at: r.created_at,
       last_sign_in_at: r.last_sign_in_at || r.last_login_at || r.updated_at || null,
+      dealership_name: r.dealership_name || null,
+      account_type: r.account_type || null,
     };
   });
 }
@@ -105,7 +109,7 @@ Deno.serve(async (req) => {
           // Query local Watchtower DB directly
           const { data, error } = await wt
             .from(usersTable)
-            .select("*")
+            .select("*, dealership_name, account_type")
             .limit(200);
           if (error) {
             console.error(`Error fetching ${app.name}:`, error.message);

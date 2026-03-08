@@ -42,16 +42,16 @@ Deno.serve(async (req) => {
     const usersTable = appConfig.users_table || "users";
 
     // 2. Map normalized field names to app-specific column names
-    // The modal sends: firstName, lastName, email, phone, role, status, appAssignment
+    // The modal sends: firstName, lastName, email, phone, role, status, appAssignment, dealershipName, accountType
     const columnMap: Record<string, Record<string, string>> = {
       // Watchtower uses wt_users directly (not the view)
-      Watchtower: { firstName: "first_name", lastName: "last_name", email: "email", phone: "phone", role: "role", status: "status" },
+      Watchtower: { firstName: "first_name", lastName: "last_name", email: "email", phone: "mobile_phone", role: "role", status: "status", dealershipName: "dealership_name", accountType: "account_type" },
       // BuybidHQ public.users
       BuybidHQ: { firstName: "name", email: "email", phone: "mobile", role: "role", status: "status" },
       // SalesboardHQ public.users
       SalesboardHQ: { firstName: "name", email: "email", phone: "mobile", role: "role" },
       // Demolight public.users
-      Demolight: { firstName: "first_name", lastName: "last_name", email: "email", phone: "phone", role: "role" },
+      Demolight: { firstName: "first_name", lastName: "last_name", email: "email", phone: "mobile_phone", role: "role", dealershipName: "dealership_name", accountType: "account_type" },
       // SaleslogHQ uses sl_users on Watchtower
       SaleslogHQ: { firstName: "display_name", email: "email", phone: "phone", role: "role" },
     };
@@ -72,6 +72,10 @@ Deno.serve(async (req) => {
     if (fields.email && mapping.email) updatePayload[mapping.email] = fields.email;
     if (fields.phone && mapping.phone) updatePayload[mapping.phone] = fields.phone;
     if (fields.role && mapping.role) updatePayload[mapping.role] = fields.role;
+    
+    // Handle Demolight-specific fields
+    if (fields.dealershipName && mapping.dealershipName) updatePayload[mapping.dealershipName] = fields.dealershipName;
+    if (fields.accountType && mapping.accountType) updatePayload[mapping.accountType] = fields.accountType;
 
     // Status handling — some apps use is_active boolean, others use status text
     if (fields.status) {
