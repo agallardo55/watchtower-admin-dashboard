@@ -25,17 +25,23 @@ function relativeTime(dateStr: string): string {
 }
 
 function healthDot(lastActivity: string | null, totalEvents: number): { color: string; label: string } {
-  if (totalEvents === 0 || !lastActivity) return { color: 'bg-slate-400', label: 'No events' };
+  if (totalEvents === 0 || !lastActivity) return { color: '#444444', label: 'No events' };
   const hours = (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60);
-  if (hours < 24) return { color: 'bg-emerald-400', label: 'Active' };
-  if (hours < 168) return { color: 'bg-amber-400', label: 'Quiet' };
-  return { color: 'bg-red-400', label: 'Inactive' };
+  if (hours < 24) return { color: '#4ADE80', label: 'Active' };
+  if (hours < 168) return { color: '#F59E0B', label: 'Quiet' };
+  return { color: '#EF4444', label: 'Inactive' };
 }
 
-const eventRowClass = (eventType: string): string => {
-  if (eventType === 'signup') return 'border-l-2 border-emerald-500';
-  if (eventType === 'error') return 'border-l-2 border-red-500';
-  return '';
+const eventTypeStyle = (eventType: string): React.CSSProperties => {
+  if (eventType === 'signup') return { background: 'rgba(74,222,128,0.1)', color: '#4ADE80', border: '1px solid rgba(74,222,128,0.2)' };
+  if (eventType === 'error') return { background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)' };
+  return { background: 'rgba(255,255,255,0.05)', color: '#666666', border: '1px solid #222222' };
+};
+
+const eventRowBorder = (eventType: string): React.CSSProperties => {
+  if (eventType === 'signup') return { borderLeft: '2px solid #4ADE80' };
+  if (eventType === 'error') return { borderLeft: '2px solid #EF4444' };
+  return { borderLeft: '2px solid transparent' };
 };
 
 export default function ActivityOverview() {
@@ -127,50 +133,95 @@ export default function ActivityOverview() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-slate-500 text-sm">Loading...</div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem', color: '#444444', fontSize: '13px' }}>
+        LOADING...
+      </div>
+    );
   }
 
+  const selectStyle: React.CSSProperties = {
+    background: '#0d0d0d',
+    border: '1px solid #222222',
+    borderRadius: '4px',
+    color: '#e0e0e0',
+    fontSize: '12px',
+    padding: '6px 10px',
+    outline: 'none',
+    cursor: 'pointer',
+  };
+
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Activity</h1>
-        <p className="text-slate-500 text-sm mt-1">Cross-app user activity across all BITW apps</p>
+        <div style={{ fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
+          WATCHTOWER
+        </div>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0', margin: 0, letterSpacing: '-0.01em' }}>
+          // ACTIVITY
+        </h1>
+        <p style={{ color: '#444444', fontSize: '12px', marginTop: '4px' }}>
+          Cross-app user activity across all BITW apps
+        </p>
       </div>
 
       {/* KPI Cards */}
       {stats.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
           {stats.map((s) => {
             const h = healthDot(s.last_activity, s.total_events);
             return (
               <Link
                 key={s.app_slug}
                 to={`/activity/${s.app_slug}`}
-                className="block rounded-xl border border-white/5 bg-slate-900/50 p-5 hover:border-white/10 transition-colors"
+                className="terminal-card"
+                style={{
+                  display: 'block',
+                  padding: '16px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = '#333333')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = '#222222')}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold text-sm">{appDisplayNames[s.app_slug] || s.app_slug}</span>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${h.color}`} title={h.label} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e0e0e0' }}>
+                    {appDisplayNames[s.app_slug] || s.app_slug}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div
+                      title={h.label}
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        background: h.color,
+                        boxShadow: h.color === '#4ADE80' ? `0 0 6px ${h.color}` : 'none',
+                      }}
+                    />
+                    <span style={{ fontSize: '10px', color: '#444444' }}>{h.label}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <p className="text-slate-500">Total Events</p>
-                    <p className="text-lg font-bold">{s.total_events.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#e0e0e0', margin: 0 }}>{s.total_events.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500">Today</p>
-                    <p className="text-lg font-bold">{s.events_today.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#4ADE80', margin: 0 }}>{s.events_today.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500">Unique Users</p>
-                    <p className="text-lg font-bold">{s.unique_users.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Users</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#e0e0e0', margin: 0 }}>{s.unique_users.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-slate-500">Last Activity</p>
-                    <p className="font-medium">{s.last_activity ? relativeTime(s.last_activity) : '—'}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last</p>
+                    <p style={{ fontSize: '12px', fontWeight: 500, color: '#666666', margin: 0 }}>
+                      {s.last_activity ? relativeTime(s.last_activity) : '—'}
+                    </p>
                   </div>
                 </div>
               </Link>
@@ -178,17 +229,20 @@ export default function ActivityOverview() {
           })}
         </div>
       ) : (
-        <div className="rounded-xl border border-white/5 bg-slate-900/50 p-8 text-center text-slate-500 text-sm">
+        <div
+          className="terminal-card"
+          style={{ padding: '32px', textAlign: 'center', color: '#444444', fontSize: '13px' }}
+        >
           No activity recorded yet. Once apps start sending events, you'll see them here.
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
         <select
           value={appFilter}
           onChange={(e) => setAppFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500"
+          style={selectStyle}
         >
           <option value="all">All Apps</option>
           {Object.entries(appDisplayNames).map(([slug, name]) => (
@@ -199,7 +253,7 @@ export default function ActivityOverview() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500"
+          style={selectStyle}
         >
           <option value="all">All Events</option>
           {eventTypes.map((t) => (
@@ -207,8 +261,8 @@ export default function ActivityOverview() {
           ))}
         </select>
 
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+        <div style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#444444', display: 'flex', alignItems: 'center' }}>
             <icons.search />
           </div>
           <input
@@ -216,54 +270,86 @@ export default function ActivityOverview() {
             placeholder="Search by email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500 w-56"
+            style={{
+              ...selectStyle,
+              paddingLeft: '32px',
+              width: '220px',
+            }}
           />
         </div>
+
+        {(appFilter !== 'all' || typeFilter !== 'all' || search) && (
+          <span style={{ fontSize: '11px', color: '#444444' }}>
+            {total.toLocaleString()} result{total !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
       {/* Activity Feed Table */}
-      <div className="rounded-xl border border-white/5 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <div className="terminal-card" style={{ overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="terminal-table" style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
-                <th className="px-4 py-3 font-medium">Time</th>
-                <th className="px-4 py-3 font-medium">App</th>
-                <th className="px-4 py-3 font-medium">Event</th>
-                <th className="px-4 py-3 font-medium">User</th>
-                <th className="px-4 py-3 font-medium">Details</th>
+              <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Time</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>App</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>User</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {events.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                  <td
+                    colSpan={5}
+                    style={{ padding: '32px 16px', textAlign: 'center', color: '#444444', fontSize: '12px' }}
+                  >
                     No activity found matching your filters.
                   </td>
                 </tr>
               ) : (
                 events.map((ev) => (
-                  <tr key={ev.id} className={`hover:bg-white/[0.02] ${eventRowClass(ev.event_type)}`}>
-                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{relativeTime(ev.created_at)}</td>
-                    <td className="px-4 py-3">
+                  <tr
+                    key={ev.id}
+                    style={{
+                      ...eventRowBorder(ev.event_type),
+                      borderBottom: '1px solid #1a1a1a',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.01)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <td style={{ padding: '10px 16px', color: '#444444', whiteSpace: 'nowrap' }}>
+                      {relativeTime(ev.created_at)}
+                    </td>
+                    <td style={{ padding: '10px 16px' }}>
                       <Link
                         to={`/activity/${ev.app_slug}`}
-                        className="text-blue-400 hover:text-blue-300 font-medium"
+                        style={{ color: '#4ADE80', textDecoration: 'none', fontWeight: 500 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#6EE7A0')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#4ADE80')}
                       >
                         {appDisplayNames[ev.app_slug] || ev.app_slug}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                        ev.event_type === 'signup' ? 'bg-emerald-500/10 text-emerald-400' :
-                        ev.event_type === 'error' ? 'bg-red-500/10 text-red-400' :
-                        'bg-slate-500/10 text-slate-400'
-                      }`}>
+                    <td style={{ padding: '10px 16px' }}>
+                      <span
+                        style={{
+                          ...eventTypeStyle(ev.event_type),
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          fontWeight: 500,
+                        }}
+                      >
                         {ev.event_type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-300">{ev.user_email || '—'}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs max-w-xs truncate">
+                    <td style={{ padding: '10px 16px', color: '#e0e0e0' }}>
+                      {ev.user_email || '—'}
+                    </td>
+                    <td style={{ padding: '10px 16px', color: '#444444', fontSize: '11px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {ev.metadata && Object.keys(ev.metadata).length > 0
                         ? JSON.stringify(ev.metadata)
                         : '—'}
@@ -277,25 +363,54 @@ export default function ActivityOverview() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 text-sm">
-            <span className="text-slate-500">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 16px',
+            borderTop: '1px solid #1a1a1a',
+            fontSize: '12px',
+          }}>
+            <span style={{ color: '#444444' }}>
               {total.toLocaleString()} total events
             </span>
-            <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{
+                  padding: '4px 12px',
+                  background: 'transparent',
+                  border: '1px solid #222222',
+                  borderRadius: '4px',
+                  color: page === 0 ? '#333333' : '#666666',
+                  fontSize: '12px',
+                  cursor: page === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { if (page !== 0) { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = page === 0 ? '#333333' : '#666666'; }}
               >
                 Prev
               </button>
-              <span className="text-slate-500">
+              <span style={{ color: '#444444', minWidth: '60px', textAlign: 'center' }}>
                 {page + 1} / {totalPages}
               </span>
               <button
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{
+                  padding: '4px 12px',
+                  background: 'transparent',
+                  border: '1px solid #222222',
+                  borderRadius: '4px',
+                  color: page >= totalPages - 1 ? '#333333' : '#666666',
+                  fontSize: '12px',
+                  cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { if (page < totalPages - 1) { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = page >= totalPages - 1 ? '#333333' : '#666666'; }}
               >
                 Next
               </button>

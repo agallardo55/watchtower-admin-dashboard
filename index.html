@@ -8,38 +8,44 @@
     <link rel="icon" type="image/png" href="/watchtower-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+      * { box-sizing: border-box; }
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+        background-color: #0a0a0a;
+        color: #e0e0e0;
       }
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: transparent;
+        background: #0a0a0a;
       }
       ::-webkit-scrollbar-thumb {
-        background: #334155;
-        border-radius: 10px;
+        background: #222222;
+        border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #475569;
+        background: #333333;
       }
       .glass {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: #111111;
+        border: 1px solid #222222;
       }
       .glass-light {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        background: #111111;
+        border: 1px solid #222222;
+      }
+      .glass-glow {
+        background: #111111;
+        border: 1px solid #222222;
+        box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.05), 0 0 20px rgba(74, 222, 128, 0.03);
       }
     </style>
 </head>
-  <body class="bg-slate-950 text-slate-100 antialiased">
+  <body class="antialiased">
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

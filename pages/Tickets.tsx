@@ -23,19 +23,19 @@ interface Ticket {
   wt_app_registry: AppRegistry | null;
 }
 
-const priorityColors: Record<string, string> = {
-  critical: 'bg-red-500/10 text-red-400 border border-red-500/20',
-  high: 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
-  medium: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-  low: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
+const priorityStyles: Record<string, React.CSSProperties> = {
+  critical: { color: '#EF4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  high:     { color: '#F59E0B', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  medium:   { color: '#F59E0B', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.12)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  low:      { color: '#666666', background: 'rgba(102,102,102,0.08)', border: '1px solid rgba(102,102,102,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
 };
 
-const statusColors: Record<string, string> = {
-  open: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-  in_progress: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
-  resolved: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-  closed: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
-  wont_fix: 'bg-slate-500/10 text-slate-500 border border-slate-500/20',
+const statusStyles: Record<string, React.CSSProperties> = {
+  open:        { color: '#3B82F6', background: 'rgba(59,130,246,0.08)',  border: '1px solid rgba(59,130,246,0.15)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  in_progress: { color: '#A78BFA', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  resolved:    { color: '#4ADE80', background: 'rgba(74,222,128,0.08)',  border: '1px solid rgba(74,222,128,0.15)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  closed:      { color: '#666666', background: 'rgba(102,102,102,0.08)', border: '1px solid rgba(102,102,102,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  wont_fix:    { color: '#666666', background: 'rgba(102,102,102,0.06)', border: '1px solid rgba(102,102,102,0.12)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
 };
 
 const statusLabels: Record<string, string> = {
@@ -54,6 +54,13 @@ const statusOptions: { value: string; label: string }[] = [
   { value: 'wont_fix', label: "Won't Fix" },
 ];
 
+const statKpiColors: Record<string, { value: string; dot: string }> = {
+  mail:     { value: '#3B82F6', dot: 'rgba(59,130,246,0.15)' },
+  activity: { value: '#EF4444', dot: 'rgba(239,68,68,0.15)' },
+  archive:  { value: '#4ADE80', dot: 'rgba(74,222,128,0.15)' },
+  bell:     { value: '#A78BFA', dot: 'rgba(167,139,250,0.15)' },
+};
+
 function getAppName(ticket: Ticket): string {
   return ticket.wt_app_registry?.name ?? 'Unknown App';
 }
@@ -70,6 +77,7 @@ export default function Tickets() {
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [statusDropdown, setStatusDropdown] = useState(false);
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   const fetchTickets = useCallback(async () => {
     setLoading(true);
@@ -152,22 +160,32 @@ export default function Tickets() {
   const feedbackToday = tickets.filter(t => t.created_at.startsWith(today)).length;
 
   const stats = [
-    { label: 'Open Tickets', value: openCount, color: 'text-blue-400', bg: 'bg-blue-500/10', icon: 'mail' },
-    { label: 'Critical', value: criticalCount, color: 'text-red-400', bg: 'bg-red-500/10', icon: 'activity' },
-    { label: 'Resolved Today', value: resolvedToday, color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'archive' },
-    { label: 'New Feedback', value: feedbackToday, color: 'text-purple-400', bg: 'bg-purple-500/10', icon: 'bell' },
+    { label: 'Open Tickets',    value: openCount,      icon: 'mail' },
+    { label: 'Critical',        value: criticalCount,  icon: 'activity' },
+    { label: 'Resolved Today',  value: resolvedToday,  icon: 'archive' },
+    { label: 'New Feedback',    value: feedbackToday,  icon: 'bell' },
   ];
+
+  const selectStyle: React.CSSProperties = {
+    background: '#0d0d0d',
+    border: '1px solid #222222',
+    borderRadius: 4,
+    padding: '6px 12px',
+    fontSize: 13,
+    color: '#e0e0e0',
+    outline: 'none',
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
-          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: '#444444', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'JetBrains Mono, monospace' }}>// TICKETS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Tickets</h2>
         </div>
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-3 text-slate-400 text-sm">Loading tickets...</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+          <div style={{ width: 28, height: 28, border: '2px solid #222222', borderTopColor: '#4ADE80', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <span style={{ marginLeft: 12, color: '#666666', fontSize: 13 }}>loading tickets...</span>
         </div>
       </div>
     );
@@ -175,16 +193,18 @@ export default function Tickets() {
 
   if (error) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
-          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: '#444444', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'JetBrains Mono, monospace' }}>// TICKETS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Tickets</h2>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load tickets</h3>
-          <p className="text-sm text-slate-500 mb-4">{error}</p>
-          <button onClick={fetchTickets} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <div className="terminal-card" style={{ padding: 48, textAlign: 'center' }}>
+          <div style={{ color: '#EF4444', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, marginBottom: 8 }}>// ERROR: failed to load tickets</div>
+          <p style={{ fontSize: 12, color: '#666666', marginBottom: 16 }}>{error}</p>
+          <button
+            onClick={fetchTickets}
+            style={{ background: '#4ADE80', color: '#000', fontWeight: 600, borderRadius: 4, padding: '8px 16px', fontSize: 13, border: 'none', cursor: 'pointer' }}
+          >
             Retry
           </button>
         </div>
@@ -194,46 +214,50 @@ export default function Tickets() {
 
   if (tickets.length === 0) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
-          <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: '#444444', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'JetBrains Mono, monospace' }}>// TICKETS</div>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Tickets</h2>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">🎫</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets yet</h3>
-          <p className="text-sm text-slate-500">Tickets are created from user feedback via the AI triage system.</p>
+        <div className="terminal-card" style={{ padding: 48, textAlign: 'center' }}>
+          <div style={{ color: '#444444', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, marginBottom: 8 }}>// no tickets yet</div>
+          <p style={{ fontSize: 12, color: '#666666' }}>Tickets are created from user feedback via the AI triage system.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Page Header */}
       <div>
-        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
-        <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
+        <div style={{ fontSize: 11, color: '#444444', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'JetBrains Mono, monospace' }}>// TICKETS</div>
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Tickets</h2>
+        <p style={{ fontSize: 13, color: '#666666', marginTop: 4 }}>Cross-app feedback and AI-triaged issues.</p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {stats.map(s => {
           const Icon = (icons as Record<string, React.FC>)[s.icon];
+          const kpiColor = statKpiColors[s.icon];
           return (
-            <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${s.bg}`}><Icon /></div>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
+            <div key={s.label} className="terminal-card" style={{ padding: '16px 20px' }}>
+              <div style={{ fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, fontFamily: 'JetBrains Mono, monospace' }}>
+                {s.label}
               </div>
-              <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: kpiColor.dot, flexShrink: 0 }} />
+                <span style={{ fontSize: 28, fontWeight: 700, color: kpiColor.value, fontFamily: 'JetBrains Mono, monospace' }}>{s.value}</span>
+              </div>
             </div>
           );
         })}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
           <option value="all">All Status</option>
           <option value="open">Open</option>
           <option value="in_progress">In Progress</option>
@@ -241,165 +265,249 @@ export default function Tickets() {
           <option value="closed">Closed</option>
           <option value="wont_fix">Won't Fix</option>
         </select>
-        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} style={selectStyle}>
           <option value="all">All Priority</option>
           <option value="critical">Critical</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
-        <select value={appFilter} onChange={e => setAppFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <select value={appFilter} onChange={e => setAppFilter(e.target.value)} style={selectStyle}>
           <option value="all">All Apps</option>
           {allApps.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <div className="relative flex-1 min-w-[200px]">
-          <icons.search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tickets..." className="w-full bg-slate-900 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-blue-500" />
+        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+          <icons.search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#444444', pointerEvents: 'none' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search tickets..."
+            style={{ ...selectStyle, width: '100%', boxSizing: 'border-box', paddingLeft: 34 }}
+          />
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* Mobile Cards */}
-        <div className={`lg:hidden flex-1 space-y-3 ${selected ? 'hidden' : ''}`}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }} className={`lg-hidden ${selected ? 'hidden' : ''}`}>
           {filtered.map(t => (
-            <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`glass rounded-xl p-4 cursor-pointer transition-colors ${selected?.id === t.id ? 'border-blue-500 border' : 'border border-white/5 hover:border-white/10'}`}>
-              <p className="font-medium text-sm text-slate-200 mb-2">{t.title}</p>
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
+            <div
+              key={t.id}
+              onClick={() => setSelected(selected?.id === t.id ? null : t)}
+              className="terminal-card"
+              style={{
+                padding: 16,
+                cursor: 'pointer',
+                ...(selected?.id === t.id
+                  ? { background: 'rgba(74,222,128,0.05)', borderLeft: '2px solid #4ADE80' }
+                  : {}),
+              }}
+            >
+              <p style={{ fontWeight: 500, fontSize: 13, color: '#e0e0e0', marginBottom: 8 }}>{t.title}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                <span style={priorityStyles[t.priority]}>{t.priority}</span>
+                <span style={statusStyles[t.status]}>{statusLabels[t.status]}</span>
               </div>
-              <div className="flex justify-between text-xs text-slate-500">
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#666666' }}>
                 <span>{getAppName(t)}</span>
                 <span>{new Date(t.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           ))}
           {filtered.length === 0 && (
-            <div className="glass rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🎫</div>
-              <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets found</h3>
-              <p className="text-sm text-slate-500">Try adjusting your filters.</p>
+            <div className="terminal-card" style={{ padding: 48, textAlign: 'center' }}>
+              <div style={{ color: '#444444', fontFamily: 'JetBrains Mono, monospace', fontSize: 13 }}>// no tickets found</div>
+              <p style={{ fontSize: 12, color: '#666666', marginTop: 8 }}>Try adjusting your filters.</p>
             </div>
           )}
         </div>
 
         {/* Desktop Table */}
-        <div className={`glass rounded-xl overflow-hidden flex-1 transition-all hidden lg:block ${selected ? 'lg:max-w-[60%]' : ''}`}>
-          <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[600px]">
-            <thead>
-              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">App</th>
-                <th className="px-4 py-3">Priority</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 hidden lg:table-cell">Category</th>
-                <th className="px-4 py-3 hidden lg:table-cell">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filtered.map(t => (
-                <tr key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`hover:bg-white/5 cursor-pointer transition-colors ${selected?.id === t.id ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}>
-                  <td className="px-4 py-3 font-medium text-slate-200 max-w-[280px] truncate">{t.title}</td>
-                  <td className="px-4 py-3 text-slate-400">{getAppName(t)}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span></td>
-                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span></td>
-                  <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{t.category}</td>
-                  <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{new Date(t.created_at).toLocaleDateString()}</td>
+        <div
+          className="terminal-card"
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            ...(selected ? { maxWidth: '60%' } : {}),
+          }}
+        >
+          <div style={{ overflowX: 'auto' }}>
+            <table className="terminal-table" style={{ width: '100%', fontSize: 13, minWidth: 600 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #222222', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Title</th>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>App</th>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Priority</th>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Status</th>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Category</th>
+                  <th style={{ padding: '10px 16px', fontSize: 10, color: '#444444', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Created</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">No tickets match your filters.</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map(t => (
+                  <tr
+                    key={t.id}
+                    onClick={() => setSelected(selected?.id === t.id ? null : t)}
+                    onMouseEnter={() => setHoveredRow(t.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    style={{
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #1a1a1a',
+                      ...(selected?.id === t.id
+                        ? { background: 'rgba(74,222,128,0.05)', borderLeft: '2px solid #4ADE80' }
+                        : hoveredRow === t.id
+                        ? { background: '#1a1a1a' }
+                        : {}),
+                    }}
+                  >
+                    <td style={{ padding: '10px 16px', color: '#e0e0e0', fontWeight: 500, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</td>
+                    <td style={{ padding: '10px 16px', color: '#666666' }}>{getAppName(t)}</td>
+                    <td style={{ padding: '10px 16px' }}><span style={priorityStyles[t.priority]}>{t.priority}</span></td>
+                    <td style={{ padding: '10px 16px' }}><span style={statusStyles[t.status]}>{statusLabels[t.status]}</span></td>
+                    <td style={{ padding: '10px 16px', color: '#444444' }}>{t.category}</td>
+                    <td style={{ padding: '10px 16px', color: '#444444' }}>{new Date(t.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#444444', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>
+                      // no tickets match your filters
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* Detail Panel */}
         {selected && (
-          <div className="w-full lg:w-[400px] glass rounded-xl p-4 lg:p-6 space-y-5 animate-in slide-in-from-right">
-            <div className="flex items-start justify-between">
+          <div
+            className="terminal-card"
+            style={{ width: 400, flexShrink: 0, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="text-lg font-semibold text-slate-100">{selected.title}</h3>
-                <p className="text-xs text-slate-500 mt-1">{getAppName(selected)} · {selected.category}</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#e0e0e0', margin: 0 }}>{selected.title}</h3>
+                <p style={{ fontSize: 11, color: '#666666', marginTop: 4 }}>{getAppName(selected)} · {selected.category}</p>
               </div>
-              <button onClick={() => { setSelected(null); setStatusDropdown(false); }} className="text-slate-500 hover:text-slate-300 transition-colors">✕</button>
+              <button
+                onClick={() => { setSelected(null); setStatusDropdown(false); }}
+                style={{ background: 'none', border: 'none', color: '#666666', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Priority</label>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${priorityColors[selected.priority]}`}>{selected.priority}</span>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 9, color: '#444444', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, fontFamily: 'JetBrains Mono, monospace' }}>Priority</div>
+                <span style={priorityStyles[selected.priority]}>{selected.priority}</span>
               </div>
-              <div className="flex-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Status</label>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[selected.status]}`}>{statusLabels[selected.status]}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 9, color: '#444444', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6, fontFamily: 'JetBrains Mono, monospace' }}>Status</div>
+                <span style={statusStyles[selected.status]}>{statusLabels[selected.status]}</span>
               </div>
             </div>
 
             {selected.ai_summary && (
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">🤖 AI Summary</label>
-                <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 rounded-lg p-3 border border-white/5">{selected.ai_summary}</p>
+                <div style={{ fontSize: 9, color: '#444444', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, fontFamily: 'JetBrains Mono, monospace' }}>AI Summary</div>
+                <p style={{ fontSize: 12, color: '#e0e0e0', lineHeight: 1.6, background: '#0d0d0d', borderRadius: 4, padding: 12, border: '1px solid #222222', margin: 0 }}>{selected.ai_summary}</p>
               </div>
             )}
 
             {selected.tags && selected.tags.length > 0 && (
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Tags</label>
-                <div className="flex flex-wrap gap-1.5">
+                <div style={{ fontSize: 9, color: '#444444', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8, fontFamily: 'JetBrains Mono, monospace' }}>Tags</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {selected.tags.map(tag => (
-                    <span key={tag} className="bg-slate-800 text-slate-400 text-xs px-2 py-0.5 rounded-md border border-white/5">{tag}</span>
+                    <span key={tag} style={{ background: '#1a1a1a', color: '#666666', fontSize: 11, padding: '2px 8px', borderRadius: 3, border: '1px solid #222222' }}>{tag}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="border-t border-white/5 pt-4">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Timeline</label>
-              <div className="space-y-2 text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+            <div style={{ borderTop: '1px solid #222222', paddingTop: 16 }}>
+              <div style={{ fontSize: 9, color: '#444444', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 10, fontFamily: 'JetBrains Mono, monospace' }}>Timeline</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#666666' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#3B82F6', flexShrink: 0 }} />
                   <span>Created {new Date(selected.created_at).toLocaleString()}</span>
                 </div>
                 {selected.updated_at !== selected.created_at && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#666666' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#A78BFA', flexShrink: 0 }} />
                     <span>Updated {new Date(selected.updated_at).toLocaleString()}</span>
                   </div>
                 )}
                 {selected.resolved_at && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#666666' }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', flexShrink: 0 }} />
                     <span>Resolved {new Date(selected.resolved_at).toLocaleString()}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="relative pt-2">
+            <div style={{ position: 'relative', paddingTop: 8 }}>
               {updateError && (
-                <p className="text-xs text-red-400 mb-2">{updateError}</p>
+                <p style={{ fontSize: 11, color: '#EF4444', marginBottom: 8 }}>{updateError}</p>
               )}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ position: 'relative', flex: 1 }}>
                   <button
                     onClick={() => setStatusDropdown(!statusDropdown)}
                     disabled={updating}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      width: '100%',
+                      background: '#4ADE80',
+                      color: '#000',
+                      fontWeight: 600,
+                      borderRadius: 4,
+                      padding: '8px 16px',
+                      fontSize: 13,
+                      border: 'none',
+                      cursor: updating ? 'not-allowed' : 'pointer',
+                      opacity: updating ? 0.5 : 1,
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
                   >
                     {updating ? 'Updating...' : 'Update Status'}
                   </button>
                   {statusDropdown && (
-                    <div className="absolute bottom-full left-0 mb-1 w-full bg-slate-800 border border-white/10 rounded-lg overflow-hidden shadow-xl z-10">
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: 0,
+                      marginBottom: 4,
+                      width: '100%',
+                      background: '#111111',
+                      border: '1px solid #222222',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                      zIndex: 10,
+                    }}>
                       {statusOptions
                         .filter(opt => opt.value !== selected.status)
                         .map(opt => (
                           <button
                             key={opt.value}
                             onClick={() => updateTicketStatus(selected.id, opt.value)}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors"
+                            onMouseEnter={e => (e.currentTarget.style.background = '#1a1a1a')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                            style={{
+                              width: '100%',
+                              textAlign: 'left',
+                              padding: '8px 12px',
+                              fontSize: 13,
+                              color: '#e0e0e0',
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontFamily: 'JetBrains Mono, monospace',
+                            }}
                           >
                             {opt.label}
                           </button>
@@ -407,7 +515,21 @@ export default function Tickets() {
                     </div>
                   )}
                 </div>
-                <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/5">Assign</button>
+                <button
+                  style={{
+                    background: '#1a1a1a',
+                    color: '#e0e0e0',
+                    padding: '8px 16px',
+                    borderRadius: 4,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    border: '1px solid #222222',
+                    cursor: 'pointer',
+                    fontFamily: 'JetBrains Mono, monospace',
+                  }}
+                >
+                  Assign
+                </button>
               </div>
             </div>
           </div>

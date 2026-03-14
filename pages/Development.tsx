@@ -17,12 +17,16 @@ interface Task {
   app_id: string | null;
 }
 
-const categoryColors: Record<string, string> = {
-  'specs': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'research': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'infrastructure': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  'content': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  'development': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+const categoryStyles: Record<string, React.CSSProperties> = {
+  specs:          { color: '#3B82F6', background: 'rgba(59,130,246,0.1)',   border: '1px solid rgba(59,130,246,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  research:       { color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  infrastructure: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  content:        { color: '#4ADE80', background: 'rgba(74,222,128,0.1)',  border: '1px solid rgba(74,222,128,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  development:    { color: '#3B82F6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+};
+
+const defaultCategoryStyle: React.CSSProperties = {
+  color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600,
 };
 
 const categoryLabels: Record<string, string> = {
@@ -30,10 +34,33 @@ const categoryLabels: Record<string, string> = {
   content: 'Content', development: 'Development',
 };
 
-const priorityColors: Record<string, string> = {
-  'high': 'bg-red-500/10 text-red-400',
-  'medium': 'bg-yellow-500/10 text-yellow-400',
-  'low': 'bg-slate-500/10 text-slate-400',
+const priorityStyles: Record<string, React.CSSProperties> = {
+  high:   { color: '#EF4444', background: 'rgba(239,68,68,0.1)',   border: '1px solid rgba(239,68,68,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  medium: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  low:    { color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#0d0d0d',
+  border: '1px solid #222222',
+  borderRadius: '4px',
+  padding: '8px 12px',
+  fontSize: 13,
+  color: '#e0e0e0',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  color: '#666666',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  display: 'block',
+  marginBottom: 6,
 };
 
 export default function Development() {
@@ -186,16 +213,17 @@ export default function Development() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
-            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'Development'}
+          <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// development</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>
+            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'development'}
           </h2>
-          <p className="text-slate-500 mt-1">
+          <p style={{ fontSize: 12, color: '#666666', marginTop: 4 }}>
             {currentApp ? `Tasks for ${currentApp}.` : 'Daily tasks and work items across all applications.'}
           </p>
         </div>
         <button
           onClick={() => { setNewTask(prev => ({ ...prev, app: currentApp || 'Watchtower' })); setShowAddTask(true); }}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          style={{ background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           Add Task
@@ -203,14 +231,14 @@ export default function Development() {
       </div>
 
       {/* Stat line */}
-      <p className="text-sm text-slate-400">
-        <span className="text-slate-200 font-semibold">{stats.total}</span> tasks
-        <span className="mx-1.5 text-slate-700">&middot;</span>
-        <span className="text-emerald-400 font-semibold">{stats.done}</span> completed
-        <span className="mx-1.5 text-slate-700">&middot;</span>
-        <span className="text-blue-400 font-semibold">{stats.total - stats.done}</span> remaining
-        <span className="mx-1.5 text-slate-700">&middot;</span>
-        <span className="text-red-400 font-semibold">{stats.high}</span> high priority
+      <p style={{ fontSize: 13, color: '#666666' }}>
+        <span style={{ color: '#e0e0e0', fontWeight: 600 }}>{stats.total}</span> tasks
+        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
+        <span style={{ color: '#4ADE80', fontWeight: 600 }}>{stats.done}</span> completed
+        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
+        <span style={{ color: '#3B82F6', fontWeight: 600 }}>{stats.total - stats.done}</span> remaining
+        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
+        <span style={{ color: '#EF4444', fontWeight: 600 }}>{stats.high}</span> high priority
       </p>
 
       {/* Category filter pills */}
@@ -219,104 +247,92 @@ export default function Development() {
           <button
             key={cat}
             onClick={() => setCategoryFilter(cat)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            style={
               categoryFilter === cat
-                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
-                : 'bg-slate-900 text-slate-500 border border-white/5 hover:text-slate-300'
-            }`}
+                ? { background: 'rgba(74,222,128,0.1)', color: '#4ADE80', border: '1px solid rgba(74,222,128,0.2)', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
+                : { background: 'transparent', color: '#444444', border: '1px solid #222222', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
+            }
           >
             {cat === 'all' ? 'All' : (categoryLabels[cat] || cat)}
           </button>
         ))}
       </div>
 
-      {loading && <p className="text-slate-500 text-sm">Loading tasks...</p>}
+      {loading && <p style={{ color: '#444444', fontSize: 12 }}>loading tasks...</p>}
 
       {/* 3-column kanban */}
       <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto pb-4 lg:pb-0 -mx-1 px-1">
-        {/* Each column needs min-width on mobile for horizontal scroll */}
         {/* To Do */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-semibold text-lg">To Do</h2>
-            <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{todoTasks.length}</span>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#666666', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+              To Do
+            </h2>
+            <span style={{ fontSize: 10, background: '#1a1a1a', color: '#444444', padding: '1px 8px', borderRadius: '999px', border: '1px solid #222222' }}>
+              {todoTasks.length}
+            </span>
           </div>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {todoTasks.map(task => (
-              <div
+              <TaskCard
                 key={task.id}
+                task={task}
+                currentApp={currentApp}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900 border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 transition-all"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-sm">{task.title}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
-                </div>
-                {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
-                  {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
-                  )}
-                </div>
-              </div>
+              />
             ))}
-            {todoTasks.length === 0 && <div className="text-center py-12 text-slate-600 text-sm">No tasks here</div>}
+            {todoTasks.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#444444', fontSize: 12 }}>No tasks here</div>
+            )}
           </div>
         </div>
 
         {/* Review */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-semibold text-lg">Review</h2>
-            <span className="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full">{reviewTasks.length}</span>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+              Review
+            </h2>
+            <span style={{ fontSize: 10, background: 'rgba(245,158,11,0.1)', color: '#F59E0B', padding: '1px 8px', borderRadius: '999px', border: '1px solid rgba(245,158,11,0.2)' }}>
+              {reviewTasks.length}
+            </span>
           </div>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {reviewTasks.map(task => (
-              <div
+              <TaskCard
                 key={task.id}
+                task={task}
+                currentApp={currentApp}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900 border border-yellow-500/10 rounded-xl p-4 cursor-pointer hover:border-yellow-500/20 transition-all"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-sm">{task.title}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
-                </div>
-                {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
-                  {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
-                  )}
-                </div>
-              </div>
+                accentBorder="rgba(245,158,11,0.15)"
+                accentBorderHover="rgba(245,158,11,0.3)"
+              />
             ))}
-            {reviewTasks.length === 0 && <div className="text-center py-12 text-slate-600 text-sm">No tasks in review</div>}
+            {reviewTasks.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#444444', fontSize: 12 }}>No tasks in review</div>
+            )}
           </div>
         </div>
 
         {/* Done */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-semibold text-lg">Done</h2>
-            <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full">{doneTasks.length}</span>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#4ADE80', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+              Done
+            </h2>
+            <span style={{ fontSize: 10, background: 'rgba(74,222,128,0.1)', color: '#4ADE80', padding: '1px 8px', borderRadius: '999px', border: '1px solid rgba(74,222,128,0.2)' }}>
+              {doneTasks.length}
+            </span>
           </div>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {doneTasks.map(task => (
-              <div
+              <TaskCard
                 key={task.id}
+                task={task}
+                currentApp={currentApp}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900/50 border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 transition-all opacity-60"
-              >
-                <span className="font-medium text-sm line-through text-slate-500">{task.title}</span>
-                {task.description && <p className="text-slate-600 text-xs mt-1 line-through">{task.description}</p>}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
-                  {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
-                  )}
-                </div>
-              </div>
+                done
+              />
             ))}
           </div>
         </div>
@@ -324,39 +340,68 @@ export default function Development() {
 
       {/* Add Task Modal */}
       {showAddTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
+          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="text-xl font-bold">New Task</h3>
-                <p className="text-xs text-slate-500 mt-1">Add a new task to your development board.</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#e0e0e0', margin: 0 }}>New Task</h3>
+                <p style={{ fontSize: 11, color: '#666666', marginTop: 4, marginBottom: 0 }}>Add a new task to your development board.</p>
               </div>
-              <button onClick={() => setShowAddTask(false)} className="text-slate-500 hover:text-slate-200">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              <button onClick={() => setShowAddTask(false)} style={{ background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
               </button>
             </div>
-            <form className="p-6 space-y-5" onSubmit={e => { e.preventDefault(); addTask(); }}>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Task Title</label>
-                <input type="text" required placeholder="What needs to be done?" value={newTask.title} onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600" />
+            <form style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }} onSubmit={e => { e.preventDefault(); addTask(); }}>
+              <div>
+                <label style={labelStyle}>Task Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="What needs to be done?"
+                  value={newTask.title}
+                  onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
-                <textarea rows={3} placeholder="Additional details (optional)" value={newTask.description} onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
+              <div>
+                <label style={labelStyle}>Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="Additional details (optional)"
+                  value={newTask.description}
+                  onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                  style={{ ...inputStyle, resize: 'none' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">App</label>
-                  <select value={newTask.app} onChange={e => setNewTask(prev => ({ ...prev, app: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>App</label>
+                  <select
+                    value={newTask.app}
+                    onChange={e => setNewTask(prev => ({ ...prev, app: e.target.value }))}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
                       <option key={a.name} value={a.name}>{a.icon} {a.name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
-                  <select value={newTask.category} onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                <div>
+                  <label style={labelStyle}>Category</label>
+                  <select
+                    value={newTask.category}
+                    onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
                     <option value="infrastructure">Infrastructure</option>
@@ -365,18 +410,30 @@ export default function Development() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
-                  <select value={newTask.priority} onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Priority</label>
+                  <select
+                    value={newTask.priority}
+                    onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={newTask.status} onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                <div>
+                  <label style={labelStyle}>Status</label>
+                  <select
+                    value={newTask.status}
+                    onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
@@ -384,9 +441,21 @@ export default function Development() {
                   </select>
                 </div>
               </div>
-              <div className="pt-4 flex gap-4">
-                <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Add Task'}</button>
+              <div style={{ display: 'flex', gap: 8, paddingTop: 8, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddTask(false)}
+                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  style={{ flex: 1, padding: '8px 16px', background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+                >
+                  {saving ? 'Saving...' : 'Add Task'}
+                </button>
               </div>
             </form>
           </div>
@@ -395,13 +464,24 @@ export default function Development() {
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border-white/10 p-6 space-y-4">
-            <h3 className="text-lg font-bold text-red-400">Delete Task</h3>
-            <p className="text-sm text-slate-400">Are you sure? This cannot be undone.</p>
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-              <button onClick={confirmDelete} disabled={saving} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Deleting...' : 'Delete'}</button>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
+          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 400, padding: '24px' }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: '#EF4444', marginBottom: 8, marginTop: 0 }}>Delete Task</h3>
+            <p style={{ fontSize: 12, color: '#666666', marginBottom: 16 }}>Are you sure? This cannot be undone.</p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={saving}
+                style={{ flex: 1, padding: '8px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+              >
+                {saving ? 'Deleting...' : 'Delete'}
+              </button>
             </div>
           </div>
         </div>
@@ -409,39 +489,67 @@ export default function Development() {
 
       {/* Edit Task Modal */}
       {editingTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
+          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="text-xl font-bold">Edit Task</h3>
-                <p className="text-xs text-slate-500 mt-1">Update task details or mark as complete.</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#e0e0e0', margin: 0 }}>Edit Task</h3>
+                <p style={{ fontSize: 11, color: '#666666', marginTop: 4, marginBottom: 0 }}>Update task details or mark as complete.</p>
               </div>
-              <button onClick={() => setEditingTask(null)} className="text-slate-500 hover:text-slate-200">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              <button onClick={() => setEditingTask(null)} style={{ background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
               </button>
             </div>
-            <form className="p-6 space-y-5" onSubmit={e => { e.preventDefault(); saveEditTask(); }}>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Task Title</label>
-                <input type="text" required value={editingTask.title} onChange={e => setEditingTask({ ...editingTask, title: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+            <form style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }} onSubmit={e => { e.preventDefault(); saveEditTask(); }}>
+              <div>
+                <label style={labelStyle}>Task Title</label>
+                <input
+                  type="text"
+                  required
+                  value={editingTask.title}
+                  onChange={e => setEditingTask({ ...editingTask, title: e.target.value })}
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
-                <textarea rows={3} placeholder="Additional details (optional)" value={editingTask.description || ''} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
+              <div>
+                <label style={labelStyle}>Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="Additional details (optional)"
+                  value={editingTask.description || ''}
+                  onChange={e => setEditingTask({ ...editingTask, description: e.target.value })}
+                  style={{ ...inputStyle, resize: 'none' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">App</label>
-                  <select value={editingTask.app} onChange={e => setEditingTask({ ...editingTask, app: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>App</label>
+                  <select
+                    value={editingTask.app}
+                    onChange={e => setEditingTask({ ...editingTask, app: e.target.value })}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
                       <option key={a.name} value={a.name}>{a.icon} {a.name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
-                  <select value={editingTask.category} onChange={e => setEditingTask({ ...editingTask, category: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                <div>
+                  <label style={labelStyle}>Category</label>
+                  <select
+                    value={editingTask.category}
+                    onChange={e => setEditingTask({ ...editingTask, category: e.target.value })}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
                     <option value="infrastructure">Infrastructure</option>
@@ -450,18 +558,30 @@ export default function Development() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
-                  <select value={editingTask.priority} onChange={e => setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Priority</label>
+                  <select
+                    value={editingTask.priority}
+                    onChange={e => setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] })}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={editingTask.status} onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                <div>
+                  <label style={labelStyle}>Status</label>
+                  <select
+                    value={editingTask.status}
+                    onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })}
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
+                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  >
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
@@ -469,16 +589,100 @@ export default function Development() {
                   </select>
                 </div>
               </div>
-              <div className="pt-4 flex gap-4">
-                <button type="button" disabled={saving} onClick={() => deleteTask(editingTask.id)} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-semibold transition-colors">Delete</button>
-                <div className="flex-1" />
-                <button type="button" onClick={() => setEditingTask(null)} className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
+              <div style={{ display: 'flex', gap: 8, paddingTop: 8, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => deleteTask(editingTask.id)}
+                  style={{ padding: '8px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Delete
+                </button>
+                <div style={{ flex: 1 }} />
+                <button
+                  type="button"
+                  onClick={() => setEditingTask(null)}
+                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  style={{ padding: '8px 16px', background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── TaskCard ────────────────────────────────────────────────────────────────
+
+interface TaskCardProps {
+  task: Task;
+  currentApp: string | null;
+  onClick: () => void;
+  done?: boolean;
+  accentBorder?: string;
+  accentBorderHover?: string;
+}
+
+function TaskCard({ task, currentApp, onClick, done, accentBorder, accentBorderHover }: TaskCardProps) {
+  const [hovered, setHovered] = useState(false);
+
+  const baseBorder = accentBorder || '#222222';
+  const hoverBorder = accentBorderHover || '#2a2a2a';
+
+  const cardStyle: React.CSSProperties = {
+    background: done ? '#0d0d0d' : (hovered ? '#1a1a1a' : '#111111'),
+    border: `1px solid ${hovered ? hoverBorder : baseBorder}`,
+    borderRadius: '4px',
+    padding: 16,
+    cursor: 'pointer',
+    marginBottom: 0,
+    opacity: done ? 0.5 : 1,
+    transition: 'background 0.15s, border-color 0.15s',
+  };
+
+  const catStyle = categoryStyles[task.category] || defaultCategoryStyle;
+  const priStyle = priorityStyles[task.priority] || priorityStyles['low'];
+
+  return (
+    <div
+      style={cardStyle}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={done ? { fontWeight: 500, fontSize: 13, color: '#444444', textDecoration: 'line-through' } : { fontWeight: 500, fontSize: 13, color: '#e0e0e0' }}>
+          {task.title}
+        </span>
+        <span style={priStyle}>
+          {task.priority}
+        </span>
+      </div>
+      {task.description && (
+        <p style={done ? { color: '#444444', fontSize: 11, marginTop: 4, textDecoration: 'line-through', marginBottom: 0 } : { color: '#444444', fontSize: 11, marginTop: 4, marginBottom: 0 }}>
+          {task.description}
+        </p>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+        <span style={catStyle}>
+          {categoryLabels[task.category] || task.category}
+        </span>
+        {!currentApp && (
+          <span style={{ background: '#1a1a1a', color: '#555555', fontSize: 10, padding: '1px 8px', borderRadius: 3, border: '1px solid #222222' }}>
+            {task.app}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

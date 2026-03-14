@@ -11,13 +11,21 @@ function formatRelativeTime(dateStr: string): string {
   const then = new Date(dateStr).getTime();
   const diff = now - then;
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-  return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`;
+  if (days < 7) return `${days}d ago`;
+  return `${Math.floor(days / 7)}w ago`;
+}
+
+function formatTimestamp(dateStr: string): string {
+  const d = new Date(dateStr);
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  return `${h}:${m}:${s}`;
 }
 
 function guessActivityType(action: string): string {
@@ -27,13 +35,35 @@ function guessActivityType(action: string): string {
   if (lower.includes('spec') || lower.includes('doc')) return 'spec';
   if (lower.includes('schema') || lower.includes('table') || lower.includes('migration')) return 'schema';
   if (lower.includes('launch') || lower.includes('release')) return 'launch';
+  if (lower.includes('signup') || lower.includes('user')) return 'signup';
+  if (lower.includes('ticket') || lower.includes('bug')) return 'ticket';
+  if (lower.includes('alert') || lower.includes('error')) return 'alert';
   return 'feature';
 }
 
+const activityTagStyle: Record<string, React.CSSProperties> = {
+  deploy:  { color: '#4ADE80', background: 'rgba(74,222,128,0.08)',  border: '1px solid rgba(74,222,128,0.15)' },
+  feature: { color: '#4ADE80', background: 'rgba(74,222,128,0.08)',  border: '1px solid rgba(74,222,128,0.15)' },
+  signup:  { color: '#3B82F6', background: 'rgba(59,130,246,0.08)',  border: '1px solid rgba(59,130,246,0.15)' },
+  spec:    { color: '#3B82F6', background: 'rgba(59,130,246,0.08)',  border: '1px solid rgba(59,130,246,0.15)' },
+  schema:  { color: '#A78BFA', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.15)' },
+  ticket:  { color: '#F59E0B', background: 'rgba(245,158,11,0.08)',  border: '1px solid rgba(245,158,11,0.15)' },
+  alert:   { color: '#EF4444', background: 'rgba(239,68,68,0.08)',   border: '1px solid rgba(239,68,68,0.15)' },
+  launch:  { color: '#EF4444', background: 'rgba(239,68,68,0.08)',   border: '1px solid rgba(239,68,68,0.15)' },
+};
+
 const tabs = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'analytics', label: 'Analytics' },
+  { id: 'overview', label: 'overview' },
+  { id: 'analytics', label: 'analytics' },
 ];
+
+function getStatusBadgeClass(status: string) {
+  if (status === 'live') return 'badge-live';
+  if (status === 'beta') return 'badge-beta';
+  if (status === 'paused') return 'badge-paused';
+  if (status === 'down') return 'badge-down';
+  return 'badge-inactive';
+}
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -49,7 +79,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchDashboardData() {
-      // Daily stats for chart
       const { data: statsData } = await supabaseAdmin
         .from('wt_daily_stats')
         .select('date, users_total, signups, app_id, wt_app_registry(name)')
@@ -67,23 +96,22 @@ export default function Dashboard() {
         setChartData(Object.values(byDate));
       }
 
-      // Recent activity from wt_activity_log
       const { data: activityData } = await supabaseAdmin
         .from('wt_activity_log')
         .select('id, action, actor, description, created_at, wt_app_registry(name)')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(12);
 
       if (activityData) {
         setRecentActivity(activityData.map((a: any) => ({
-          app: a.wt_app_registry?.name || a.actor || 'Watchtower',
+          app: a.wt_app_registry?.name || a.actor || 'watchtower',
           action: a.description || a.action,
           time: formatRelativeTime(a.created_at),
+          timestamp: formatTimestamp(a.created_at),
           type: guessActivityType(a.action),
         })));
       }
 
-      // Pending invitations
       const { count } = await supabaseAdmin
         .from('wt_invitations')
         .select('*', { count: 'exact', head: true })
@@ -94,135 +122,132 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  const dashboardStats = [
-    { label: 'Total Apps', value: String(stats.totalApps), sublabel: `${stats.liveApps} public, ${stats.internalApps} internal`, trend: `${stats.liveApps} live`, color: 'blue', icon: 'grid' },
-    { label: 'Total Users', value: String(stats.totalUsers), sublabel: 'Across all apps', trend: 'Live count', color: 'emerald', icon: 'users' },
-    { label: 'Database Tables', value: String(stats.totalTables), sublabel: 'Watchtower shared DB', trend: `${stats.schemaCount} schemas`, color: 'purple', icon: 'database' },
-    { label: 'Pending Invitations', value: String(pendingInvitations), sublabel: 'Awaiting response', trend: pendingInvitations > 0 ? 'Needs attention' : 'All clear', color: 'orange', icon: 'mail' },
-  ];
-
   if (statsLoading) {
     return (
-      <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto animate-pulse">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
           {[1,2,3,4].map(i => (
-            <div key={i} className="glass p-4 lg:p-6 rounded-xl h-36">
-              <div className="h-4 bg-slate-800 rounded w-24 mb-4" />
-              <div className="h-8 bg-slate-800 rounded w-16 mb-2" />
-              <div className="h-3 bg-slate-800 rounded w-32" />
+            <div key={i} className="terminal-card" style={{ padding: 20, height: 120, opacity: 0.5 }}>
+              <div style={{ height: 10, background: '#1a1a1a', borderRadius: 2, width: '60%', marginBottom: 12 }} />
+              <div style={{ height: 28, background: '#1a1a1a', borderRadius: 2, width: '40%', marginBottom: 8 }} />
+              <div style={{ height: 8, background: '#1a1a1a', borderRadius: 2, width: '80%' }} />
             </div>
           ))}
         </div>
-        <div className="glass rounded-xl h-64" />
       </div>
     );
   }
 
   if (statsError) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[40vh] text-center">
-        <div className="text-4xl mb-4">⚠️</div>
-        <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load dashboard</h3>
-        <p className="text-sm text-slate-500 mb-6">{statsError}</p>
-        <button onClick={refetchStats} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
-          Try Again
-        </button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: '#EF4444', marginBottom: 8 }}>// error: failed to load dashboard</div>
+        <div style={{ fontSize: 11, color: '#444444', marginBottom: 16 }}>{statsError}</div>
+        <button onClick={refetchStats} className="btn-secondary" style={{ fontSize: 12 }}>$ retry</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        {dashboardStats.map((stat) => {
-          const Icon = (icons as Record<string, React.FC>)[stat.icon];
-          const colorMap: Record<string, string> = {
-            blue: 'text-blue-500 bg-blue-500/10',
-            emerald: 'text-emerald-500 bg-emerald-500/10',
-            purple: 'text-purple-500 bg-purple-500/10',
-            orange: 'text-orange-500 bg-orange-500/10',
-          };
-          return (
-            <div key={stat.label} className="glass p-4 lg:p-6 rounded-xl flex flex-col justify-between hover:border-white/10 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${colorMap[stat.color]}`}>
-                  <Icon />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">
-                  {stat.trend}
-                </span>
-              </div>
-              <div>
-                <h4 className="text-2xl lg:text-3xl font-bold mb-1 tracking-tight">{stat.value}</h4>
-                <p className="text-sm font-medium text-slate-300 mb-1">{stat.label}</p>
-                <p className="text-[11px] text-slate-500">{stat.sublabel}</p>
-              </div>
-            </div>
-          );
-        })}
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+      {/* Page title */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// DASHBOARD</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#e0e0e0' }}>Mission Control</div>
+      </div>
+
+      {/* KPI — code syntax card */}
+      <div className="terminal-card-glow" style={{ marginBottom: 24, padding: '20px 24px' }}>
+        <div style={{ color: '#4ADE80', fontSize: 12, fontWeight: 600, marginBottom: 16 }}>const system = {'{'}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px 32px' }} className="sm:grid-cols-4">
+          <StatLine label="total_apps" value={String(stats.totalApps)} sub={`${stats.liveApps} live`} />
+          <StatLine label="total_users" value={String(stats.totalUsers)} sub="across all apps" />
+          <StatLine label="db_tables" value={String(stats.totalTables)} sub={`${stats.schemaCount} schemas`} />
+          <StatLine label="pending_invites" value={String(pendingInvitations)} sub={pendingInvitations > 0 ? 'needs attention' : 'all clear'} warn={pendingInvitations > 0} />
+        </div>
+        <div style={{ color: '#4ADE80', fontSize: 12, fontWeight: 600, marginTop: 16 }}>{'}'}</div>
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #1a1a1a', paddingBottom: 0 }}>
         {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-            }`}>{tab.label}</button>
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '6px 16px',
+              fontSize: 12,
+              fontWeight: 500,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '2px solid #4ADE80' : '2px solid transparent',
+              color: activeTab === tab.id ? '#4ADE80' : '#555555',
+              cursor: 'pointer',
+              transition: 'all 0.1s',
+              marginBottom: -1,
+            }}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16 }} className="lg:grid-cols-[1fr_380px] grid-cols-1">
           {/* App Status Table */}
-          <div className="lg:col-span-2 glass rounded-xl overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-white/5 flex items-center justify-between">
-              <h3 className="font-semibold text-lg">App Status Overview</h3>
-              <button className="text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors">View All</button>
+          <div className="terminal-card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#666666', textTransform: 'uppercase', letterSpacing: '0.08em' }}>## app_status</span>
+              <button style={{ fontSize: 10, color: '#4ADE80', background: 'transparent', border: 'none', cursor: 'pointer' }}>view_all →</button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-slate-500 border-b border-white/5 bg-white/2">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">App</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Status</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Database</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Users</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Actions</th>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="terminal-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#0d0d0d' }}>
+                    <th style={{ textAlign: 'left' }}>APP</th>
+                    <th style={{ textAlign: 'left' }}>STATUS</th>
+                    <th style={{ textAlign: 'left' }}>DATABASE</th>
+                    <th style={{ textAlign: 'right' }}>USERS</th>
+                    <th style={{ textAlign: 'left' }}>ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                   {apps.slice(0, 6).map((app) => (
-                    <tr key={app.name} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl">{app.icon}</span>
+                    <tr key={app.name}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 16 }}>{app.icon}</span>
                           <div>
-                            <p className="font-semibold">{app.name}</p>
-                            <p className="text-[10px] text-slate-500">{app.category}</p>
+                            <div style={{ color: '#e0e0e0', fontWeight: 500, fontSize: 12 }}>{app.name}</div>
+                            <div style={{ color: '#444444', fontSize: 10 }}>{app.category || '—'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                          app.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' :
-                          app.status === 'beta' ? 'bg-yellow-500/10 text-yellow-500' :
-                          app.status === 'paused' ? 'bg-orange-500/10 text-orange-500' :
-                          'bg-slate-500/10 text-slate-500'
-                        }`}>
-                          {app.status}
+                      <td>
+                        <span className={getStatusBadgeClass(app.status)}>
+                          {app.status === 'live' || app.status === 'beta' ? '● ' : '○ '}{app.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-xs text-slate-400 truncate max-w-[140px]">{app.db}</p>
+                      <td>
+                        <span style={{ color: '#555555', fontSize: 11, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{app.db || '—'}</span>
                       </td>
-                      <td className="px-6 py-4 font-medium">{app.users}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 transition-colors"><icons.edit /></button>
-                          {app.url && <a href={app.url} target="_blank" className="p-1.5 hover:bg-white/10 rounded-lg text-blue-500 transition-colors"><icons.externalLink /></a>}
+                      <td style={{ textAlign: 'right', color: '#4ADE80', fontWeight: 600 }}>{app.users}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button style={{ padding: '4px 6px', background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', borderRadius: 3 }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#1a1a1a'; (e.currentTarget as HTMLElement).style.color = '#e0e0e0'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#444444'; }}>
+                            <icons.edit />
+                          </button>
+                          {app.url && (
+                            <a href={app.url} target="_blank" style={{ padding: '4px 6px', background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', borderRadius: 3, display: 'inline-flex', alignItems: 'center' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#1a1a1a'; (e.currentTarget as HTMLElement).style.color = '#4ADE80'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#444444'; }}>
+                              <icons.externalLink />
+                            </a>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -232,38 +257,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Activity Feed */}
-          <div className="glass rounded-xl flex flex-col">
-            <div className="p-5 border-b border-white/5">
-              <h3 className="font-semibold text-lg">Recent Activity</h3>
+          {/* Activity Log — terminal output */}
+          <div className="terminal-card" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #1a1a1a' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#666666', textTransform: 'uppercase', letterSpacing: '0.08em' }}>## activity_log</span>
             </div>
-            <div className="p-5 flex-1 space-y-6">
+            <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden' }}>
               {recentActivity.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                  <p className="text-sm text-slate-500">No recent activity</p>
-                </div>
+                <div style={{ color: '#444444', fontSize: 12, padding: '24px 0', textAlign: 'center' }}>// no recent activity</div>
               ) : (
                 recentActivity.map((activity, idx) => {
-                  const colorType: Record<string, string> = {
-                    feature: 'bg-emerald-500',
-                    spec: 'bg-blue-500',
-                    schema: 'bg-purple-500',
-                    deploy: 'bg-orange-500',
-                    launch: 'bg-red-500',
-                  };
+                  const tagStyle = activityTagStyle[activity.type] || activityTagStyle.feature;
                   return (
-                    <div key={idx} className="flex gap-4 relative">
-                      {idx !== recentActivity.length - 1 && (
-                        <div className="absolute top-6 left-[7px] w-px h-[calc(100%-12px)] bg-slate-800"></div>
-                      )}
-                      <div className={`mt-1.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950 z-10 ${colorType[activity.type] || 'bg-emerald-500'}`}></div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-100">{activity.app}</span>
-                          <span className="text-[10px] text-slate-500">{activity.time}</span>
-                        </div>
-                        <p className="text-xs text-slate-400 leading-relaxed">{activity.action}</p>
-                      </div>
+                    <div key={idx} className="terminal-log-line">
+                      <span className="terminal-log-time">[{activity.timestamp}]</span>
+                      <span className="terminal-log-tag" style={tagStyle}>{activity.type}</span>
+                      <span className="terminal-log-desc" style={{ fontSize: 11 }}>
+                        <span style={{ color: '#666666' }}>{activity.app.toLowerCase()} — </span>
+                        {activity.action}
+                      </span>
                     </div>
                   );
                 })
@@ -275,49 +287,61 @@ export default function Dashboard() {
 
       {/* Analytics Tab */}
       {activeTab === 'analytics' && (
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Cross-App User Growth */}
-          <div className="glass rounded-xl p-6">
-            <div className="flex items-center justify-between mb-8">
+          <div className="terminal-card" style={{ padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <h3 className="font-semibold text-lg">Cross-App User Growth</h3>
-                <p className="text-sm text-slate-500">Cumulative active users across top performing projects</p>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#666666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>## user_growth</div>
+                <div style={{ fontSize: 12, color: '#555555' }}>cumulative active users across apps</div>
               </div>
-              <div className="flex gap-2">
+              <div style={{ display: 'flex', gap: 4 }}>
                 {['7d', '30d', '90d'].map((range) => (
-                  <button key={range} className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${range === '30d' ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-400'}`}>
+                  <button
+                    key={range}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: 11,
+                      borderRadius: '3px',
+                      background: range === '30d' ? 'rgba(74,222,128,0.1)' : 'transparent',
+                      border: range === '30d' ? '1px solid rgba(74,222,128,0.2)' : '1px solid #222222',
+                      color: range === '30d' ? '#4ADE80' : '#555555',
+                      cursor: 'pointer',
+                    }}
+                  >
                     {range}
                   </button>
                 ))}
               </div>
             </div>
             {chartData.length === 0 ? (
-              <div className="flex items-center justify-center h-[250px] lg:h-[300px]">
-                <p className="text-sm text-slate-500">No analytics data yet</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 250 }}>
+                <span style={{ color: '#444444', fontSize: 12 }}>// no analytics data yet</span>
               </div>
             ) : (
-              <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <div style={{ width: '100%', height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorBuybid" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#325AE7" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#325AE7" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#4ADE80" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#4ADE80" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#A78BFA" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#A78BFA" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1a1a1a" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#444444', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }} dy={8} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#444444', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }} />
                     <Tooltip
-                      contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
-                      itemStyle={{color: '#f1f5f9'}}
+                      contentStyle={{ backgroundColor: '#111111', borderColor: '#222222', borderRadius: '4px', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace' }}
+                      itemStyle={{ color: '#e0e0e0' }}
+                      labelStyle={{ color: '#666666', marginBottom: 4 }}
                     />
-                    <Area type="monotone" dataKey="buybid" stroke="#325AE7" strokeWidth={2} fillOpacity={1} fill="url(#colorBuybid)" name="BuybidHQ" />
-                    <Area type="monotone" dataKey="salesboard" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" name="SalesboardHQ" />
+                    <Area type="monotone" dataKey="buybid" stroke="#4ADE80" strokeWidth={2} fillOpacity={1} fill="url(#colorBuybid)" name="BuybidHQ" />
+                    <Area type="monotone" dataKey="salesboard" stroke="#A78BFA" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" name="SalesboardHQ" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -325,30 +349,28 @@ export default function Dashboard() {
           </div>
 
           {/* Per-App Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {liveApps.map((app) => (
-              <div key={app.name} className="glass rounded-xl p-6 hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-2xl">{app.icon}</span>
+              <div key={app.name} className="terminal-card" style={{ padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <span style={{ fontSize: 18 }}>{app.icon}</span>
                   <div>
-                    <p className="font-semibold">{app.name}</p>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                      app.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-yellow-500/10 text-yellow-500'
-                    }`}>{app.status}</span>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e0e0e0' }}>{app.name}</div>
+                    <span className={getStatusBadgeClass(app.status)}>{app.status}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Users</p>
-                    <p className="text-xl font-bold mt-1">{app.users}</p>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444444', marginBottom: 4 }}>USERS</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#4ADE80' }}>{app.users}</div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tables</p>
-                    <p className="text-xl font-bold mt-1">{app.tableCount || 0}</p>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444444', marginBottom: 4 }}>TABLES</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0' }}>{app.tableCount || 0}</div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Share</p>
-                    <p className="text-xl font-bold mt-1">{totalUsers > 0 ? Math.round((app.users / totalUsers) * 100) : 0}%</p>
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#444444', marginBottom: 4 }}>SHARE</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0' }}>{totalUsers > 0 ? Math.round((app.users / totalUsers) * 100) : 0}%</div>
                   </div>
                 </div>
               </div>
@@ -356,6 +378,22 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function StatLine({ label, value, sub, warn }: { label: string; value: string; sub: string; warn?: boolean }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: '#555555', marginBottom: 4 }}>
+        <span style={{ color: '#666666' }}>  </span>
+        <span style={{ color: '#A78BFA' }}>{label}</span>
+        <span style={{ color: '#666666' }}>:</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+        <span style={{ fontSize: 28, fontWeight: 700, color: warn ? '#F59E0B' : '#4ADE80', lineHeight: 1 }}>{value}</span>
+        <span style={{ fontSize: 10, color: '#444444' }}>{sub}</span>
+      </div>
     </div>
   );
 }

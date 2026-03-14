@@ -21,6 +21,13 @@ interface WaitlistRow {
   wt_app_registry: { name: string } | null;
 }
 
+const statColors: Record<number, { value: string; bg: string; border: string }> = {
+  0: { value: '#3B82F6', bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.15)'  },
+  1: { value: '#4ADE80', bg: 'rgba(74,222,128,0.08)',  border: 'rgba(74,222,128,0.15)'  },
+  2: { value: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.15)' },
+  3: { value: '#F59E0B', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.15)'  },
+};
+
 export default function BITWManager() {
   const { apps } = useApps();
   const publicApps = apps.filter(a => a.appUrl);
@@ -39,25 +46,15 @@ export default function BITWManager() {
       supabase.from('wt_waitlist').select('*, wt_app_registry(name)'),
     ]);
 
-    if (votesRes.error) {
-      setError(`Failed to load votes: ${votesRes.error.message}`);
-      setLoading(false);
-      return;
-    }
-    if (waitlistRes.error) {
-      setError(`Failed to load waitlist: ${waitlistRes.error.message}`);
-      setLoading(false);
-      return;
-    }
+    if (votesRes.error) { setError(`Failed to load votes: ${votesRes.error.message}`); setLoading(false); return; }
+    if (waitlistRes.error) { setError(`Failed to load waitlist: ${waitlistRes.error.message}`); setLoading(false); return; }
 
     setVotes(votesRes.data as VoteRow[]);
     setWaitlist(waitlistRes.data as WaitlistRow[]);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const upVotes = votes.filter(v => v.vote === 'up').length;
   const downVotes = votes.filter(v => v.vote === 'down').length;
@@ -70,16 +67,10 @@ export default function BITWManager() {
   const topVoted = Object.entries(votesByApp).sort((a, b) => b[1] - a[1])[0];
 
   const stats = [
-    { label: 'Total Votes', value: votes.length, sub: `👍 ${upVotes}  👎 ${downVotes}`, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'Waitlist Signups', value: waitlist.length, sub: `${new Set(waitlist.map(w => w.wt_app_registry?.name).filter(Boolean)).size} apps`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Top Voted', value: topVoted?.[0] || '—', sub: `${topVoted?.[1] || 0} upvotes`, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { label: 'Public Apps', value: publicApps.length, sub: 'In showroom', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  ];
-
-  const tabs = [
-    { id: 'showroom', label: 'Public Showroom' },
-    { id: 'votes', label: `Votes (${votes.length})` },
-    { id: 'waitlist', label: `Waitlist (${waitlist.length})` },
+    { label: 'Total Votes',      value: String(votes.length),         sub: `${upVotes} up · ${downVotes} down` },
+    { label: 'Waitlist Signups', value: String(waitlist.length),       sub: `${new Set(waitlist.map(w => w.wt_app_registry?.name).filter(Boolean)).size} apps` },
+    { label: 'Top Voted',        value: topVoted?.[0] || '—',         sub: `${topVoted?.[1] || 0} upvotes` },
+    { label: 'Public Apps',      value: String(publicApps.length),    sub: 'In showroom' },
   ];
 
   const exportCsv = () => {
@@ -96,15 +87,21 @@ export default function BITWManager() {
     URL.revokeObjectURL(url);
   };
 
+  const tabs = [
+    { id: 'showroom', label: 'Public Showroom' },
+    { id: 'votes',    label: `Votes (${votes.length})` },
+    { id: 'waitlist', label: `Waitlist (${waitlist.length})` },
+  ];
+
   if (loading) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
-          <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
+          <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// bitw</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Build In The Wild</h2>
         </div>
-        <div className="flex items-center justify-center py-20">
-          <div className="text-slate-500 text-sm">Loading data...</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', color: '#444444', fontSize: 12 }}>
+          loading data...
         </div>
       </div>
     );
@@ -112,17 +109,16 @@ export default function BITWManager() {
 
   if (error) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
-          <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
+          <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// bitw</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Build In The Wild</h2>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load data</h3>
-          <p className="text-sm text-slate-500 mb-4">{error}</p>
-          <button onClick={fetchData} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            Retry
+        <div className="terminal-card" style={{ padding: 40, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, color: '#EF4444', marginBottom: 8 }}>// error: failed to load data</div>
+          <p style={{ fontSize: 11, color: '#666666', marginBottom: 16 }}>{error}</p>
+          <button onClick={fetchData} style={{ padding: '8px 16px', background: '#4ADE80', color: '#000', border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            $ retry
           </button>
         </div>
       </div>
@@ -130,146 +126,181 @@ export default function BITWManager() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Header */}
       <div>
-        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
-        <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
+        <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// bitw</div>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Build In The Wild</h2>
+        <p style={{ fontSize: 12, color: '#666666', marginTop: 4 }}>Manage the public showcase, votes, and waitlist signups.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        {stats.map(s => (
-          <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
-            <div className={`text-2xl font-bold mt-2 ${s.color}`}>{s.value}</div>
-            <span className="text-xs text-slate-500 mt-1 block">{s.sub}</span>
-          </div>
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+        {stats.map((s, i) => {
+          const c = statColors[i] || statColors[0];
+          return (
+            <div key={s.label} className="terminal-card" style={{ padding: '16px 20px' }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{s.label}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: c.value, marginBottom: 4 }}>{s.value}</div>
+              <div style={{ fontSize: 10, color: '#444444' }}>{s.sub}</div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-white/5">
+      {/* Tab Bar */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1a1a1a' }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as 'showroom' | 'votes' | 'waitlist')} className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${tab === t.id ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id as 'showroom' | 'votes' | 'waitlist')}
+            style={{
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 500,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: tab === t.id ? '2px solid #4ADE80' : '2px solid transparent',
+              color: tab === t.id ? '#4ADE80' : '#555555',
+              cursor: 'pointer',
+              transition: 'color 0.15s, border-color 0.15s',
+              marginBottom: -1,
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => { if (tab !== t.id) (e.currentTarget as HTMLElement).style.color = '#e0e0e0'; }}
+            onMouseLeave={e => { if (tab !== t.id) (e.currentTarget as HTMLElement).style.color = '#555555'; }}
+          >
             {t.label}
-            {tab === t.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t"></div>}
           </button>
         ))}
       </div>
 
       {/* Showroom Tab */}
       {tab === 'showroom' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {publicApps.length === 0 ? (
-            <div className="glass rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🌐</div>
-              <h3 className="text-lg font-semibold text-slate-200 mb-2">No public apps yet</h3>
-              <p className="text-sm text-slate-500">Apps with a public URL will appear here.</p>
+            <div className="terminal-card" style={{ padding: 40, textAlign: 'center', color: '#444444', fontSize: 12 }}>
+              // no public apps yet — apps with a public URL will appear here
             </div>
           ) : (
-          <>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">Drag items to reorder priority</span>
-          </div>
-          {publicApps.map((app) => (
-            <div key={app.name} className="glass p-5 rounded-xl border border-white/5 hover:border-white/10 transition-colors flex items-center gap-5">
-              <div className="cursor-move text-slate-700 hover:text-slate-500 transition-colors">
-                <icons.grid className="w-5 h-5" />
-              </div>
-              <div className="w-12 h-12 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-2xl">{app.icon}</div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-semibold text-slate-100">{app.name}</h4>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">{app.status}</span>
+            <>
+              <div style={{ fontSize: 10, color: '#444444', marginBottom: 4 }}>Drag items to reorder priority</div>
+              {publicApps.map((app) => (
+                <div
+                  key={app.name}
+                  className="terminal-card"
+                  style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16, transition: 'border-color 0.15s' }}
+                  onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = '#2a2a2a')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = '#222222')}
+                >
+                  <div style={{ color: '#333333', cursor: 'move', flexShrink: 0 }}>
+                    <icons.grid />
+                  </div>
+                  <div style={{ width: 44, height: 44, borderRadius: 4, background: '#0d0d0d', border: '1px solid #222222', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                    {app.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13, color: '#e0e0e0' }}>{app.name}</span>
+                      <span className={`badge-${app.status === 'live' ? 'live' : app.status === 'beta' ? 'beta' : 'inactive'}`}>{app.status}</span>
+                    </div>
+                    <p style={{ fontSize: 11, color: '#666666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.description}</p>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: 11, color: '#555555', flexShrink: 0 }}>
+                    <div>{app.users} users</div>
+                    <div style={{ marginTop: 2, color: '#4ADE80' }}>{votesByApp[app.name] || 0} ▲</div>
+                  </div>
+                  {app.appUrl && (
+                    <a href={app.appUrl} target="_blank" rel="noreferrer" style={{ color: '#444444', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                      onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = '#4ADE80')}
+                      onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = '#444444')}>
+                      <icons.externalLink />
+                    </a>
+                  )}
                 </div>
-                <p className="text-sm text-slate-500 mt-0.5 truncate">{app.description}</p>
-              </div>
-              <div className="text-right text-xs text-slate-500">
-                <div>{app.users} users</div>
-                <div className="mt-1">{votesByApp[app.name] || 0} 👍</div>
-              </div>
-              {app.appUrl && (
-                <a href={app.appUrl} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-blue-400 transition-colors">
-                  <icons.externalLink />
-                </a>
-              )}
-            </div>
-          ))}
-          </>
+              ))}
+            </>
           )}
         </div>
       )}
 
       {/* Votes Tab */}
       {tab === 'votes' && votes.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">👍</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">No votes yet</h3>
-          <p className="text-sm text-slate-500">Votes from the public showroom will appear here.</p>
+        <div className="terminal-card" style={{ padding: 40, textAlign: 'center', color: '#444444', fontSize: 12 }}>
+          // no votes yet — votes from the public showroom will appear here
         </div>
       )}
       {tab === 'votes' && votes.length > 0 && (
-        <div className="glass rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[500px]">
-            <thead>
-              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-3">App</th>
-                <th className="px-4 py-3">Vote</th>
-                <th className="px-4 py-3">Reason</th>
-                <th className="px-4 py-3">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {votes.map(v => (
-                <tr key={v.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-200">{v.wt_app_registry?.name ?? 'Unknown'}</td>
-                  <td className="px-4 py-3 text-lg">{v.vote === 'up' ? '👍' : '👎'}</td>
-                  <td className="px-4 py-3 text-slate-400 max-w-[400px] truncate">{v.reason || <span className="text-slate-600 italic">No reason given</span>}</td>
-                  <td className="px-4 py-3 text-slate-500">{new Date(v.created_at).toLocaleDateString()}</td>
+        <div className="terminal-card" style={{ overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="terminal-table" style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse', minWidth: 500 }}>
+              <thead>
+                <tr style={{ background: '#0d0d0d' }}>
+                  <th style={{ textAlign: 'left' }}>APP</th>
+                  <th style={{ textAlign: 'left' }}>VOTE</th>
+                  <th style={{ textAlign: 'left' }}>REASON</th>
+                  <th style={{ textAlign: 'left' }}>DATE</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {votes.map(v => (
+                  <tr key={v.id}>
+                    <td style={{ color: '#e0e0e0', fontWeight: 500 }}>{v.wt_app_registry?.name ?? 'Unknown'}</td>
+                    <td>
+                      <span style={v.vote === 'up'
+                        ? { color: '#4ADE80', fontSize: 12, fontWeight: 600 }
+                        : { color: '#EF4444', fontSize: 12, fontWeight: 600 }}>
+                        {v.vote === 'up' ? '▲ up' : '▼ down'}
+                      </span>
+                    </td>
+                    <td style={{ color: '#555555', maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {v.reason || <span style={{ color: '#333333', fontStyle: 'italic' }}>No reason given</span>}
+                    </td>
+                    <td style={{ color: '#444444' }}>{new Date(v.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* Waitlist Tab */}
       {tab === 'waitlist' && waitlist.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📋</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">No signups yet</h3>
-          <p className="text-sm text-slate-500">Waitlist signups will appear here when people join.</p>
+        <div className="terminal-card" style={{ padding: 40, textAlign: 'center', color: '#444444', fontSize: 12 }}>
+          // no signups yet — waitlist signups will appear here when people join
         </div>
       )}
       {tab === 'waitlist' && waitlist.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <button onClick={exportCsv} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={exportCsv}
+              style={{ padding: '6px 14px', background: 'transparent', border: '1px solid #4ADE80', borderRadius: 4, color: '#4ADE80', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
               <icons.externalLink /> Export CSV
             </button>
           </div>
-          <div className="glass rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[400px]">
-              <thead>
-                <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">App</th>
-                  <th className="px-4 py-3">Signed Up</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {waitlist.map(w => (
-                  <tr key={w.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-200">{w.email}</td>
-                    <td className="px-4 py-3 text-slate-400">{w.wt_app_registry?.name ?? 'Unknown'}</td>
-                    <td className="px-4 py-3 text-slate-500">{new Date(w.created_at).toLocaleDateString()}</td>
+          <div className="terminal-card" style={{ overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="terminal-table" style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse', minWidth: 400 }}>
+                <thead>
+                  <tr style={{ background: '#0d0d0d' }}>
+                    <th style={{ textAlign: 'left' }}>EMAIL</th>
+                    <th style={{ textAlign: 'left' }}>APP</th>
+                    <th style={{ textAlign: 'left' }}>SIGNED UP</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {waitlist.map(w => (
+                    <tr key={w.id}>
+                      <td style={{ color: '#e0e0e0', fontWeight: 500 }}>{w.email}</td>
+                      <td style={{ color: '#666666' }}>{w.wt_app_registry?.name ?? 'Unknown'}</td>
+                      <td style={{ color: '#444444' }}>{new Date(w.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

@@ -45,18 +45,24 @@ interface Task {
 
 // --- Constants ---
 
-const priorityBorder: Record<Priority, string> = {
-  critical: 'border-l-rose-600',
-  high: 'border-l-red-500',
-  medium: 'border-l-amber-400',
-  low: 'border-l-slate-500',
+const priorityBorderStyle: Record<Priority, React.CSSProperties> = {
+  critical: { borderLeft: '3px solid #EF4444' },
+  high: { borderLeft: '3px solid #EF4444' },
+  medium: { borderLeft: '3px solid #F59E0B' },
+  low: { borderLeft: '3px solid #444444' },
 };
 
-const priorityBadge: Record<Priority, string> = {
-  critical: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  high: 'bg-red-500/10 text-red-400 border-red-500/20',
-  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  low: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+const priorityBadgeStyle: Record<Priority, React.CSSProperties> = {
+  critical: { color: '#EF4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  high: { color: '#EF4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  medium: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  low: { color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+};
+
+const statusDotColor: Record<TaskStatus, string> = {
+  todo: '#3B82F6',
+  in_progress: '#A78BFA',
+  done: '#4ADE80',
 };
 
 const statusColors: Record<TaskStatus, { dot: string; label: string }> = {
@@ -170,33 +176,75 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
     });
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: '#0d0d0d',
+    border: '1px solid #222222',
+    borderRadius: '4px',
+    color: '#e0e0e0',
+    fontSize: 13,
+    padding: '8px 12px',
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 10,
+    fontWeight: 600,
+    color: '#666666',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    display: 'block',
+    marginBottom: 6,
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">{isEdit ? 'Edit Task' : 'New Task'}</h2>
+      <div
+        className="fixed inset-0"
+        style={{ background: 'rgba(10,10,10,0.9)' }}
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full"
+        style={{
+          background: '#111111',
+          border: '1px solid #222222',
+          borderRadius: '4px',
+          maxWidth: 480,
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.8)',
+        }}
+      >
+        <div style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 20 }}>
+            {isEdit ? 'Edit Task' : 'New Task'}
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Title *</label>
+              <label style={labelStyle}>Title *</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => { setTitle(e.target.value); setTitleError(''); }}
                 onBlur={() => { if (!title.trim()) setTitleError('Title is required'); }}
-                className={`w-full px-3 py-2 rounded-lg bg-slate-800 border text-sm focus:outline-none focus:border-blue-500 transition-colors ${titleError ? 'border-red-500' : 'border-white/10'}`}
+                style={{ ...inputStyle, border: titleError ? '1px solid #EF4444' : '1px solid #222222' }}
                 placeholder="What needs to be done?"
                 autoFocus
               />
-              {titleError && <p className="text-xs text-red-400 mt-1">{titleError}</p>}
+              {titleError && (
+                <p style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{titleError}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Description</label>
+              <label style={labelStyle}>Description</label>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                style={{ ...inputStyle, resize: 'none' }}
                 rows={3}
                 placeholder="Optional details..."
               />
@@ -204,11 +252,11 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Priority</label>
+                <label style={labelStyle}>Priority</label>
                 <select
                   value={priority}
                   onChange={e => setPriority(e.target.value as Priority)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -217,11 +265,11 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">App</label>
+                <label style={labelStyle}>App</label>
                 <select
                   value={app}
                   onChange={e => setApp(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
                 >
                   <option value="">None</option>
                   {appList.map(a => <option key={a} value={a}>{a}</option>)}
@@ -231,38 +279,52 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Day</label>
+                <label style={labelStyle}>Day</label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Status</label>
+                <label style={labelStyle}>Status</label>
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value as TaskStatus)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
                 >
                   {statusOrder.map(s => <option key={s} value={s}>{statusColors[s].label}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2" style={{ paddingTop: 8 }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+                style={{ padding: '7px 14px', background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving || !title.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                style={{
+                  padding: '7px 16px',
+                  background: '#4ADE80',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: saving || !title.trim() ? 'not-allowed' : 'pointer',
+                  opacity: saving || !title.trim() ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontFamily: 'inherit',
+                }}
               >
                 {saving && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -282,15 +344,53 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
 function DeleteConfirm({ taskTitle, onConfirm, onCancel, deleting }: { taskTitle: string; onConfirm: () => void; onCancel: () => void; deleting: boolean }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm p-6">
-        <h3 className="text-lg font-semibold mb-2">Delete Task</h3>
-        <p className="text-sm text-slate-400 mb-4">
-          Are you sure you want to delete "<span className="text-slate-200">{taskTitle}</span>"? This cannot be undone.
+      <div
+        className="fixed inset-0"
+        style={{ background: 'rgba(10,10,10,0.9)' }}
+        onClick={onCancel}
+      />
+      <div
+        className="relative w-full"
+        style={{
+          background: '#111111',
+          border: '1px solid #222222',
+          borderRadius: '4px',
+          maxWidth: 384,
+          padding: 24,
+          boxShadow: '0 24px 48px rgba(0,0,0,0.8)',
+        }}
+      >
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 8 }}>Delete Task</h3>
+        <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>
+          Are you sure you want to delete "<span style={{ color: '#e0e0e0' }}>{taskTitle}</span>"? This cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
-          <button onClick={onCancel} disabled={deleting} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors disabled:opacity-50">Cancel</button>
-          <button onClick={onConfirm} disabled={deleting} className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50 flex items-center gap-2">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            style={{ background: 'transparent', border: '1px solid #222222', color: '#666666', padding: '8px 16px', borderRadius: '4px', fontSize: 13, cursor: 'pointer', opacity: deleting ? 0.5 : 1, fontFamily: 'inherit' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            style={{
+              background: '#EF4444',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: deleting ? 'not-allowed' : 'pointer',
+              opacity: deleting ? 0.5 : 1,
+              fontSize: 13,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'inherit',
+            }}
+          >
             {deleting && (
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
             )}
@@ -313,52 +413,91 @@ interface TaskCardProps {
 }
 
 function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCardProps) {
-  const st = statusColors[task.status];
+  const [hovered, setHovered] = useState(false);
 
   return (
     <div
       draggable
       onDragStart={e => onDragStart(e, task.id)}
-      className={`bg-slate-800/60 border border-white/5 rounded-lg p-2 border-l-[3px] ${priorityBorder[task.priority]} cursor-grab active:cursor-grabbing hover:border-white/10 transition-all group`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? '#1a1a1a' : '#111111',
+        border: '1px solid #222222',
+        borderRadius: '4px',
+        padding: '8px 10px',
+        cursor: 'pointer',
+        marginBottom: 6,
+        ...priorityBorderStyle[task.priority],
+      }}
     >
       <div className="flex items-start gap-1.5">
         {/* Status dot — click to cycle */}
         <button
           onClick={() => onStatusCycle(task)}
           className="mt-0.5 flex-shrink-0"
-          title={`${st.label} — click to change`}
+          title={`${statusColors[task.status].label} — click to change`}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
         >
           {task.status === 'done' ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={statusDotColor.done} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
             </svg>
           ) : (
-            <div className={`w-3.5 h-3.5 rounded-full border-2 ${task.status === 'in_progress' ? 'border-purple-400 bg-purple-400/20' : 'border-slate-500'}`} />
+            <div style={{
+              width: 14,
+              height: 14,
+              borderRadius: '999px',
+              border: `2px solid ${statusDotColor[task.status]}`,
+              background: task.status === 'in_progress' ? 'rgba(167,139,250,0.2)' : 'transparent',
+            }} />
           )}
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className={`text-xs font-medium leading-tight truncate ${task.status === 'done' ? 'line-through text-slate-500' : ''}`}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: task.status === 'done' ? '#444444' : '#e0e0e0',
+              textDecoration: task.status === 'done' ? 'line-through' : 'none',
+              lineHeight: 1.3,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {task.title}
           </p>
-          <div className="flex items-center flex-wrap gap-1 mt-1">
+          <div className="flex items-center flex-wrap gap-1" style={{ marginTop: 4 }}>
             {task.app && (
-              <span className="px-1 py-0 rounded text-[9px] font-medium bg-slate-700/50 text-slate-400 border border-white/5 truncate max-w-[80px]">
+              <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 9, fontWeight: 500, background: 'rgba(255,255,255,0.04)', color: '#666666', border: '1px solid #222222', display: 'inline-block', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {task.app}
               </span>
             )}
-            <span className={`px-1 py-0 rounded text-[9px] font-medium border ${priorityBadge[task.priority]}`}>
+            <span style={priorityBadgeStyle[task.priority]}>
               {task.priority[0].toUpperCase()}
             </span>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-          <button onClick={() => onEdit(task)} className="p-0.5 rounded hover:bg-white/10 text-slate-500 hover:text-slate-200" title="Edit">
+        <div
+          className="flex items-center gap-0.5 flex-shrink-0"
+          style={{ opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
+        >
+          <button
+            onClick={() => onEdit(task)}
+            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
+            title="Edit"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           </button>
-          <button onClick={() => onDelete(task)} className="p-0.5 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400" title="Delete">
+          <button
+            onClick={() => onDelete(task)}
+            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
+            title="Delete"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
           </button>
         </div>
@@ -383,21 +522,30 @@ interface BacklogProps {
 function Backlog({ tasks, onEdit, onDelete, onStatusCycle, onDragStart, onDragOver, onDrop, isDragOver }: BacklogProps) {
   return (
     <div
-      className={`bg-slate-900/30 border rounded-xl overflow-hidden transition-colors ${isDragOver ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5'}`}
+      style={{
+        background: isDragOver ? 'rgba(245,158,11,0.05)' : '#111111',
+        border: isDragOver ? '1px solid rgba(245,158,11,0.4)' : '1px solid #222222',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        transition: 'border-color 0.15s, background 0.15s',
+      }}
       onDragOver={onDragOver}
       onDragLeave={e => e.preventDefault()}
       onDrop={onDrop}
     >
-      <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between">
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: '8px 12px', borderBottom: '1px solid #222222' }}
+      >
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-xs font-semibold">Backlog</span>
+          <div style={{ width: 8, height: 8, borderRadius: '999px', background: '#F59E0B' }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#e0e0e0' }}>Backlog</span>
         </div>
-        <span className="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded-full">{tasks.length}</span>
+        <span style={{ fontSize: 10, color: '#666666', background: '#0d0d0d', padding: '2px 6px', borderRadius: '999px', border: '1px solid #222222' }}>{tasks.length}</span>
       </div>
-      <div className="p-2 space-y-1.5 max-h-[300px] overflow-y-auto">
+      <div className="max-h-[300px] overflow-y-auto" style={{ padding: 8 }}>
         {tasks.length === 0 ? (
-          <p className="text-[10px] text-slate-600 text-center py-4">No unscheduled tasks</p>
+          <p style={{ fontSize: 10, color: '#444444', textAlign: 'center', padding: '16px 0' }}>No unscheduled tasks</p>
         ) : (
           tasks.map(task => (
             <TaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusCycle={onStatusCycle} onDragStart={onDragStart} />
@@ -698,14 +846,7 @@ export default function DailyTasks() {
   // --- Loading state ---
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-800 rounded-lg w-64" />
-        <div className="grid grid-cols-7 gap-2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-64 bg-slate-800/50 rounded-xl" />
-          ))}
-        </div>
-      </div>
+      <div style={{ color: '#444444', fontSize: 12, padding: '40px 0' }}>loading tasks...</div>
     );
   }
 
@@ -713,14 +854,17 @@ export default function DailyTasks() {
   if (error && tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        <div
+          className="w-12 h-12 flex items-center justify-center"
+          style={{ borderRadius: '999px', background: 'rgba(239,68,68,0.1)', marginBottom: 16 }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
         </div>
-        <h2 className="text-lg font-semibold mb-1">Failed to load tasks</h2>
-        <p className="text-sm text-slate-400 mb-4">{error}</p>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 4 }}>Failed to load tasks</h2>
+        <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>{error}</p>
         <button
           onClick={() => { setLoading(true); setError(null); fetchTasks(); }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+          style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: '#4ADE80', color: '#000', border: 'none', cursor: 'pointer' }}
         >
           Retry
         </button>
@@ -732,36 +876,54 @@ export default function DailyTasks() {
     <div className="space-y-4">
       {/* Inline error banner */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 flex items-center justify-between">
-          <p className="text-sm text-red-400">{error}</p>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 text-xs ml-4">Dismiss</button>
+        <div
+          className="flex items-center justify-between"
+          style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px' }}
+        >
+          <p style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>
+          <button
+            onClick={() => setError(null)}
+            style={{ fontSize: 11, color: '#EF4444', marginLeft: 16, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Weekly Tasks</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{formatWeekRange(weekStart)}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e0e0e0' }}>Weekly Tasks</h1>
+          <p style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{formatWeekRange(weekStart)}</p>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={appFilter}
             onChange={e => setAppFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 border border-white/10 text-xs focus:outline-none focus:border-blue-500"
+            style={{ background: '#0d0d0d', border: '1px solid #222222', borderRadius: '4px', color: '#e0e0e0', fontSize: 12, padding: '5px 10px', outline: 'none', fontFamily: 'inherit' }}
           >
             <option value="all">All Apps</option>
             {usedApps.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
           <button
             onClick={() => setShowBacklog(!showBacklog)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${showBacklog ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-slate-800 border-white/10 text-slate-400'}`}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '4px',
+              fontSize: 12,
+              fontWeight: 500,
+              border: showBacklog ? '1px solid rgba(245,158,11,0.3)' : '1px solid #222222',
+              background: showBacklog ? 'rgba(245,158,11,0.1)' : 'transparent',
+              color: showBacklog ? '#F59E0B' : '#444444',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
           >
             Backlog
           </button>
           <button
             onClick={() => { setModalDefaultDate(today); setModalOpen(true); }}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center gap-1.5"
+            style={{ background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
             Add Task
@@ -774,34 +936,44 @@ export default function DailyTasks() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setWeekOffset(o => o - 1)}
-            className="p-1.5 rounded-lg bg-slate-800 border border-white/10 hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"
+            style={{ background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <button
             onClick={() => setWeekOffset(0)}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${weekOffset === 0 ? 'bg-blue-600 text-white' : 'bg-slate-800 border border-white/10 text-slate-400 hover:text-white'}`}
+            style={{
+              background: 'transparent',
+              border: '1px solid #222222',
+              borderRadius: '4px',
+              color: weekOffset === 0 ? '#4ADE80' : '#444444',
+              fontSize: 12,
+              cursor: 'pointer',
+              padding: '4px 10px',
+              fontFamily: 'inherit',
+            }}
           >
             This Week
           </button>
           <button
             onClick={() => setWeekOffset(o => o + 1)}
-            className="p-1.5 rounded-lg bg-slate-800 border border-white/10 hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"
+            style={{ background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-4" style={{ fontSize: 12, color: '#666666' }}>
           {weekTaskCount.total > 0 && (
             <span>
-              <span className="text-emerald-400 font-medium">{weekTaskCount.done}</span>/{weekTaskCount.total} done
+              <span style={{ color: '#4ADE80', fontWeight: 500 }}>{weekTaskCount.done}</span>/{weekTaskCount.total} done
             </span>
           )}
           {overdueCount > 0 && (
             <button
               onClick={handleMoveOverdueToToday}
-              className="text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1"
+              className="flex items-center gap-1"
+              style={{ color: '#F59E0B', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}
             >
               {overdueCount} overdue — move to today
             </button>
@@ -811,15 +983,21 @@ export default function DailyTasks() {
 
       {/* Empty state */}
       {tasks.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 border border-white/5 rounded-xl bg-slate-900/30">
-          <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        <div
+          className="flex flex-col items-center justify-center py-16"
+          style={{ border: '1px solid #222222', borderRadius: '4px', background: 'rgba(17,17,17,0.5)' }}
+        >
+          <div
+            className="w-12 h-12 flex items-center justify-center"
+            style={{ borderRadius: '999px', background: '#1a1a1a', marginBottom: 16 }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#444444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
           </div>
-          <h2 className="text-lg font-semibold mb-1">No tasks yet</h2>
-          <p className="text-sm text-slate-400 mb-4">Create your first task to get started</p>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 4 }}>No tasks yet</h2>
+          <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>Create your first task to get started</p>
           <button
             onClick={() => { setModalDefaultDate(today); setModalOpen(true); }}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+            style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: '#4ADE80', color: '#000', border: 'none', cursor: 'pointer' }}
           >
             Add Task
           </button>
@@ -841,28 +1019,63 @@ export default function DailyTasks() {
             return (
               <div
                 key={key}
-                className={`bg-slate-900/30 border rounded-xl overflow-hidden transition-colors flex flex-col ${
-                  isDragOver ? 'border-blue-500/50 bg-blue-500/5' :
-                  isToday ? 'border-blue-500/30 bg-blue-500/[0.03]' :
-                  'border-white/5'
-                }`}
+                style={{
+                  background: isDragOver
+                    ? 'rgba(59,130,246,0.05)'
+                    : isToday
+                    ? 'rgba(74,222,128,0.03)'
+                    : 'rgba(17,17,17,0.5)',
+                  border: isDragOver
+                    ? '1px dashed rgba(59,130,246,0.3)'
+                    : isToday
+                    ? '1px solid rgba(74,222,128,0.25)'
+                    : '1px solid #222222',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  transition: 'border-color 0.15s, background 0.15s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
                 onDragOver={e => handleDragOver(e, key)}
                 onDragLeave={() => setDragOverTarget(null)}
                 onDrop={e => handleDrop(e, key)}
               >
                 {/* Day header */}
-                <div className={`px-2 py-2 border-b border-white/5 flex items-center justify-between ${isToday ? 'bg-blue-500/10' : ''}`}>
+                <div
+                  className="flex items-center justify-between"
+                  style={{
+                    padding: '8px',
+                    borderBottom: '1px solid #222222',
+                    borderTop: isToday ? '2px solid rgba(74,222,128,0.4)' : '2px solid transparent',
+                    background: isToday ? 'rgba(74,222,128,0.07)' : 'transparent',
+                  }}
+                >
                   <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] font-medium uppercase tracking-wide ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-500'}`}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: isToday ? '#4ADE80' : '#444444',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                      }}
+                    >
                       {dayName}
                     </span>
-                    <span className={`text-sm font-bold ${isToday ? 'text-blue-400' : isPast ? 'text-slate-600' : 'text-slate-300'}`}>
+                    <span
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color: isToday ? '#4ADE80' : '#e0e0e0',
+                        lineHeight: 1,
+                      }}
+                    >
                       {dayNum}
                     </span>
                   </div>
                   <button
                     onClick={() => { setModalDefaultDate(key); setModalOpen(true); }}
-                    className="p-0.5 rounded hover:bg-white/10 text-slate-600 hover:text-slate-300 transition-colors"
+                    style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
                     title={`Add task to ${DAY_NAMES_FULL[d.getDay()]}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -870,9 +1083,9 @@ export default function DailyTasks() {
                 </div>
 
                 {/* Tasks */}
-                <div className="p-1.5 space-y-1.5 flex-1 min-h-[120px] overflow-y-auto">
+                <div className="flex-1 overflow-y-auto" style={{ padding: 6, minHeight: 120 }}>
                   {dayTasks.length === 0 ? (
-                    <p className="text-[10px] text-slate-700 text-center py-6">
+                    <p style={{ color: '#444444', fontSize: 11, textAlign: 'center', padding: '16px 0' }}>
                       {isPast ? '—' : ''}
                     </p>
                   ) : (
@@ -891,7 +1104,7 @@ export default function DailyTasks() {
 
                 {/* Day task count */}
                 {dayTasks.length > 0 && (
-                  <div className="px-2 py-1 border-t border-white/5 text-[10px] text-slate-600">
+                  <div style={{ padding: '4px 8px', borderTop: '1px solid #222222', fontSize: 10, color: '#444444' }}>
                     {dayTasks.filter(t => t.status === 'done').length}/{dayTasks.length}
                   </div>
                 )}

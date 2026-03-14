@@ -7,6 +7,29 @@ interface ForgotPasswordProps {
 
 type Step = 'email' | 'code' | 'done';
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#0d0d0d',
+  border: '1px solid #222222',
+  borderRadius: '4px',
+  padding: '10px 14px',
+  fontSize: '13px',
+  color: '#e0e0e0',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 600,
+  color: '#666666',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  display: 'block',
+  marginBottom: '6px',
+};
+
 const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
@@ -92,142 +115,240 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     setLoading(false);
   };
 
+  const stepLabel = step === 'email'
+    ? '// reset_password'
+    : step === 'code'
+    ? (phoneHint ? `// code sent to ${phoneHint}` : '// enter the code sent to your phone')
+    : '// password updated';
+
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-2xl mb-3">
-            W
-          </div>
-          <h1 className="text-xl font-bold text-white">Reset Password</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {step === 'email' && "We'll send a code to your phone"}
-            {step === 'code' && (phoneHint ? `Code sent to ${phoneHint}` : 'Enter the code sent to your phone')}
-            {step === 'done' && 'Your password has been updated'}
-          </p>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+      <div style={{ width: '100%', maxWidth: 360 }}>
+        {/* Brand */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ fontSize: 28, color: '#4ADE80', fontWeight: 700, marginBottom: 8 }}>◆</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#e0e0e0', letterSpacing: '0.1em', marginBottom: 4 }}>WATCHTOWER</div>
+          <div style={{ fontSize: 11, color: '#444444' }}>{stepLabel}</div>
         </div>
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400 mb-4">
-            {error}
-          </div>
-        )}
+        {/* Card */}
+        <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', padding: '28px' }}>
+          {error && (
+            <div style={{
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: '4px',
+              padding: '10px 14px',
+              fontSize: '12px',
+              color: '#EF4444',
+              marginBottom: '20px',
+            }}>
+              {error}
+            </div>
+          )}
 
-        {/* Step 1: Email */}
-        {step === 'email' && (
-          <>
-            <form onSubmit={handleSendCode} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Sending...' : 'Send Reset Code'}
-              </button>
-            </form>
-            <button
-              onClick={onBack}
-              className="block w-full text-center text-sm text-slate-500 hover:text-slate-300 mt-4 transition-colors"
-            >
-              Back to login
-            </button>
-          </>
-        )}
-
-        {/* Step 2: Code + New Password */}
-        {step === 'code' && (
-          <>
-            <form onSubmit={handleVerifyAndReset} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">6-Digit Code</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  required
-                  className="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors tracking-widest text-center text-lg"
-                  placeholder="000000"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">New Password</label>
-                <div className="relative">
+          {/* Step 1: Email */}
+          {step === 'email' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form onSubmit={handleSendCode} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={labelStyle}>Email</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
-                    minLength={8}
-                    className="w-full px-4 py-2.5 pr-10 rounded-lg bg-slate-900 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="Min 8 characters"
+                    style={inputStyle}
+                    placeholder="you@example.com"
+                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    {showPassword ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" x2="23" y1="1" y2="23"/></svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    )}
-                  </button>
                 </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    background: loading ? '#2d5a3d' : '#4ADE80',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.7 : 1,
+                    transition: 'background 0.15s',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
+                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
+                >
+                  {loading ? 'sending...' : '$ send_reset_code'}
+                </button>
+              </form>
+              <button
+                onClick={onBack}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  color: '#444444',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  fontFamily: 'inherit',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#666666'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+              >
+                ← back to login
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Code + New Password */}
+          {step === 'code' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form onSubmit={handleVerifyAndReset} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={labelStyle}>6-Digit Code</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                    required
+                    style={{ ...inputStyle, textAlign: 'center', fontSize: '18px', letterSpacing: '0.3em' }}
+                    placeholder="000000"
+                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>New Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      style={{ ...inputStyle, paddingRight: 40 }}
+                      placeholder="min 8 characters"
+                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: 10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#444444',
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {showPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" x2="23" y1="1" y2="23"/></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading || code.length !== 6}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    background: (loading || code.length !== 6) ? '#2d5a3d' : '#4ADE80',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: (loading || code.length !== 6) ? 'not-allowed' : 'pointer',
+                    opacity: (loading || code.length !== 6) ? 0.6 : 1,
+                    transition: 'background 0.15s',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
+                  onMouseLeave={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
+                >
+                  {loading ? 'resetting...' : '$ reset_password'}
+                </button>
+              </form>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <button
+                  onClick={() => { setStep('email'); setCode(''); setError(''); }}
+                  style={{ fontSize: '12px', color: '#444444', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.15s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#666666'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+                >
+                  ← back
+                </button>
+                <button
+                  onClick={handleResend}
+                  disabled={loading}
+                  style={{ fontSize: '12px', color: '#444444', background: 'transparent', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.5 : 1, transition: 'color 0.15s' }}
+                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = '#666666'; }}
+                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+                >
+                  resend code
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Done */}
+          {step === 'done' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
+              <div style={{
+                background: 'rgba(74,222,128,0.08)',
+                border: '1px solid rgba(74,222,128,0.2)',
+                borderRadius: '4px',
+                padding: '12px 16px',
+                fontSize: '12px',
+                color: '#4ADE80',
+              }}>
+                // password updated — you can now sign in
               </div>
               <button
-                type="submit"
-                disabled={loading || code.length !== 6}
-                className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onBack}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#4ADE80',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
               >
-                {loading ? 'Resetting...' : 'Reset Password'}
-              </button>
-            </form>
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => { setStep('email'); setCode(''); setError(''); }}
-                className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleResend}
-                disabled={loading}
-                className="text-sm text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
-              >
-                Resend code
+                ← back to login
               </button>
             </div>
-          </>
-        )}
-
-        {/* Step 3: Done */}
-        {step === 'done' && (
-          <div className="text-center space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 text-sm text-green-400">
-              Password updated successfully. You can now sign in.
-            </div>
-            <button
-              onClick={onBack}
-              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
-            >
-              Back to login
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -42,20 +42,20 @@ interface FeedbackItem {
 
 const statuses: FeatureStatus[] = ['new', 'planned', 'in-progress', 'shipped', 'declined'];
 
-const statusStyle: Record<FeatureStatus, string> = {
-  'new': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'planned': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'in-progress': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  'shipped': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  'declined': 'bg-red-500/10 text-red-400 border-red-500/20',
+const statusStyle: Record<FeatureStatus, React.CSSProperties> = {
+  'new':         { color: '#3B82F6', background: 'rgba(59,130,246,0.1)',  border: '1px solid rgba(59,130,246,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' },
+  'planned':     { color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' },
+  'in-progress': { color: '#F59E0B', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' },
+  'shipped':     { color: '#4ADE80', background: 'rgba(74,222,128,0.1)',  border: '1px solid rgba(74,222,128,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' },
+  'declined':    { color: '#EF4444', background: 'rgba(239,68,68,0.1)',   border: '1px solid rgba(239,68,68,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600, letterSpacing: '0.04em' },
 };
 
 const statusDot: Record<FeatureStatus, string> = {
-  'new': 'bg-blue-400',
-  'planned': 'bg-purple-400',
-  'in-progress': 'bg-amber-400',
-  'shipped': 'bg-emerald-400',
-  'declined': 'bg-red-400',
+  'new':         '#3B82F6',
+  'planned':     '#A78BFA',
+  'in-progress': '#F59E0B',
+  'shipped':     '#4ADE80',
+  'declined':    '#EF4444',
 };
 
 function mapRow(row: FeedbackRow): FeedbackItem {
@@ -199,10 +199,8 @@ export default function FeatureRequests() {
   // Loading
   if (loading) {
     return (
-      <div className="space-y-6 max-w-7xl mx-auto animate-pulse">
-        <div className="h-8 bg-slate-800 rounded-lg w-64" />
-        <div className="h-10 bg-slate-800/50 rounded-lg w-full" />
-        <div className="h-96 bg-slate-800/50 rounded-xl" />
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div style={{ color: '#444444', fontSize: 12, padding: '40px 0', textAlign: 'center' }}>loading feature requests...</div>
       </div>
     );
   }
@@ -210,11 +208,14 @@ export default function FeatureRequests() {
   // Error
   if (error && items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center max-w-7xl mx-auto">
-        <div className="text-4xl mb-4">⚠️</div>
-        <h3 className="text-lg font-semibold mb-1">Failed to load feedback</h3>
-        <p className="text-sm text-slate-500 mb-4">{error}</p>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444', borderRadius: 4, padding: '10px 14px', fontSize: 13 }}>
+          // error: {error}
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ background: '#4ADE80', color: '#000', border: 'none', borderRadius: 4, padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}
+        >
           Retry
         </button>
       </div>
@@ -225,24 +226,29 @@ export default function FeatureRequests() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Inline error */}
       {error && items.length > 0 && (
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center justify-between">
+        <div
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444', borderRadius: 4, padding: '10px 14px', fontSize: 13 }}
+          className="flex items-center justify-between"
+        >
           <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-400 hover:text-red-300 ml-4">&times;</button>
+          <button onClick={() => setError('')} style={{ color: '#EF4444', marginLeft: 16, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>&times;</button>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Feature Requests</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// feature-requests</div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>Feature Requests</h1>
+          <p style={{ fontSize: 12, color: '#666666', marginTop: 4 }}>
             {items.length} requests across {appNames.length} app{appNames.length !== 1 ? 's' : ''} — sorted by demand
           </p>
         </div>
         <button
           onClick={() => exportCsv(filtered)}
           disabled={items.length === 0}
-          className="px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 bg-slate-800 border border-white/10 hover:border-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 self-start"
+          style={{ background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', fontSize: 12, padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit', opacity: items.length === 0 ? 0.5 : 1 }}
+          className="self-start"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
           Export CSV
@@ -251,11 +257,19 @@ export default function FeatureRequests() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
+        <select
+          value={filterApp}
+          onChange={e => setFilterApp(e.target.value)}
+          style={{ background: '#0d0d0d', border: '1px solid #222222', borderRadius: '4px', color: '#e0e0e0', fontSize: 13, padding: '6px 10px', outline: 'none', fontFamily: 'inherit' }}
+        >
           <option value="all">All Apps</option>
           {appNames.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          style={{ background: '#0d0d0d', border: '1px solid #222222', borderRadius: '4px', color: '#e0e0e0', fontSize: 13, padding: '6px 10px', outline: 'none', fontFamily: 'inherit' }}
+        >
           <option value="all">All Statuses</option>
           {statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
         </select>
@@ -264,12 +278,12 @@ export default function FeatureRequests() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search requests..."
-          className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 w-48"
+          style={{ background: '#0d0d0d', border: '1px solid #222222', borderRadius: '4px', color: '#e0e0e0', fontSize: 13, padding: '6px 10px', outline: 'none', fontFamily: 'inherit', width: 192 }}
         />
         {(filterApp !== 'all' || filterStatus !== 'all' || search) && (
           <button
             onClick={() => { setFilterApp('all'); setFilterStatus('all'); setSearch(''); }}
-            className="px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+            style={{ padding: '6px 12px', borderRadius: '4px', fontSize: 12, color: '#666666', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
           >
             Clear
           </button>
@@ -278,87 +292,101 @@ export default function FeatureRequests() {
 
       {/* Empty State */}
       {items.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">💡</div>
-          <h3 className="text-lg font-semibold text-slate-200 mb-2">No feature requests yet</h3>
-          <p className="text-sm text-slate-500">Feature requests from your apps will appear here as users submit feedback.</p>
+        <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', padding: 48, textAlign: 'center', color: '#444444', fontSize: 12 }}>
+          // no feature requests
         </div>
       ) : filtered.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
-          <p className="text-sm text-slate-500">No requests match your filters.</p>
-          <button onClick={() => { setFilterApp('all'); setFilterStatus('all'); setSearch(''); }} className="mt-2 text-sm text-blue-400 hover:text-blue-300">
-            Clear filters
-          </button>
+        <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', padding: 48, textAlign: 'center', color: '#444444', fontSize: 12 }}>
+          // no feature requests
+          <div style={{ marginTop: 12 }}>
+            <button
+              onClick={() => { setFilterApp('all'); setFilterStatus('all'); setSearch(''); }}
+              style={{ fontSize: 13, color: '#4ADE80', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Clear filters
+            </button>
+          </div>
         </div>
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden md:block glass rounded-xl overflow-hidden">
+          <div className="hidden md:block" style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', overflow: 'hidden' }}>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[700px]">
+              <table className="w-full min-w-[700px]" style={{ fontSize: 13, borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-                    <th className="px-4 py-3 w-16">
-                      <button onClick={() => toggleSort('votes')} className="flex items-center gap-1 hover:text-slate-300 transition-colors">
-                        Votes <span className="text-[10px]">{sortIcon('votes')}</span>
+                  <tr>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d', width: 64 }}>
+                      <button
+                        onClick={() => toggleSort('votes')}
+                        style={{ background: 'transparent', border: 'none', color: sortField === 'votes' ? '#e0e0e0' : '#444444', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}
+                      >
+                        Votes <span style={{ fontSize: 10 }}>{sortIcon('votes')}</span>
                       </button>
                     </th>
-                    <th className="px-4 py-3">Request</th>
-                    <th className="px-4 py-3 w-32">App</th>
-                    <th className="px-4 py-3 w-32">Status</th>
-                    <th className="px-4 py-3 w-36">Source</th>
-                    <th className="px-4 py-3 w-28">
-                      <button onClick={() => toggleSort('date')} className="flex items-center gap-1 hover:text-slate-300 transition-colors">
-                        Date <span className="text-[10px]">{sortIcon('date')}</span>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d' }}>Request</th>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d', width: 128 }}>App</th>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d', width: 128 }}>Status</th>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d', width: 144 }}>Source</th>
+                    <th style={{ fontSize: 10, fontWeight: 600, color: '#444444', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', textAlign: 'left', background: '#0d0d0d', width: 112 }}>
+                      <button
+                        onClick={() => toggleSort('date')}
+                        style={{ background: 'transparent', border: 'none', color: sortField === 'date' ? '#e0e0e0' : '#444444', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}
+                      >
+                        Date <span style={{ fontSize: 10 }}>{sortIcon('date')}</span>
                       </button>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody>
                   {filtered.map(r => (
-                    <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="px-4 py-3">
+                    <tr
+                      key={r.id}
+                      style={{ borderBottom: '1px solid #1a1a1a' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#1a1a1a')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '#111111')}
+                    >
+                      <td style={{ padding: '12px 16px' }}>
                         <button
                           onClick={() => handleVote(r.id)}
                           disabled={votingIds.has(r.id)}
-                          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg hover:bg-blue-500/10 transition-colors group min-w-[40px] disabled:opacity-50"
+                          style={{ background: 'transparent', border: '1px solid rgba(74,222,128,0.2)', borderRadius: '4px', color: '#4ADE80', fontSize: 12, padding: '4px 12px', cursor: 'pointer', minWidth: 52, textAlign: 'center', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, opacity: votingIds.has(r.id) ? 0.5 : 1 }}
                           title="Upvote"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 group-hover:text-blue-400 transition-colors"><path d="m18 15-6-6-6 6"/></svg>
-                          <span className="text-xs font-semibold text-slate-400 group-hover:text-blue-400">{r.votes}</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                          <span style={{ fontSize: 11, fontWeight: 600 }}>{r.votes}</span>
                         </button>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-200">{r.title}</div>
-                        {r.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{r.description}</p>}
+                      <td style={{ fontSize: 13, fontWeight: 500, color: '#e0e0e0', padding: '12px 16px' }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#e0e0e0' }}>{r.title}</div>
+                        {r.description && <p style={{ fontSize: 11, color: '#666666', marginTop: 2, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{r.description}</p>}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs bg-slate-800 px-2 py-1 rounded border border-white/5">{r.app}</span>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ background: '#1a1a1a', border: '1px solid #222222', borderRadius: 3, padding: '2px 8px', fontSize: 10, color: '#666666' }}>{r.app}</span>
                       </td>
-                      <td className="px-4 py-3 relative">
+                      <td style={{ padding: '12px 16px', position: 'relative' }}>
                         {editingStatusId === r.id ? (
                           <select
                             autoFocus
                             value={r.status}
                             onChange={e => handleStatusChange(r.id, e.target.value as FeatureStatus)}
                             onBlur={() => setEditingStatusId(null)}
-                            className="px-2 py-1 rounded bg-slate-800 border border-blue-500 text-xs focus:outline-none"
+                            style={{ background: '#0d0d0d', border: '1px solid #4ADE80', borderRadius: '4px', color: '#e0e0e0', fontSize: 11, padding: '2px 6px', outline: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                           >
                             {statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                           </select>
                         ) : (
                           <button
                             onClick={() => setEditingStatusId(r.id)}
-                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border cursor-pointer hover:opacity-80 transition-opacity ${statusStyle[r.status]}`}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit', ...statusStyle[r.status] }}
                             title="Click to change status"
                           >
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusDot[r.status]}`} />
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: statusDot[r.status], display: 'inline-block', flexShrink: 0 }} />
                             {r.status}
                           </button>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400 truncate max-w-[140px]">{r.source}</td>
-                      <td className="px-4 py-3 text-xs text-slate-500">{r.date}</td>
+                      <td style={{ fontSize: 11, color: '#666666', padding: '12px 16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{r.source}</td>
+                      <td style={{ fontSize: 11, color: '#444444', padding: '12px 16px' }}>{r.date}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -369,28 +397,28 @@ export default function FeatureRequests() {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filtered.map(r => (
-              <div key={r.id} className="glass rounded-xl p-4 border border-white/5">
-                <div className="flex items-start justify-between gap-3 mb-2">
+              <div key={r.id} style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', padding: 16 }}>
+                <div className="flex items-start justify-between gap-3" style={{ marginBottom: 8 }}>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-slate-200">{r.title}</h4>
-                    {r.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{r.description}</p>}
+                    <h4 style={{ fontSize: 13, fontWeight: 500, color: '#e0e0e0', margin: 0 }}>{r.title}</h4>
+                    {r.description && <p style={{ fontSize: 11, color: '#666666', marginTop: 2, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{r.description}</p>}
                   </div>
                   <button
                     onClick={() => handleVote(r.id)}
                     disabled={votingIds.has(r.id)}
-                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-800 border border-white/5 min-w-[44px] min-h-[44px] justify-center disabled:opacity-50"
+                    style={{ background: 'transparent', border: '1px solid rgba(74,222,128,0.2)', borderRadius: '4px', color: '#4ADE80', fontSize: 12, padding: '4px 12px', cursor: 'pointer', minWidth: 52, textAlign: 'center', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, opacity: votingIds.has(r.id) ? 0.5 : 1, minHeight: 44, justifyContent: 'center' }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="m18 15-6-6-6 6"/></svg>
-                    <span className="text-xs font-semibold text-blue-400">{r.votes}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#4ADE80' }}>{r.votes}</span>
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded border border-white/5">{r.app}</span>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${statusStyle[r.status]}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusDot[r.status]}`} />
+                  <span style={{ background: '#1a1a1a', border: '1px solid #222222', borderRadius: 3, padding: '2px 8px', fontSize: 10, color: '#666666' }}>{r.app}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...statusStyle[r.status] }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: statusDot[r.status], display: 'inline-block', flexShrink: 0 }} />
                     {r.status}
                   </span>
-                  <span className="text-xs text-slate-600 ml-auto">{r.source} &middot; {r.date}</span>
+                  <span style={{ fontSize: 11, color: '#444444', marginLeft: 'auto' }}>{r.source} &middot; {r.date}</span>
                 </div>
               </div>
             ))}

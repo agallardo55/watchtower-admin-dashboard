@@ -15,6 +15,36 @@ const tabs = [
   { id: 'notifications', label: 'Notifications' },
 ];
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#0d0d0d',
+  border: '1px solid #222222',
+  borderRadius: '4px',
+  padding: '10px 14px',
+  fontSize: '13px',
+  color: '#e0e0e0',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 600,
+  color: '#666666',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  display: 'block',
+  marginBottom: '6px',
+};
+
+const sectionHeaderStyle: React.CSSProperties = {
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#666666',
+  marginBottom: '4px',
+};
+
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [userId, setUserId] = useState<string | null>(null);
@@ -126,8 +156,8 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 text-sm">Loading settings...</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+        <div style={{ color: '#444444', fontSize: '13px' }}>Loading settings...</div>
       </div>
     );
   }
@@ -135,22 +165,41 @@ export default function Settings() {
   const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase() || 'U';
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '896px', margin: '0 auto' }}>
       {/* Header */}
       <div>
-        <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Settings</h2>
-        <p className="text-slate-500 mt-1">Manage your account, security, and preferences.</p>
+        <div style={{ fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
+          WATCHTOWER
+        </div>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0', margin: 0, letterSpacing: '-0.01em' }}>
+          // SETTINGS
+        </h1>
+        <p style={{ color: '#444444', fontSize: '12px', marginTop: '4px' }}>
+          Manage your account, security, and preferences.
+        </p>
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+      <div style={{ display: 'flex', borderBottom: '1px solid #1a1a1a', gap: '0' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-            }`}
+            style={{
+              padding: '8px 20px',
+              fontSize: '12px',
+              fontWeight: 500,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '2px solid #4ADE80' : '2px solid transparent',
+              color: activeTab === tab.id ? '#4ADE80' : '#666666',
+              cursor: 'pointer',
+              transition: 'color 0.15s, border-color 0.15s',
+              marginBottom: '-1px',
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#e0e0e0'; }}
+            onMouseLeave={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#666666'; }}
           >
             {tab.label}
           </button>
@@ -159,98 +208,143 @@ export default function Settings() {
 
       {/* PROFILE TAB */}
       {activeTab === 'profile' && (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Avatar + name header */}
-          <div className="glass rounded-xl p-4 lg:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+          <div className="terminal-card" style={{ padding: '20px 24px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'rgba(74,222,128,0.1)',
+                border: '1px solid rgba(74,222,128,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '22px',
+                fontWeight: 700,
+                color: '#4ADE80',
+                flexShrink: 0,
+              }}>
                 {initials}
               </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold">{profile.firstName} {profile.lastName}</h3>
-                <p className="text-sm text-slate-500">{profile.title} &bull; {profile.company}</p>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0', margin: '0 0 4px 0' }}>
+                  {profile.firstName} {profile.lastName}
+                </h3>
+                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>
+                  {profile.title} &bull; {profile.company}
+                </p>
               </div>
-              <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors">
+              <button
+                style={{
+                  padding: '7px 14px',
+                  background: 'transparent',
+                  border: '1px solid #222222',
+                  borderRadius: '4px',
+                  color: '#666666',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+              >
                 Change Avatar
               </button>
             </div>
           </div>
 
           {/* Profile form */}
-          <div className="glass rounded-xl p-6 space-y-5">
-            <h3 className="font-semibold text-lg">Personal Information</h3>
+          <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={sectionHeaderStyle}>Personal Information</div>
 
             {saveMessage && (
-              <div className={`rounded-lg px-4 py-3 text-sm ${
-                saveMessage.type === 'success'
-                  ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                  : 'bg-red-500/10 border border-red-500/20 text-red-400'
-              }`}>
+              <div style={{
+                padding: '10px 14px',
+                borderRadius: '4px',
+                fontSize: '13px',
+                background: saveMessage.type === 'success' ? 'rgba(74,222,128,0.08)' : 'rgba(239,68,68,0.08)',
+                border: `1px solid ${saveMessage.type === 'success' ? 'rgba(74,222,128,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                color: saveMessage.type === 'success' ? '#4ADE80' : '#EF4444',
+              }}>
                 {saveMessage.text}
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">First Name</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={labelStyle}>First Name</label>
                 <input
                   type="text"
                   value={profile.firstName}
                   onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Last Name</label>
+              <div>
+                <label style={labelStyle}>Last Name</label>
                 <input
                   type="text"
                   value={profile.lastName}
                   onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={labelStyle}>Email Address</label>
                 <input
                   type="email"
                   value={profile.email}
                   disabled
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 opacity-60 cursor-not-allowed"
+                  style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }}
                 />
-                <p className="text-[10px] text-slate-600">Email changes require re-verification</p>
+                <p style={{ fontSize: '10px', color: '#333333', marginTop: '4px' }}>Email changes require re-verification</p>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Mobile Number</label>
+              <div>
+                <label style={labelStyle}>Mobile Number</label>
                 <input
                   type="tel"
                   value={profile.mobile}
                   maxLength={14}
                   onChange={(e) => setProfile({ ...profile, mobile: formatPhone(e.target.value) })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                 />
-                <p className="text-[10px] text-slate-600">Used for MFA and password reset</p>
+                <p style={{ fontSize: '10px', color: '#333333', marginTop: '4px' }}>Used for MFA and password reset</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Company / Org</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={labelStyle}>Company / Org</label>
                 <input
                   type="text"
                   value={profile.company}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  style={inputStyle}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase">Timezone</label>
+              <div>
+                <label style={labelStyle}>Timezone</label>
                 <select
                   value={profile.timezone}
                   onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  style={{ ...inputStyle, cursor: 'pointer' }}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                 >
                   <option value="America/Los_Angeles">Pacific Time (PT)</option>
                   <option value="America/Denver">Mountain Time (MT)</option>
@@ -261,11 +355,25 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  padding: '9px 24px',
+                  background: saving ? '#2d5a3d' : '#4ADE80',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? 0.7 : 1,
+                  transition: 'background 0.15s, opacity 0.15s',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={e => { if (!saving) e.currentTarget.style.background = '#6EE7A0'; }}
+                onMouseLeave={e => { if (!saving) e.currentTarget.style.background = '#4ADE80'; }}
               >
                 {saving ? 'Saving...' : 'Save Profile'}
               </button>
@@ -276,18 +384,31 @@ export default function Settings() {
 
       {/* SECURITY TAB */}
       {activeTab === 'security' && (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Change Password */}
-          <div className="glass rounded-xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="font-semibold text-lg">Password</h3>
-                <p className="text-xs text-slate-500">Last changed 30 days ago</p>
+                <div style={sectionHeaderStyle}>Password</div>
+                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Last changed 30 days ago</p>
               </div>
               {!showChangePassword && (
                 <button
                   onClick={() => setShowChangePassword(true)}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors"
+                  style={{
+                    padding: '7px 14px',
+                    background: 'transparent',
+                    border: '1px solid #222222',
+                    borderRadius: '4px',
+                    color: '#666666',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'border-color 0.15s, color 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
                 >
                   Change Password
                 </button>
@@ -295,48 +416,90 @@ export default function Settings() {
             </div>
 
             {showChangePassword && (
-              <form className="space-y-4 pt-2" onSubmit={(e) => { e.preventDefault(); setShowChangePassword(false); setPasswords({ current: '', newPass: '', confirm: '' }); }}>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Current Password</label>
+              <form
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '4px' }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setShowChangePassword(false);
+                  setPasswords({ current: '', newPass: '', confirm: '' });
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Current Password</label>
                   <input
                     type="password"
                     required
                     value={passwords.current}
                     onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    style={inputStyle}
+                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">New Password</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={labelStyle}>New Password</label>
                     <input
                       type="password"
                       required
                       value={passwords.newPass}
                       onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                      style={inputStyle}
+                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Confirm New Password</label>
+                  <div>
+                    <label style={labelStyle}>Confirm New Password</label>
                     <input
                       type="password"
                       required
                       value={passwords.confirm}
                       onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                      style={inputStyle}
+                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
                     />
                   </div>
                 </div>
-                <div className="flex gap-3 pt-1">
+                <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
                   <button
                     type="button"
                     onClick={() => { setShowChangePassword(false); setPasswords({ current: '', newPass: '', confirm: '' }); }}
-                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      padding: '7px 14px',
+                      background: 'transparent',
+                      border: '1px solid #222222',
+                      borderRadius: '4px',
+                      color: '#666666',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'border-color 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#444444'; e.currentTarget.style.color = '#e0e0e0'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '7px 16px',
+                      background: '#4ADE80',
+                      color: '#000000',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#6EE7A0'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#4ADE80'; }}
+                  >
                     Update Password
                   </button>
                 </div>
@@ -345,52 +508,110 @@ export default function Settings() {
           </div>
 
           {/* Two-Factor */}
-          <div className="glass rounded-xl p-6">
-            <div className="flex items-center justify-between">
+          <div className="terminal-card" style={{ padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="font-semibold text-lg">Two-Factor Authentication</h3>
-                <p className="text-xs text-slate-500">Add an extra layer of security to your account</p>
+                <div style={sectionHeaderStyle}>Two-Factor Authentication</div>
+                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Add an extra layer of security to your account</p>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold uppercase text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded">Not Enabled</span>
-                <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: '#F59E0B',
+                  background: 'rgba(245,158,11,0.1)',
+                  border: '1px solid rgba(245,158,11,0.2)',
+                  padding: '2px 8px',
+                  borderRadius: '3px',
+                }}>
+                  Not Enabled
+                </span>
+                <button
+                  style={{
+                    padding: '7px 14px',
+                    background: 'transparent',
+                    border: '1px solid #222222',
+                    borderRadius: '4px',
+                    color: '#666666',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'border-color 0.15s, color 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+                >
                   Enable 2FA
                 </button>
               </div>
             </div>
           </div>
-
         </div>
       )}
 
       {/* NOTIFICATIONS TAB */}
       {activeTab === 'notifications' && (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Email Notifications */}
-          <div className="glass rounded-xl p-6 space-y-4">
+          <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <h3 className="font-semibold text-lg">Email Notifications</h3>
-              <p className="text-xs text-slate-500">Choose what email notifications you receive</p>
+              <div style={sectionHeaderStyle}>Email Notifications</div>
+              <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Choose what email notifications you receive</p>
             </div>
 
-            <div className="space-y-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {[
                 { key: 'emailNewUser' as const, label: 'New User Signups', desc: 'Get notified when a new user registers on any app' },
                 { key: 'emailAppStatus' as const, label: 'App Status Changes', desc: 'Alerts when an app goes live, pauses, or encounters errors' },
                 { key: 'emailWeeklyDigest' as const, label: 'Weekly Digest', desc: 'Summary of activity, signups, and metrics across all apps' },
                 { key: 'emailSecurityAlerts' as const, label: 'Security Alerts', desc: 'Suspicious login attempts, failed auth, and permission changes' },
               ].map(item => (
-                <div key={item.key} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+                <div
+                  key={item.key}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 12px',
+                    borderRadius: '4px',
+                    transition: 'background 0.1s',
+                    cursor: 'default',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.01)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
                   <div>
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <p className="text-[10px] text-slate-500">{item.desc}</p>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#e0e0e0', margin: '0 0 2px 0' }}>{item.label}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', margin: 0 }}>{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleNotif(item.key)}
-                    className={`w-10 h-5 rounded-full transition-colors relative ${notifications[item.key] ? 'bg-blue-600' : 'bg-slate-700'}`}
+                    style={{
+                      width: '36px',
+                      height: '20px',
+                      borderRadius: '10px',
+                      background: notifications[item.key] ? '#4ADE80' : '#1a1a1a',
+                      border: `1px solid ${notifications[item.key] ? '#4ADE80' : '#333333'}`,
+                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s, border-color 0.2s',
+                      flexShrink: 0,
+                    }}
                   >
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all`}
-                      style={{ left: notifications[item.key] ? '22px' : '2px' }}
+                    <div
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        background: notifications[item.key] ? '#000000' : '#444444',
+                        borderRadius: '50%',
+                        position: 'absolute',
+                        top: '2px',
+                        left: notifications[item.key] ? '19px' : '2px',
+                        transition: 'left 0.2s, background 0.2s',
+                      }}
                     />
                   </button>
                 </div>
@@ -399,30 +620,62 @@ export default function Settings() {
           </div>
 
           {/* Push Notifications */}
-          <div className="glass rounded-xl p-6 space-y-4">
+          <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <h3 className="font-semibold text-lg">Push Notifications</h3>
-              <p className="text-xs text-slate-500">In-app and browser push notification preferences</p>
+              <div style={sectionHeaderStyle}>Push Notifications</div>
+              <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>In-app and browser push notification preferences</p>
             </div>
 
-            <div className="space-y-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {[
                 { key: 'pushDeployments' as const, label: 'Deployments', desc: 'Notify when builds deploy successfully or fail' },
                 { key: 'pushErrors' as const, label: 'Error Alerts', desc: 'Real-time notifications for runtime errors and crashes' },
                 { key: 'pushNewSignups' as const, label: 'New Signups', desc: 'Push notification for each new user registration' },
                 { key: 'pushTaskUpdates' as const, label: 'Task Updates', desc: 'Notifications when development tasks change status' },
               ].map(item => (
-                <div key={item.key} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+                <div
+                  key={item.key}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 12px',
+                    borderRadius: '4px',
+                    transition: 'background 0.1s',
+                    cursor: 'default',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.01)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
                   <div>
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <p className="text-[10px] text-slate-500">{item.desc}</p>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#e0e0e0', margin: '0 0 2px 0' }}>{item.label}</p>
+                    <p style={{ fontSize: '10px', color: '#444444', margin: 0 }}>{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleNotif(item.key)}
-                    className={`w-10 h-5 rounded-full transition-colors relative ${notifications[item.key] ? 'bg-blue-600' : 'bg-slate-700'}`}
+                    style={{
+                      width: '36px',
+                      height: '20px',
+                      borderRadius: '10px',
+                      background: notifications[item.key] ? '#4ADE80' : '#1a1a1a',
+                      border: `1px solid ${notifications[item.key] ? '#4ADE80' : '#333333'}`,
+                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s, border-color 0.2s',
+                      flexShrink: 0,
+                    }}
                   >
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all`}
-                      style={{ left: notifications[item.key] ? '22px' : '2px' }}
+                    <div
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        background: notifications[item.key] ? '#000000' : '#444444',
+                        borderRadius: '50%',
+                        position: 'absolute',
+                        top: '2px',
+                        left: notifications[item.key] ? '19px' : '2px',
+                        transition: 'left 0.2s, background 0.2s',
+                      }}
                     />
                   </button>
                 </div>
@@ -430,8 +683,23 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              style={{
+                padding: '9px 24px',
+                background: '#4ADE80',
+                color: '#000000',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#6EE7A0'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#4ADE80'; }}
+            >
               Save Preferences
             </button>
           </div>
