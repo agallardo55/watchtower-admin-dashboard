@@ -54,6 +54,13 @@ const statusOptions: { value: string; label: string }[] = [
   { value: 'wont_fix', label: "Won't Fix" },
 ];
 
+const statIconColors: Record<string, string> = {
+  'text-blue-400': 'border-blue-400/30 text-blue-400',
+  'text-red-400': 'border-red-400/30 text-red-400',
+  'text-emerald-400': 'border-emerald-400/30 text-emerald-400',
+  'text-purple-400': 'border-purple-400/30 text-purple-400',
+};
+
 function getAppName(ticket: Ticket): string {
   return ticket.wt_app_registry?.name ?? 'Unknown App';
 }
@@ -152,10 +159,10 @@ export default function Tickets() {
   const feedbackToday = tickets.filter(t => t.created_at.startsWith(today)).length;
 
   const stats = [
-    { label: 'Open Tickets', value: openCount, color: 'text-blue-400', bg: 'bg-blue-500/10', icon: 'mail' },
-    { label: 'Critical', value: criticalCount, color: 'text-red-400', bg: 'bg-red-500/10', icon: 'activity' },
-    { label: 'Resolved Today', value: resolvedToday, color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: 'archive' },
-    { label: 'New Feedback', value: feedbackToday, color: 'text-purple-400', bg: 'bg-purple-500/10', icon: 'bell' },
+    { label: 'Open Tickets', value: openCount, color: 'text-blue-400', icon: 'mail' },
+    { label: 'Critical', value: criticalCount, color: 'text-red-400', icon: 'activity' },
+    { label: 'Resolved Today', value: resolvedToday, color: 'text-emerald-400', icon: 'archive' },
+    { label: 'New Feedback', value: feedbackToday, color: 'text-purple-400', icon: 'bell' },
   ];
 
   if (loading) {
@@ -180,11 +187,11 @@ export default function Tickets() {
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
           <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-amber-400"><icons.alertTriangle className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load tickets</h3>
           <p className="text-sm text-slate-500 mb-4">{error}</p>
-          <button onClick={fetchTickets} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button onClick={fetchTickets} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm text-sm font-medium transition-colors">
             Retry
           </button>
         </div>
@@ -199,8 +206,8 @@ export default function Tickets() {
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Tickets</h2>
           <p className="text-slate-500 mt-1">Cross-app feedback and AI-triaged issues.</p>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">🎫</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-slate-400"><icons.ticket className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets yet</h3>
           <p className="text-sm text-slate-500">Tickets are created from user feedback via the AI triage system.</p>
         </div>
@@ -220,9 +227,9 @@ export default function Tickets() {
         {stats.map(s => {
           const Icon = (icons as Record<string, React.FC>)[s.icon];
           return (
-            <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
+            <div key={s.label} className="glass p-4 lg:p-5 rounded-none">
               <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${s.bg}`}><Icon /></div>
+                <div className={`p-1.5 border ${statIconColors[s.color]}`}><Icon /></div>
                 <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
               </div>
               <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
@@ -233,7 +240,7 @@ export default function Tickets() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[#111] border border-slate-700 rounded-sm px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
           <option value="all">All Status</option>
           <option value="open">Open</option>
           <option value="in_progress">In Progress</option>
@@ -241,20 +248,20 @@ export default function Tickets() {
           <option value="closed">Closed</option>
           <option value="wont_fix">Won't Fix</option>
         </select>
-        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="bg-[#111] border border-slate-700 rounded-sm px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
           <option value="all">All Priority</option>
           <option value="critical">Critical</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
-        <select value={appFilter} onChange={e => setAppFilter(e.target.value)} className="bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <select value={appFilter} onChange={e => setAppFilter(e.target.value)} className="bg-[#111] border border-slate-700 rounded-sm px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
           <option value="all">All Apps</option>
           {allApps.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
         <div className="relative flex-1 min-w-[200px]">
           <icons.search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tickets..." className="w-full bg-slate-900 border border-white/10 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tickets..." className="w-full bg-[#111] border border-slate-700 rounded-sm pl-10 pr-3 py-2 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
       </div>
 
@@ -262,11 +269,11 @@ export default function Tickets() {
         {/* Mobile Cards */}
         <div className={`lg:hidden flex-1 space-y-3 ${selected ? 'hidden' : ''}`}>
           {filtered.map(t => (
-            <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`glass rounded-xl p-4 cursor-pointer transition-colors ${selected?.id === t.id ? 'border-blue-500 border' : 'border border-white/5 hover:border-white/10'}`}>
+            <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`glass rounded-none p-4 cursor-pointer transition-colors ${selected?.id === t.id ? 'border-blue-500 border' : 'border border-[#1e293b] hover:border-slate-700'}`}>
               <p className="font-medium text-sm text-slate-200 mb-2">{t.title}</p>
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
+                <span className={`px-2 py-0.5 text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span>
+                <span className={`px-2 py-0.5 text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
               </div>
               <div className="flex justify-between text-xs text-slate-500">
                 <span>{getAppName(t)}</span>
@@ -275,8 +282,8 @@ export default function Tickets() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div className="glass rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🎫</div>
+            <div className="glass rounded-none p-12 text-center">
+              <div className="mb-4 text-slate-400"><icons.ticket className="w-10 h-10 mx-auto" /></div>
               <h3 className="text-lg font-semibold text-slate-200 mb-2">No tickets found</h3>
               <p className="text-sm text-slate-500">Try adjusting your filters.</p>
             </div>
@@ -284,11 +291,11 @@ export default function Tickets() {
         </div>
 
         {/* Desktop Table */}
-        <div className={`glass rounded-xl overflow-hidden flex-1 transition-all hidden lg:block ${selected ? 'lg:max-w-[60%]' : ''}`}>
+        <div className={`glass rounded-none overflow-hidden flex-1 transition-all hidden lg:block ${selected ? 'lg:max-w-[60%]' : ''}`}>
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[600px]">
             <thead>
-              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-[#1e293b] text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-3">Title</th>
                 <th className="px-4 py-3">App</th>
                 <th className="px-4 py-3">Priority</th>
@@ -297,13 +304,13 @@ export default function Tickets() {
                 <th className="px-4 py-3 hidden lg:table-cell">Created</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#1e293b]">
               {filtered.map(t => (
-                <tr key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`hover:bg-white/5 cursor-pointer transition-colors ${selected?.id === t.id ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}>
+                <tr key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)} className={`hover:bg-[#111] cursor-pointer transition-colors ${selected?.id === t.id ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}>
                   <td className="px-4 py-3 font-medium text-slate-200 max-w-[280px] truncate">{t.title}</td>
                   <td className="px-4 py-3 text-slate-400">{getAppName(t)}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span></td>
-                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span></td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs font-medium ${priorityColors[t.priority]}`}>{t.priority}</span></td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 text-xs font-medium ${statusColors[t.status]}`}>{statusLabels[t.status]}</span></td>
                   <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{t.category}</td>
                   <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{new Date(t.created_at).toLocaleDateString()}</td>
                 </tr>
@@ -318,7 +325,7 @@ export default function Tickets() {
 
         {/* Detail Panel */}
         {selected && (
-          <div className="w-full lg:w-[400px] glass rounded-xl p-4 lg:p-6 space-y-5 animate-in slide-in-from-right">
+          <div className="w-full lg:w-[400px] glass rounded-none p-4 lg:p-6 space-y-5 animate-in slide-in-from-right">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-100">{selected.title}</h3>
@@ -330,18 +337,18 @@ export default function Tickets() {
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Priority</label>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${priorityColors[selected.priority]}`}>{selected.priority}</span>
+                <span className={`px-2.5 py-1 text-xs font-medium ${priorityColors[selected.priority]}`}>{selected.priority}</span>
               </div>
               <div className="flex-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1 block">Status</label>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[selected.status]}`}>{statusLabels[selected.status]}</span>
+                <span className={`px-2.5 py-1 text-xs font-medium ${statusColors[selected.status]}`}>{statusLabels[selected.status]}</span>
               </div>
             </div>
 
             {selected.ai_summary && (
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">🤖 AI Summary</label>
-                <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/50 rounded-lg p-3 border border-white/5">{selected.ai_summary}</p>
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block flex items-center gap-1"><icons.activity className="w-3 h-3" /> AI Summary</label>
+                <p className="text-sm text-slate-300 leading-relaxed bg-[#111] rounded-sm p-3 border border-[#1e293b]">{selected.ai_summary}</p>
               </div>
             )}
 
@@ -350,13 +357,13 @@ export default function Tickets() {
                 <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Tags</label>
                 <div className="flex flex-wrap gap-1.5">
                   {selected.tags.map(tag => (
-                    <span key={tag} className="bg-slate-800 text-slate-400 text-xs px-2 py-0.5 rounded-md border border-white/5">{tag}</span>
+                    <span key={tag} className="bg-[#0f0f0f] text-slate-400 text-xs px-2 py-0.5 rounded-none border border-[#1e293b]">{tag}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="border-t border-white/5 pt-4">
+            <div className="border-t border-[#1e293b] pt-4">
               <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Timeline</label>
               <div className="space-y-2 text-xs text-slate-500">
                 <div className="flex items-center gap-2">
@@ -387,19 +394,19 @@ export default function Tickets() {
                   <button
                     onClick={() => setStatusDropdown(!statusDropdown)}
                     disabled={updating}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-sm text-sm font-medium transition-colors"
                   >
                     {updating ? 'Updating...' : 'Update Status'}
                   </button>
                   {statusDropdown && (
-                    <div className="absolute bottom-full left-0 mb-1 w-full bg-slate-800 border border-white/10 rounded-lg overflow-hidden shadow-xl z-10">
+                    <div className="absolute bottom-full left-0 mb-1 w-full bg-[#0f0f0f] border border-slate-700 rounded-sm overflow-hidden z-10">
                       {statusOptions
                         .filter(opt => opt.value !== selected.status)
                         .map(opt => (
                           <button
                             key={opt.value}
                             onClick={() => updateTicketStatus(selected.id, opt.value)}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-white/5 transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-[#111] transition-colors"
                           >
                             {opt.label}
                           </button>
@@ -407,7 +414,7 @@ export default function Tickets() {
                     </div>
                   )}
                 </div>
-                <button className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/5">Assign</button>
+                <button className="bg-[#0f0f0f] hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-sm text-sm font-medium transition-colors border border-[#1e293b]">Assign</button>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { icons } from '../constants';
 
 // --- Types ---
 
@@ -200,9 +201,9 @@ export default function FeatureRequests() {
   if (loading) {
     return (
       <div className="space-y-6 max-w-7xl mx-auto animate-pulse">
-        <div className="h-8 bg-slate-800 rounded-lg w-64" />
-        <div className="h-10 bg-slate-800/50 rounded-lg w-full" />
-        <div className="h-96 bg-slate-800/50 rounded-xl" />
+        <div className="h-8 bg-slate-800 rounded-sm w-64" />
+        <div className="h-10 bg-slate-800/50 rounded-sm w-full" />
+        <div className="h-96 bg-slate-800/50 rounded-none" />
       </div>
     );
   }
@@ -211,10 +212,10 @@ export default function FeatureRequests() {
   if (error && items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center max-w-7xl mx-auto">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="mb-4 text-amber-400"><icons.alertTriangle className="w-10 h-10 mx-auto" /></div>
         <h3 className="text-lg font-semibold mb-1">Failed to load feedback</h3>
         <p className="text-sm text-slate-500 mb-4">{error}</p>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+        <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-sm text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors">
           Retry
         </button>
       </div>
@@ -225,7 +226,7 @@ export default function FeatureRequests() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Inline error */}
       {error && items.length > 0 && (
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center justify-between">
+        <div className="p-3 rounded-sm bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center justify-between">
           <span>{error}</span>
           <button onClick={() => setError('')} className="text-red-400 hover:text-red-300 ml-4">&times;</button>
         </div>
@@ -242,7 +243,7 @@ export default function FeatureRequests() {
         <button
           onClick={() => exportCsv(filtered)}
           disabled={items.length === 0}
-          className="px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 bg-slate-800 border border-white/10 hover:border-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 self-start"
+          className="px-3 py-2 rounded-sm text-sm text-slate-400 hover:text-slate-200 bg-slate-800 border border-slate-700 hover:border-white/20 transition-colors disabled:opacity-50 flex items-center gap-1.5 self-start"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
           Export CSV
@@ -251,11 +252,11 @@ export default function FeatureRequests() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
+        <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="px-3 py-2 rounded-sm bg-[#111] border border-slate-700 text-sm focus:outline-none focus:border-blue-500">
           <option value="all">All Apps</option>
           {appNames.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500">
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-sm bg-[#111] border border-slate-700 text-sm focus:outline-none focus:border-blue-500">
           <option value="all">All Statuses</option>
           {statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
         </select>
@@ -264,12 +265,12 @@ export default function FeatureRequests() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search requests..."
-          className="px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 w-48"
+          className="px-3 py-2 rounded-sm bg-[#111] border border-slate-700 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 w-48"
         />
         {(filterApp !== 'all' || filterStatus !== 'all' || search) && (
           <button
             onClick={() => { setFilterApp('all'); setFilterStatus('all'); setSearch(''); }}
-            className="px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+            className="px-3 py-2 rounded-sm text-xs text-slate-400 hover:text-slate-200 hover:bg-[#111] transition-colors"
           >
             Clear
           </button>
@@ -278,13 +279,13 @@ export default function FeatureRequests() {
 
       {/* Empty State */}
       {items.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">💡</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-yellow-400"><icons.lightbulb className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No feature requests yet</h3>
           <p className="text-sm text-slate-500">Feature requests from your apps will appear here as users submit feedback.</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
+        <div className="glass rounded-none p-12 text-center">
           <p className="text-sm text-slate-500">No requests match your filters.</p>
           <button onClick={() => { setFilterApp('all'); setFilterStatus('all'); setSearch(''); }} className="mt-2 text-sm text-blue-400 hover:text-blue-300">
             Clear filters
@@ -293,11 +294,11 @@ export default function FeatureRequests() {
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden md:block glass rounded-xl overflow-hidden">
+          <div className="hidden md:block glass rounded-none overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
+                  <tr className="border-b border-[#1e293b] text-left text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-4 py-3 w-16">
                       <button onClick={() => toggleSort('votes')} className="flex items-center gap-1 hover:text-slate-300 transition-colors">
                         Votes <span className="text-[10px]">{sortIcon('votes')}</span>
@@ -314,14 +315,14 @@ export default function FeatureRequests() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-[#1e293b]">
                   {filtered.map(r => (
-                    <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={r.id} className="hover:bg-[#111] transition-colors">
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleVote(r.id)}
                           disabled={votingIds.has(r.id)}
-                          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg hover:bg-blue-500/10 transition-colors group min-w-[40px] disabled:opacity-50"
+                          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-sm hover:bg-blue-500/10 transition-colors group min-w-[40px] disabled:opacity-50"
                           title="Upvote"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 group-hover:text-blue-400 transition-colors"><path d="m18 15-6-6-6 6"/></svg>
@@ -333,7 +334,7 @@ export default function FeatureRequests() {
                         {r.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{r.description}</p>}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-xs bg-slate-800 px-2 py-1 rounded border border-white/5">{r.app}</span>
+                        <span className="text-xs bg-slate-800 px-2 py-1 rounded border border-[#1e293b]">{r.app}</span>
                       </td>
                       <td className="px-4 py-3 relative">
                         {editingStatusId === r.id ? (
@@ -369,7 +370,7 @@ export default function FeatureRequests() {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filtered.map(r => (
-              <div key={r.id} className="glass rounded-xl p-4 border border-white/5">
+              <div key={r.id} className="glass rounded-none p-4 border border-[#1e293b]">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm text-slate-200">{r.title}</h4>
@@ -378,14 +379,14 @@ export default function FeatureRequests() {
                   <button
                     onClick={() => handleVote(r.id)}
                     disabled={votingIds.has(r.id)}
-                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-800 border border-white/5 min-w-[44px] min-h-[44px] justify-center disabled:opacity-50"
+                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-sm bg-slate-800 border border-[#1e293b] min-w-[44px] min-h-[44px] justify-center disabled:opacity-50"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="m18 15-6-6-6 6"/></svg>
                     <span className="text-xs font-semibold text-blue-400">{r.votes}</span>
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded border border-white/5">{r.app}</span>
+                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded border border-[#1e293b]">{r.app}</span>
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${statusStyle[r.status]}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusDot[r.status]}`} />
                     {r.status}

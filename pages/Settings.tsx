@@ -143,7 +143,7 @@ export default function Settings() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+      <div className="flex gap-1 bg-[#111] p-1 rounded-sm w-fit">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -161,27 +161,27 @@ export default function Settings() {
       {activeTab === 'profile' && (
         <div className="space-y-6">
           {/* Avatar + name header */}
-          <div className="glass rounded-xl p-4 lg:p-6">
+          <div className="glass rounded-none p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-2xl font-bold text-slate-300">
                 {initials}
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold">{profile.firstName} {profile.lastName}</h3>
                 <p className="text-sm text-slate-500">{profile.title} &bull; {profile.company}</p>
               </div>
-              <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors">
+              <button className="px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-xs font-semibold transition-colors">
                 Change Avatar
               </button>
             </div>
           </div>
 
           {/* Profile form */}
-          <div className="glass rounded-xl p-6 space-y-5">
+          <div className="glass rounded-none p-6 space-y-5">
             <h3 className="font-semibold text-lg">Personal Information</h3>
 
             {saveMessage && (
-              <div className={`rounded-lg px-4 py-3 text-sm ${
+              <div className={`rounded-sm px-4 py-3 text-sm ${
                 saveMessage.type === 'success'
                   ? 'bg-green-500/10 border border-green-500/20 text-green-400'
                   : 'bg-red-500/10 border border-red-500/20 text-red-400'
@@ -197,7 +197,7 @@ export default function Settings() {
                   type="text"
                   value={profile.firstName}
                   onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div className="space-y-2">
@@ -206,7 +206,7 @@ export default function Settings() {
                   type="text"
                   value={profile.lastName}
                   onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function Settings() {
                   type="email"
                   value={profile.email}
                   disabled
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 opacity-60 cursor-not-allowed"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 opacity-60 cursor-not-allowed"
                 />
                 <p className="text-[10px] text-slate-600">Email changes require re-verification</p>
               </div>
@@ -229,7 +229,7 @@ export default function Settings() {
                   value={profile.mobile}
                   maxLength={14}
                   onChange={(e) => setProfile({ ...profile, mobile: formatPhone(e.target.value) })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
                 <p className="text-[10px] text-slate-600">Used for MFA and password reset</p>
               </div>
@@ -242,7 +242,7 @@ export default function Settings() {
                   type="text"
                   value={profile.company}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div className="space-y-2">
@@ -250,7 +250,7 @@ export default function Settings() {
                 <select
                   value={profile.timezone}
                   onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="America/Los_Angeles">Pacific Time (PT)</option>
                   <option value="America/Denver">Mountain Time (MT)</option>
@@ -265,7 +265,7 @@ export default function Settings() {
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Saving...' : 'Save Profile'}
               </button>
@@ -278,7 +278,7 @@ export default function Settings() {
       {activeTab === 'security' && (
         <div className="space-y-6">
           {/* Change Password */}
-          <div className="glass rounded-xl p-6 space-y-4">
+          <div className="glass rounded-none p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-lg">Password</h3>
@@ -287,7 +287,7 @@ export default function Settings() {
               {!showChangePassword && (
                 <button
                   onClick={() => setShowChangePassword(true)}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-xs font-semibold transition-colors"
                 >
                   Change Password
                 </button>
@@ -303,7 +303,7 @@ export default function Settings() {
                     required
                     value={passwords.current}
                     onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -314,7 +314,7 @@ export default function Settings() {
                       required
                       value={passwords.newPass}
                       onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="space-y-2">
@@ -324,7 +324,7 @@ export default function Settings() {
                       required
                       value={passwords.confirm}
                       onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -332,11 +332,11 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={() => { setShowChangePassword(false); setPasswords({ current: '', newPass: '', confirm: '' }); }}
-                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors"
+                    className="px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-xs font-semibold transition-colors"
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-xs font-semibold transition-colors">
                     Update Password
                   </button>
                 </div>
@@ -345,7 +345,7 @@ export default function Settings() {
           </div>
 
           {/* Two-Factor */}
-          <div className="glass rounded-xl p-6">
+          <div className="glass rounded-none p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-lg">Two-Factor Authentication</h3>
@@ -353,7 +353,7 @@ export default function Settings() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[10px] font-bold uppercase text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded">Not Enabled</span>
-                <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-semibold transition-colors">
+                <button className="px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-xs font-semibold transition-colors">
                   Enable 2FA
                 </button>
               </div>
@@ -367,7 +367,7 @@ export default function Settings() {
       {activeTab === 'notifications' && (
         <div className="space-y-6">
           {/* Email Notifications */}
-          <div className="glass rounded-xl p-6 space-y-4">
+          <div className="glass rounded-none p-6 space-y-4">
             <div>
               <h3 className="font-semibold text-lg">Email Notifications</h3>
               <p className="text-xs text-slate-500">Choose what email notifications you receive</p>
@@ -380,7 +380,7 @@ export default function Settings() {
                 { key: 'emailWeeklyDigest' as const, label: 'Weekly Digest', desc: 'Summary of activity, signups, and metrics across all apps' },
                 { key: 'emailSecurityAlerts' as const, label: 'Security Alerts', desc: 'Suspicious login attempts, failed auth, and permission changes' },
               ].map(item => (
-                <div key={item.key} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+                <div key={item.key} className="flex items-center justify-between p-3 rounded-sm hover:bg-[#111] transition-colors">
                   <div>
                     <p className="text-sm font-semibold">{item.label}</p>
                     <p className="text-[10px] text-slate-500">{item.desc}</p>
@@ -399,7 +399,7 @@ export default function Settings() {
           </div>
 
           {/* Push Notifications */}
-          <div className="glass rounded-xl p-6 space-y-4">
+          <div className="glass rounded-none p-6 space-y-4">
             <div>
               <h3 className="font-semibold text-lg">Push Notifications</h3>
               <p className="text-xs text-slate-500">In-app and browser push notification preferences</p>
@@ -412,7 +412,7 @@ export default function Settings() {
                 { key: 'pushNewSignups' as const, label: 'New Signups', desc: 'Push notification for each new user registration' },
                 { key: 'pushTaskUpdates' as const, label: 'Task Updates', desc: 'Notifications when development tasks change status' },
               ].map(item => (
-                <div key={item.key} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+                <div key={item.key} className="flex items-center justify-between p-3 rounded-sm hover:bg-[#111] transition-colors">
                   <div>
                     <p className="text-sm font-semibold">{item.label}</p>
                     <p className="text-[10px] text-slate-500">{item.desc}</p>
@@ -431,7 +431,7 @@ export default function Settings() {
           </div>
 
           <div className="flex justify-end">
-            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors">
               Save Preferences
             </button>
           </div>

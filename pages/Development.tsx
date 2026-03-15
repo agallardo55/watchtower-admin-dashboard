@@ -187,7 +187,7 @@ export default function Development() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
-            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'Development'}
+            {currentApp ? currentApp : 'Development'}
           </h2>
           <p className="text-slate-500 mt-1">
             {currentApp ? `Tasks for ${currentApp}.` : 'Daily tasks and work items across all applications.'}
@@ -195,7 +195,7 @@ export default function Development() {
         </div>
         <button
           onClick={() => { setNewTask(prev => ({ ...prev, app: currentApp || 'Watchtower' })); setShowAddTask(true); }}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-medium transition-colors flex items-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           Add Task
@@ -219,10 +219,10 @@ export default function Development() {
           <button
             key={cat}
             onClick={() => setCategoryFilter(cat)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-sm text-sm font-medium transition-colors ${
               categoryFilter === cat
                 ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
-                : 'bg-slate-900 text-slate-500 border border-white/5 hover:text-slate-300'
+                : 'bg-[#111] text-slate-500 border border-[#1e293b] hover:text-slate-300'
             }`}
           >
             {cat === 'all' ? 'All' : (categoryLabels[cat] || cat)}
@@ -239,24 +239,24 @@ export default function Development() {
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">To Do</h2>
-            <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">{todoTasks.length}</span>
+            <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5">{todoTasks.length}</span>
           </div>
           <div className="space-y-2">
             {todoTasks.map(task => (
               <div
                 key={task.id}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900 border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 transition-all"
+                className="bg-[#111] border border-[#1e293b] rounded-none p-4 cursor-pointer hover:border-slate-700 transition-all"
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-sm">{task.title}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
+                  <span className={`text-[10px] px-2 py-0.5 font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
                 </div>
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-[#111] text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>
               </div>
@@ -269,24 +269,24 @@ export default function Development() {
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">Review</h2>
-            <span className="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full">{reviewTasks.length}</span>
+            <span className="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-0.5">{reviewTasks.length}</span>
           </div>
           <div className="space-y-2">
             {reviewTasks.map(task => (
               <div
                 key={task.id}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900 border border-yellow-500/10 rounded-xl p-4 cursor-pointer hover:border-yellow-500/20 transition-all"
+                className="bg-[#111] border border-yellow-500/10 rounded-none p-4 cursor-pointer hover:border-yellow-500/20 transition-all"
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-sm">{task.title}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
+                  <span className={`text-[10px] px-2 py-0.5 font-medium ${priorityColors[task.priority]}`}>{task.priority}</span>
                 </div>
                 {task.description && <p className="text-slate-500 text-xs mt-1">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-[#111] text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>
               </div>
@@ -299,21 +299,21 @@ export default function Development() {
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-semibold text-lg">Done</h2>
-            <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full">{doneTasks.length}</span>
+            <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5">{doneTasks.length}</span>
           </div>
           <div className="space-y-2">
             {doneTasks.map(task => (
               <div
                 key={task.id}
                 onClick={() => setEditingTask({ ...task })}
-                className="bg-slate-900/50 border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 transition-all opacity-60"
+                className="bg-[#111]/50 border border-[#1e293b] rounded-none p-4 cursor-pointer hover:border-slate-700 transition-all opacity-60"
               >
                 <span className="font-medium text-sm line-through text-slate-500">{task.title}</span>
                 {task.description && <p className="text-slate-600 text-xs mt-1 line-through">{task.description}</p>}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
+                  <span className={`inline-block text-[10px] px-2 py-0.5 border font-medium ${categoryColors[task.category] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>{categoryLabels[task.category] || task.category}</span>
                   {!currentApp && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 font-medium">{task.app}</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-[#111] text-slate-500 font-medium">{task.app}</span>
                   )}
                 </div>
               </div>
@@ -324,9 +324,9 @@ export default function Development() {
 
       {/* Add Task Modal */}
       {showAddTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80">
+          <div className="glass w-full max-w-lg rounded-none overflow-hidden border-slate-700">
+            <div className="p-6 border-b border-[#1e293b] flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold">New Task</h3>
                 <p className="text-xs text-slate-500 mt-1">Add a new task to your development board.</p>
@@ -338,25 +338,25 @@ export default function Development() {
             <form className="p-6 space-y-5" onSubmit={e => { e.preventDefault(); addTask(); }}>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Task Title</label>
-                <input type="text" required placeholder="What needs to be done?" value={newTask.title} onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600" />
+                <input type="text" required placeholder="What needs to be done?" value={newTask.title} onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
-                <textarea rows={3} placeholder="Additional details (optional)" value={newTask.description} onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
+                <textarea rows={3} placeholder="Additional details (optional)" value={newTask.description} onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">App</label>
-                  <select value={newTask.app} onChange={e => setNewTask(prev => ({ ...prev, app: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={newTask.app} onChange={e => setNewTask(prev => ({ ...prev, app: e.target.value }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
-                      <option key={a.name} value={a.name}>{a.icon} {a.name}</option>
+                      <option key={a.name} value={a.name}>{a.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
-                  <select value={newTask.category} onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={newTask.category} onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
                     <option value="infrastructure">Infrastructure</option>
@@ -368,7 +368,7 @@ export default function Development() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
-                  <select value={newTask.priority} onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={newTask.priority} onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
@@ -376,7 +376,7 @@ export default function Development() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={newTask.status} onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={newTask.status} onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
@@ -385,8 +385,8 @@ export default function Development() {
                 </div>
               </div>
               <div className="pt-4 flex gap-4">
-                <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Add Task'}</button>
+                <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Saving...' : 'Add Task'}</button>
               </div>
             </form>
           </div>
@@ -395,13 +395,13 @@ export default function Development() {
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border-white/10 p-6 space-y-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/80">
+          <div className="glass w-full max-w-sm rounded-none overflow-hidden border-slate-700 p-6 space-y-4">
             <h3 className="text-lg font-bold text-red-400">Delete Task</h3>
             <p className="text-sm text-slate-400">Are you sure? This cannot be undone.</p>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-              <button onClick={confirmDelete} disabled={saving} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Deleting...' : 'Delete'}</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">Cancel</button>
+              <button onClick={confirmDelete} disabled={saving} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-sm text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Deleting...' : 'Delete'}</button>
             </div>
           </div>
         </div>
@@ -409,9 +409,9 @@ export default function Development() {
 
       {/* Edit Task Modal */}
       {editingTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border-white/10">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80">
+          <div className="glass w-full max-w-lg rounded-none overflow-hidden border-slate-700">
+            <div className="p-6 border-b border-[#1e293b] flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold">Edit Task</h3>
                 <p className="text-xs text-slate-500 mt-1">Update task details or mark as complete.</p>
@@ -423,25 +423,25 @@ export default function Development() {
             <form className="p-6 space-y-5" onSubmit={e => { e.preventDefault(); saveEditTask(); }}>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Task Title</label>
-                <input type="text" required value={editingTask.title} onChange={e => setEditingTask({ ...editingTask, title: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+                <input type="text" required value={editingTask.title} onChange={e => setEditingTask({ ...editingTask, title: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
-                <textarea rows={3} placeholder="Additional details (optional)" value={editingTask.description || ''} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
+                <textarea rows={3} placeholder="Additional details (optional)" value={editingTask.description || ''} onChange={e => setEditingTask({ ...editingTask, description: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">App</label>
-                  <select value={editingTask.app} onChange={e => setEditingTask({ ...editingTask, app: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editingTask.app} onChange={e => setEditingTask({ ...editingTask, app: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
-                      <option key={a.name} value={a.name}>{a.icon} {a.name}</option>
+                      <option key={a.name} value={a.name}>{a.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Category</label>
-                  <select value={editingTask.category} onChange={e => setEditingTask({ ...editingTask, category: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editingTask.category} onChange={e => setEditingTask({ ...editingTask, category: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
                     <option value="infrastructure">Infrastructure</option>
@@ -453,7 +453,7 @@ export default function Development() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Priority</label>
-                  <select value={editingTask.priority} onChange={e => setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editingTask.priority} onChange={e => setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
@@ -461,7 +461,7 @@ export default function Development() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={editingTask.status} onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editingTask.status} onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
                     <option value="review">Review</option>
@@ -470,10 +470,10 @@ export default function Development() {
                 </div>
               </div>
               <div className="pt-4 flex gap-4">
-                <button type="button" disabled={saving} onClick={() => deleteTask(editingTask.id)} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-semibold transition-colors">Delete</button>
+                <button type="button" disabled={saving} onClick={() => deleteTask(editingTask.id)} className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-sm text-sm font-semibold transition-colors">Delete</button>
                 <div className="flex-1" />
-                <button type="button" onClick={() => setEditingTask(null)} className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">Cancel</button>
-                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
+                <button type="button" onClick={() => setEditingTask(null)} className="px-4 py-2.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">Cancel</button>
+                <button type="submit" disabled={saving} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
               </div>
             </form>
           </div>

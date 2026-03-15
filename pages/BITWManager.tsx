@@ -70,7 +70,7 @@ export default function BITWManager() {
   const topVoted = Object.entries(votesByApp).sort((a, b) => b[1] - a[1])[0];
 
   const stats = [
-    { label: 'Total Votes', value: votes.length, sub: `👍 ${upVotes}  👎 ${downVotes}`, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { label: 'Total Votes', value: votes.length, sub: <span className="inline-flex items-center gap-1"><icons.thumbsUp className="w-3.5 h-3.5 text-emerald-400" /> {upVotes} <icons.thumbsDown className="w-3.5 h-3.5 text-red-400 ml-1" /> {downVotes}</span>, color: 'text-blue-400', bg: 'bg-blue-500/10' },
     { label: 'Waitlist Signups', value: waitlist.length, sub: `${new Set(waitlist.map(w => w.wt_app_registry?.name).filter(Boolean)).size} apps`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
     { label: 'Top Voted', value: topVoted?.[0] || '—', sub: `${topVoted?.[1] || 0} upvotes`, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     { label: 'Public Apps', value: publicApps.length, sub: 'In showroom', color: 'text-orange-400', bg: 'bg-orange-500/10' },
@@ -117,11 +117,11 @@ export default function BITWManager() {
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">Build In The Wild</h2>
           <p className="text-slate-500 mt-1">Manage the public showcase, votes, and waitlist signups.</p>
         </div>
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">⚠️</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-amber-400"><icons.alertTriangle className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load data</h3>
           <p className="text-sm text-slate-500 mb-4">{error}</p>
-          <button onClick={fetchData} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button onClick={fetchData} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm text-sm font-medium transition-colors">
             Retry
           </button>
         </div>
@@ -139,7 +139,7 @@ export default function BITWManager() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {stats.map(s => (
-          <div key={s.label} className="glass p-4 lg:p-5 rounded-xl">
+          <div key={s.label} className="glass p-4 lg:p-5 rounded-none">
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</span>
             <div className={`text-2xl font-bold mt-2 ${s.color}`}>{s.value}</div>
             <span className="text-xs text-slate-500 mt-1 block">{s.sub}</span>
@@ -148,7 +148,7 @@ export default function BITWManager() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-white/5">
+      <div className="flex gap-1 border-b border-[#1e293b]">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id as 'showroom' | 'votes' | 'waitlist')} className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${tab === t.id ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
             {t.label}
@@ -161,8 +161,8 @@ export default function BITWManager() {
       {tab === 'showroom' && (
         <div className="space-y-4">
           {publicApps.length === 0 ? (
-            <div className="glass rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🌐</div>
+            <div className="glass rounded-none p-12 text-center">
+              <div className="mb-4 text-blue-400"><icons.globe className="w-10 h-10 mx-auto" /></div>
               <h3 className="text-lg font-semibold text-slate-200 mb-2">No public apps yet</h3>
               <p className="text-sm text-slate-500">Apps with a public URL will appear here.</p>
             </div>
@@ -172,11 +172,14 @@ export default function BITWManager() {
             <span className="text-xs text-slate-500">Drag items to reorder priority</span>
           </div>
           {publicApps.map((app) => (
-            <div key={app.name} className="glass p-5 rounded-xl border border-white/5 hover:border-white/10 transition-colors flex items-center gap-5">
+            <div key={app.name} className="glass p-5 rounded-none border border-[#1e293b] hover:border-slate-700 transition-colors flex items-center gap-5">
               <div className="cursor-move text-slate-700 hover:text-slate-500 transition-colors">
                 <icons.grid className="w-5 h-5" />
               </div>
-              <div className="w-12 h-12 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-2xl">{app.icon}</div>
+              {app.iconUrl
+                ? <img src={app.iconUrl} alt="" className="w-12 h-12 rounded-sm border border-[#1e293b] bg-[#111] object-contain" />
+                : <div className="w-12 h-12 rounded-sm bg-[#111] border border-[#1e293b] flex items-center justify-center text-lg font-bold text-slate-400">{app.name.charAt(0)}</div>
+              }
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h4 className="font-semibold text-slate-100">{app.name}</h4>
@@ -186,7 +189,7 @@ export default function BITWManager() {
               </div>
               <div className="text-right text-xs text-slate-500">
                 <div>{app.users} users</div>
-                <div className="mt-1">{votesByApp[app.name] || 0} 👍</div>
+                <div className="mt-1 flex items-center gap-1 justify-end">{votesByApp[app.name] || 0} <icons.thumbsUp className="w-3.5 h-3.5 text-emerald-400" /></div>
               </div>
               {app.appUrl && (
                 <a href={app.appUrl} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-blue-400 transition-colors">
@@ -202,29 +205,29 @@ export default function BITWManager() {
 
       {/* Votes Tab */}
       {tab === 'votes' && votes.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">👍</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-emerald-400"><icons.thumbsUp className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No votes yet</h3>
           <p className="text-sm text-slate-500">Votes from the public showroom will appear here.</p>
         </div>
       )}
       {tab === 'votes' && votes.length > 0 && (
-        <div className="glass rounded-xl overflow-hidden">
+        <div className="glass rounded-none overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[500px]">
             <thead>
-              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-[#1e293b] text-left text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-3">App</th>
                 <th className="px-4 py-3">Vote</th>
                 <th className="px-4 py-3">Reason</th>
                 <th className="px-4 py-3">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#1e293b]">
               {votes.map(v => (
-                <tr key={v.id} className="hover:bg-white/5 transition-colors">
+                <tr key={v.id} className="hover:bg-[#111] transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-200">{v.wt_app_registry?.name ?? 'Unknown'}</td>
-                  <td className="px-4 py-3 text-lg">{v.vote === 'up' ? '👍' : '👎'}</td>
+                  <td className="px-4 py-3">{v.vote === 'up' ? <icons.thumbsUp className="w-5 h-5 text-emerald-400" /> : <icons.thumbsDown className="w-5 h-5 text-red-400" />}</td>
                   <td className="px-4 py-3 text-slate-400 max-w-[400px] truncate">{v.reason || <span className="text-slate-600 italic">No reason given</span>}</td>
                   <td className="px-4 py-3 text-slate-500">{new Date(v.created_at).toLocaleDateString()}</td>
                 </tr>
@@ -237,8 +240,8 @@ export default function BITWManager() {
 
       {/* Waitlist Tab */}
       {tab === 'waitlist' && waitlist.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📋</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-slate-400"><icons.tasks className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No signups yet</h3>
           <p className="text-sm text-slate-500">Waitlist signups will appear here when people join.</p>
         </div>
@@ -246,23 +249,23 @@ export default function BITWManager() {
       {tab === 'waitlist' && waitlist.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={exportCsv} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <button onClick={exportCsv} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm text-sm font-medium transition-colors flex items-center gap-2">
               <icons.externalLink /> Export CSV
             </button>
           </div>
-          <div className="glass rounded-xl overflow-hidden">
+          <div className="glass rounded-none overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[400px]">
               <thead>
-                <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-[#1e293b] text-left text-xs uppercase tracking-wider text-slate-500">
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">App</th>
                   <th className="px-4 py-3">Signed Up</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-[#1e293b]">
                 {waitlist.map(w => (
-                  <tr key={w.id} className="hover:bg-white/5 transition-colors">
+                  <tr key={w.id} className="hover:bg-[#111] transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-200">{w.email}</td>
                     <td className="px-4 py-3 text-slate-400">{w.wt_app_registry?.name ?? 'Unknown'}</td>
                     <td className="px-4 py-3 text-slate-500">{new Date(w.created_at).toLocaleDateString()}</td>

@@ -71,7 +71,7 @@ function mapToAppEntry(row: DbApp) {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    icon: row.icon_emoji || '📦',
+    icon: row.icon_emoji || 'package',
     iconEmoji: row.icon_emoji || '',
     iconUrl: row.icon_url || '',
     status: mapStatus(row.status),

@@ -147,7 +147,7 @@ export default function ActivityOverview() {
               <Link
                 key={s.app_slug}
                 to={`/activity/${s.app_slug}`}
-                className="block rounded-xl border border-white/5 bg-slate-900/50 p-5 hover:border-white/10 transition-colors"
+                className="block rounded-none border border-[#1e293b] bg-[#111] p-5 hover:border-slate-700 transition-colors"
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="font-semibold text-sm">{appDisplayNames[s.app_slug] || s.app_slug}</span>
@@ -178,7 +178,7 @@ export default function ActivityOverview() {
           })}
         </div>
       ) : (
-        <div className="rounded-xl border border-white/5 bg-slate-900/50 p-8 text-center text-slate-500 text-sm">
+        <div className="rounded-none border border-[#1e293b] bg-[#111] p-8 text-center text-slate-500 text-sm">
           No activity recorded yet. Once apps start sending events, you'll see them here.
         </div>
       )}
@@ -188,7 +188,7 @@ export default function ActivityOverview() {
         <select
           value={appFilter}
           onChange={(e) => setAppFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-1.5 rounded-sm text-sm bg-[#111] border border-slate-700 text-slate-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All Apps</option>
           {Object.entries(appDisplayNames).map(([slug, name]) => (
@@ -199,7 +199,7 @@ export default function ActivityOverview() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500"
+          className="px-3 py-1.5 rounded-sm text-sm bg-[#111] border border-slate-700 text-slate-300 focus:outline-none focus:border-blue-500"
         >
           <option value="all">All Events</option>
           {eventTypes.map((t) => (
@@ -216,17 +216,17 @@ export default function ActivityOverview() {
             placeholder="Search by email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-1.5 rounded-lg text-sm bg-slate-900 border border-white/10 text-slate-300 focus:outline-none focus:border-blue-500 w-56"
+            className="pl-10 pr-4 py-1.5 rounded-sm text-sm bg-[#111] border border-slate-700 text-slate-300 focus:outline-none focus:border-blue-500 w-56"
           />
         </div>
       </div>
 
       {/* Activity Feed Table */}
-      <div className="rounded-xl border border-white/5 overflow-hidden">
+      <div className="rounded-none border border-[#1e293b] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
+              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-[#1e293b]">
                 <th className="px-4 py-3 font-medium">Time</th>
                 <th className="px-4 py-3 font-medium">App</th>
                 <th className="px-4 py-3 font-medium">Event</th>
@@ -234,7 +234,7 @@ export default function ActivityOverview() {
                 <th className="px-4 py-3 font-medium">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#1e293b]">
               {events.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
@@ -243,7 +243,7 @@ export default function ActivityOverview() {
                 </tr>
               ) : (
                 events.map((ev) => (
-                  <tr key={ev.id} className={`hover:bg-white/[0.02] ${eventRowClass(ev.event_type)}`}>
+                  <tr key={ev.id} className={`hover:bg-[#111] ${eventRowClass(ev.event_type)}`}>
                     <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{relativeTime(ev.created_at)}</td>
                     <td className="px-4 py-3">
                       <Link
@@ -277,7 +277,7 @@ export default function ActivityOverview() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 text-sm">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#1e293b] text-sm">
             <span className="text-slate-500">
               {total.toLocaleString()} total events
             </span>
@@ -285,7 +285,7 @@ export default function ActivityOverview() {
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Prev
               </button>
@@ -295,7 +295,7 @@ export default function ActivityOverview() {
               <button
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Next
               </button>

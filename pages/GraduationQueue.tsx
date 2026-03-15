@@ -113,7 +113,7 @@ export default function GraduationQueue() {
             <p className="text-red-400 text-sm">Failed to load graduation queue: {error}</p>
             <button
               onClick={fetchRecords}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+              className="px-4 py-2 text-xs font-semibold rounded-sm bg-[#111] hover:bg-[#1e293b] border border-slate-700 transition-colors"
             >
               Retry
             </button>
@@ -140,14 +140,14 @@ export default function GraduationQueue() {
                   <h3 className="font-bold text-sm tracking-tight">{stage}</h3>
                   <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{items.length} APPS</p>
                 </div>
-                <button className="p-1 hover:bg-white/5 rounded transition-colors">
+                <button className="p-1 hover:bg-[#111] rounded transition-colors">
                   <icons.more className="w-4 h-4 text-slate-600" />
                 </button>
               </div>
 
-              <div className="flex-1 bg-slate-900/30 rounded-2xl p-3 border border-white/5 space-y-3 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 bg-[#111] rounded-none p-3 border border-[#1e293b] space-y-3 overflow-y-auto custom-scrollbar">
                 {items.length === 0 ? (
-                  <div className="h-24 flex items-center justify-center border-2 border-dashed border-white/5 rounded-xl text-slate-700 text-[10px] font-bold uppercase tracking-widest">
+                  <div className="h-24 flex items-center justify-center border-2 border-dashed border-[#1e293b] rounded-none text-slate-700 text-[10px] font-bold uppercase tracking-widest">
                     Empty Stage
                   </div>
                 ) : (
@@ -156,18 +156,19 @@ export default function GraduationQueue() {
                     if (!app) return null;
                     const isUpdating = updatingId === record.id;
                     return (
-                      <div key={record.id} className="glass p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-grab active:cursor-grabbing group">
+                      <div key={record.id} className="glass p-4 rounded-none border border-[#1e293b] hover:border-slate-700 transition-all cursor-grab active:cursor-grabbing group">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-xl shadow-inner border border-white/5">
-                            {app.icon}
-                          </div>
+                          {app.iconUrl
+                            ? <img src={app.iconUrl} alt="" className="w-10 h-10 rounded-sm border border-[#1e293b] bg-slate-900 object-contain" />
+                            : <div className="w-10 h-10 rounded-sm bg-slate-900 flex items-center justify-center text-sm font-bold text-slate-400 border border-[#1e293b]">{app.name.charAt(0)}</div>
+                          }
                           <div className="flex-1 overflow-hidden">
                             <h4 className="font-bold text-sm truncate">{app.name}</h4>
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold uppercase tracking-wider">{app.category}</span>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 pb-3 border-b border-white/5 mb-3">
+                        <div className="grid grid-cols-2 gap-2 pb-3 border-b border-[#1e293b] mb-3">
                           <div className="flex flex-col">
                             <span className="text-slate-600 text-[9px] uppercase font-bold">Users</span>
                             <span className="text-xs font-semibold">{app.users ?? 0}</span>

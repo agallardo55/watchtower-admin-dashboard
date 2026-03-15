@@ -103,17 +103,17 @@ export default function Dashboard() {
 
   if (statsLoading) {
     return (
-      <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto animate-pulse">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="space-y-4 lg:space-y-6 max-w-7xl mx-auto animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1,2,3,4].map(i => (
-            <div key={i} className="glass p-4 lg:p-6 rounded-xl h-36">
-              <div className="h-4 bg-slate-800 rounded w-24 mb-4" />
-              <div className="h-8 bg-slate-800 rounded w-16 mb-2" />
-              <div className="h-3 bg-slate-800 rounded w-32" />
+            <div key={i} className="glass p-4 lg:p-5 rounded-none h-32">
+              <div className="h-4 bg-slate-800 w-24 mb-4" />
+              <div className="h-8 bg-slate-800 w-16 mb-2" />
+              <div className="h-3 bg-slate-800 w-32" />
             </div>
           ))}
         </div>
-        <div className="glass rounded-xl h-64" />
+        <div className="glass rounded-none h-64" />
       </div>
     );
   }
@@ -121,10 +121,10 @@ export default function Dashboard() {
   if (statsError) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[40vh] text-center">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="mb-4 text-amber-400"><icons.alertTriangle className="w-10 h-10 mx-auto" /></div>
         <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load dashboard</h3>
         <p className="text-sm text-slate-500 mb-6">{statsError}</p>
-        <button onClick={refetchStats} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
+        <button onClick={refetchStats} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-xs font-semibold transition-colors">
           Try Again
         </button>
       </div>
@@ -132,31 +132,31 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-4 lg:space-y-6 max-w-7xl mx-auto">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {dashboardStats.map((stat) => {
           const Icon = (icons as Record<string, React.FC>)[stat.icon];
           const colorMap: Record<string, string> = {
-            blue: 'text-blue-500 bg-blue-500/10',
-            emerald: 'text-emerald-500 bg-emerald-500/10',
-            purple: 'text-purple-500 bg-purple-500/10',
-            orange: 'text-orange-500 bg-orange-500/10',
+            blue: 'text-blue-500 border-blue-500/30',
+            emerald: 'text-emerald-500 border-emerald-500/30',
+            purple: 'text-purple-500 border-purple-500/30',
+            orange: 'text-orange-500 border-orange-500/30',
           };
           return (
-            <div key={stat.label} className="glass p-4 lg:p-6 rounded-xl flex flex-col justify-between hover:border-white/10 transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${colorMap[stat.color]}`}>
+            <div key={stat.label} className="glass p-4 lg:p-5 rounded-none flex flex-col justify-between transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`p-1.5 border ${colorMap[stat.color]}`}>
                   <Icon />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-400/30 px-2 py-0.5">
                   {stat.trend}
                 </span>
               </div>
               <div>
                 <h4 className="text-2xl lg:text-3xl font-bold mb-1 tracking-tight">{stat.value}</h4>
-                <p className="text-sm font-medium text-slate-300 mb-1">{stat.label}</p>
-                <p className="text-[11px] text-slate-500">{stat.sublabel}</p>
+                <p className="text-xs font-medium text-slate-300 mb-0.5">{stat.label}</p>
+                <p className="text-[10px] text-slate-500">{stat.sublabel}</p>
               </div>
             </div>
           );
@@ -164,65 +164,68 @@ export default function Dashboard() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+      <div className="flex gap-0 border-b border-[#1e293b]">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 -mb-px ${
+              activeTab === tab.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'
             }`}>{tab.label}</button>
         ))}
       </div>
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* App Status Table */}
-          <div className="lg:col-span-2 glass rounded-xl overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-white/5 flex items-center justify-between">
-              <h3 className="font-semibold text-lg">App Status Overview</h3>
-              <button className="text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors">View All</button>
+          <div className="lg:col-span-2 glass rounded-none overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b border-[#1e293b] flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">App Status Overview</h3>
+              <button className="text-[10px] font-bold text-blue-500 hover:text-blue-400 transition-colors uppercase tracking-wider">View All</button>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-slate-500 border-b border-white/5 bg-white/2">
+              <table className="w-full text-left text-xs">
+                <thead className="text-slate-500 border-b border-[#1e293b]">
                   <tr>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">App</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Status</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Database</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Users</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-[10px]">Actions</th>
+                    <th className="px-4 py-3 font-bold uppercase tracking-wider text-[10px]">App</th>
+                    <th className="px-4 py-3 font-bold uppercase tracking-wider text-[10px]">Status</th>
+                    <th className="px-4 py-3 font-bold uppercase tracking-wider text-[10px]">Database</th>
+                    <th className="px-4 py-3 font-bold uppercase tracking-wider text-[10px]">Users</th>
+                    <th className="px-4 py-3 font-bold uppercase tracking-wider text-[10px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-[#1e293b]">
                   {apps.slice(0, 6).map((app) => (
-                    <tr key={app.name} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4">
+                    <tr key={app.name} className="hover:bg-[#111] transition-colors">
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{app.icon}</span>
+                          {app.iconUrl
+                            ? <img src={app.iconUrl} alt="" className="w-6 h-6 border border-slate-600 bg-[#111] object-contain flex-shrink-0" />
+                            : <div className="w-6 h-6 bg-[#111] border border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-400 flex-shrink-0">{app.name.charAt(0)}</div>
+                          }
                           <div>
-                            <p className="font-semibold">{app.name}</p>
+                            <p className="font-semibold text-xs">{app.name}</p>
                             <p className="text-[10px] text-slate-500">{app.category}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                          app.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' :
-                          app.status === 'beta' ? 'bg-yellow-500/10 text-yellow-500' :
-                          app.status === 'paused' ? 'bg-orange-500/10 text-orange-500' :
-                          'bg-slate-500/10 text-slate-500'
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          app.status === 'live' ? 'border border-emerald-500/30 text-emerald-500' :
+                          app.status === 'beta' ? 'border border-yellow-500/30 text-yellow-500' :
+                          app.status === 'paused' ? 'border border-orange-500/30 text-orange-500' :
+                          'border border-slate-500/30 text-slate-500'
                         }`}>
                           {app.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-xs text-slate-400 truncate max-w-[140px]">{app.db}</p>
+                      <td className="px-4 py-3">
+                        <p className="text-[10px] text-slate-400 truncate max-w-[140px]">{app.db}</p>
                       </td>
-                      <td className="px-6 py-4 font-medium">{app.users}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 transition-colors"><icons.edit /></button>
-                          {app.url && <a href={app.url} target="_blank" className="p-1.5 hover:bg-white/10 rounded-lg text-blue-500 transition-colors"><icons.externalLink /></a>}
+                      <td className="px-4 py-3 font-medium">{app.users}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          <button className="p-1 hover:bg-[#1e293b] text-slate-400 transition-colors"><icons.edit /></button>
+                          {app.url && <a href={app.url} target="_blank" className="p-1 hover:bg-[#1e293b] text-blue-500 transition-colors"><icons.externalLink /></a>}
                         </div>
                       </td>
                     </tr>
@@ -233,11 +236,11 @@ export default function Dashboard() {
           </div>
 
           {/* Activity Feed */}
-          <div className="glass rounded-xl flex flex-col">
-            <div className="p-5 border-b border-white/5">
-              <h3 className="font-semibold text-lg">Recent Activity</h3>
+          <div className="glass rounded-none flex flex-col">
+            <div className="px-4 py-3 border-b border-[#1e293b]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Activity</h3>
             </div>
-            <div className="p-5 flex-1 space-y-6">
+            <div className="p-4 flex-1 space-y-4">
               {recentActivity.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-8">
                   <p className="text-sm text-slate-500">No recent activity</p>
@@ -277,15 +280,15 @@ export default function Dashboard() {
       {activeTab === 'analytics' && (
         <div className="space-y-8">
           {/* Cross-App User Growth */}
-          <div className="glass rounded-xl p-6">
-            <div className="flex items-center justify-between mb-8">
+          <div className="glass rounded-none p-4 lg:p-5">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-semibold text-lg">Cross-App User Growth</h3>
-                <p className="text-sm text-slate-500">Cumulative active users across top performing projects</p>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Cross-App User Growth</h3>
+                <p className="text-[10px] text-slate-500">Cumulative active users across top performing projects</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-0 border border-[#1e293b]">
                 {['7d', '30d', '90d'].map((range) => (
-                  <button key={range} className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${range === '30d' ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-400'}`}>
+                  <button key={range} className={`px-3 py-1.5 text-[10px] font-bold uppercase ${range === '30d' ? 'bg-blue-600 text-white' : 'hover:bg-[#111] text-slate-400'} ${range !== '7d' ? 'border-l border-[#1e293b]' : ''}`}>
                     {range}
                   </button>
                 ))}
@@ -313,7 +316,7 @@ export default function Dashboard() {
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
                     <Tooltip
-                      contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
+                      contentStyle={{backgroundColor: '#0f0f0f', borderColor: '#1e293b', borderRadius: '0', fontSize: '10px', fontFamily: 'JetBrains Mono, monospace'}}
                       itemStyle={{color: '#f1f5f9'}}
                     />
                     <Area type="monotone" dataKey="buybid" stroke="#325AE7" strokeWidth={2} fillOpacity={1} fill="url(#colorBuybid)" name="BuybidHQ" />
@@ -325,30 +328,33 @@ export default function Dashboard() {
           </div>
 
           {/* Per-App Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {liveApps.map((app) => (
-              <div key={app.name} className="glass rounded-xl p-6 hover:border-white/10 transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-2xl">{app.icon}</span>
+              <div key={app.name} className="glass rounded-none p-4 transition-colors">
+                <div className="flex items-center gap-3 mb-3">
+                  {app.iconUrl
+                    ? <img src={app.iconUrl} alt="" className="w-7 h-7 border border-slate-600 bg-[#111] object-contain flex-shrink-0" />
+                    : <div className="w-7 h-7 bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-400 flex-shrink-0">{app.name.charAt(0)}</div>
+                  }
                   <div>
-                    <p className="font-semibold">{app.name}</p>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                      app.status === 'live' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-yellow-500/10 text-yellow-500'
+                    <p className="font-semibold text-xs">{app.name}</p>
+                    <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                      app.status === 'live' ? 'border border-emerald-500/30 text-emerald-500' : 'border border-yellow-500/30 text-yellow-500'
                     }`}>{app.status}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Users</p>
-                    <p className="text-xl font-bold mt-1">{app.users}</p>
+                    <p className="text-lg font-bold mt-1">{app.users}</p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tables</p>
-                    <p className="text-xl font-bold mt-1">{app.tableCount || 0}</p>
+                    <p className="text-lg font-bold mt-1">{app.tableCount || 0}</p>
                   </div>
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Share</p>
-                    <p className="text-xl font-bold mt-1">{totalUsers > 0 ? Math.round((app.users / totalUsers) * 100) : 0}%</p>
+                    <p className="text-lg font-bold mt-1">{totalUsers > 0 ? Math.round((app.users / totalUsers) * 100) : 0}%</p>
                   </div>
                 </div>
               </div>

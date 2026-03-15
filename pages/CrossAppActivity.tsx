@@ -161,7 +161,7 @@ export default function CrossAppActivity() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Overlap Matrix */}
-        <div className="glass rounded-xl p-6">
+        <div className="glass rounded-none p-6">
           <div className="mb-6">
             <h3 className="font-bold text-lg">User Overlap Heatmap</h3>
             <p className="text-xs text-slate-500">Number of shared users between different applications</p>
@@ -173,7 +173,7 @@ export default function CrossAppActivity() {
         </div>
 
         {/* Engagement Bar Chart */}
-        <div className="glass rounded-xl p-6">
+        <div className="glass rounded-none p-6">
           <div className="mb-6">
             <h3 className="font-bold text-lg">Total Engagement by App</h3>
             <p className="text-xs text-slate-500">Activity count per app from recent logs</p>
@@ -205,15 +205,15 @@ export default function CrossAppActivity() {
       </div>
 
       {/* Power Users Table */}
-      <div className="glass rounded-xl overflow-hidden">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+      <div className="glass rounded-none overflow-hidden">
+        <div className="p-6 border-b border-[#1e293b] flex items-center justify-between">
           <div>
             <h3 className="font-bold text-lg">Cross-App Power Users</h3>
             <p className="text-xs text-slate-500">Users active across 3 or more applications</p>
           </div>
           <button
             title="Coming soon"
-            className="text-xs font-bold text-blue-500 border border-blue-500/20 px-3 py-1 rounded-lg hover:bg-blue-500/10 transition-colors"
+            className="text-xs font-bold text-blue-500 border border-blue-500/20 px-3 py-1 rounded-sm hover:bg-blue-500/10 transition-colors"
           >
             Export Segment
           </button>
@@ -224,7 +224,7 @@ export default function CrossAppActivity() {
           </div>
         ) : (
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/2 text-slate-500 border-b border-white/5">
+            <thead className="bg-white/2 text-slate-500 border-b border-[#1e293b]">
               <tr>
                 <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Actor</th>
                 <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Apps</th>
@@ -233,16 +233,16 @@ export default function CrossAppActivity() {
                 <th className="px-6 py-4 font-bold uppercase tracking-wider text-[10px]">Last Seen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#1e293b]">
               {powerUsers.map((user) => (
-                <tr key={user.actor} className="hover:bg-white/5 transition-colors">
+                <tr key={user.actor} className="hover:bg-[#111] transition-colors">
                   <td className="px-6 py-4 font-semibold">{user.actor}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
                       {user.appNames.map((name) => (
                         <span
                           key={name}
-                          className="px-2 py-0.5 rounded bg-slate-900 border border-white/5 text-xs text-slate-300"
+                          className="px-2 py-0.5 rounded bg-slate-900 border border-[#1e293b] text-xs text-slate-300"
                         >
                           {name}
                         </span>

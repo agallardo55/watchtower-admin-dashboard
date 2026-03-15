@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useApps } from '../hooks/useApps';
 import { updateApp, createApp, softDeleteApp, AppFormData, RoadmapItem, AppEntryWithMeta } from '../services/apps';
 import { supabase } from '../lib/supabase';
+import { icons } from '../constants';
 
 interface PipelineStageConfig {
   stage: string;
@@ -91,7 +92,7 @@ function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (
     <div>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {tags.map((tag, i) => (
-          <span key={i} className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 text-xs px-2.5 py-1 rounded-full border border-blue-500/20">
+          <span key={i} className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 text-xs px-2.5 py-1 border border-blue-500/20">
             {tag}
             <button type="button" onClick={() => onChange(tags.filter((_, j) => j !== i))} className="hover:text-red-400 transition-colors">&times;</button>
           </span>
@@ -104,7 +105,7 @@ function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); } }}
         onBlur={addTag}
         placeholder={placeholder}
-        className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+        className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
       />
     </div>
   );
@@ -126,14 +127,14 @@ function RoadmapEditor({ items, onChange }: { items: RoadmapItem[]; onChange: (r
             type="checkbox"
             checked={item.done}
             onChange={e => updateItem(i, { done: e.target.checked })}
-            className="w-4 h-4 rounded border-white/20 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+            className="w-4 h-4 rounded border-white/20 bg-[#111] text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
           />
           <input
             type="text"
             value={item.text}
             onChange={e => updateItem(i, { text: e.target.value })}
             placeholder="Feature description..."
-            className="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+            className="flex-1 bg-[#111] border border-slate-700 rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
           />
           <button type="button" onClick={() => removeItem(i)} className="text-slate-600 hover:text-red-400 transition-colors text-lg">&times;</button>
         </div>
@@ -161,7 +162,7 @@ function ScreenshotList({ urls, onChange }: { urls: string[]; onChange: (u: stri
     <div className="space-y-2">
       {urls.map((url, i) => (
         <div key={i} className="flex items-center gap-2">
-          <img src={url} alt="" className="w-16 h-10 object-cover rounded border border-white/10 bg-slate-900" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img src={url} alt="" className="w-16 h-10 object-cover border border-slate-700 bg-[#111]" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <span className="flex-1 text-xs text-slate-400 truncate">{url}</span>
           <button type="button" onClick={() => onChange(urls.filter((_, j) => j !== i))} className="text-slate-600 hover:text-red-400 transition-colors text-lg">&times;</button>
         </div>
@@ -173,9 +174,9 @@ function ScreenshotList({ urls, onChange }: { urls: string[]; onChange: (u: stri
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addUrl(); } }}
           placeholder="https://...png"
-          className="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+          className="flex-1 bg-[#111] border border-slate-700 rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
         />
-        <button type="button" onClick={addUrl} className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-slate-300 transition-colors">
+        <button type="button" onClick={addUrl} className="px-3 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm text-slate-300 transition-colors">
           Add
         </button>
       </div>
@@ -239,7 +240,7 @@ function IconUpload({ url, appName, onUploaded, onRemoved }: { url: string; appN
           onClick={() => fileRef.current?.click()}
           onDragOver={e => e.preventDefault()}
           onDrop={handleDrop}
-          className="w-20 h-20 rounded-xl border-2 border-dashed border-white/10 bg-slate-900 flex items-center justify-center cursor-pointer hover:border-blue-500/40 transition-colors flex-shrink-0 overflow-hidden"
+          className="w-20 h-20 rounded-none border-2 border-dashed border-slate-700 bg-[#111] flex items-center justify-center cursor-pointer hover:border-blue-500/40 transition-colors flex-shrink-0 overflow-hidden"
         >
           {uploading ? (
             <div className="text-xs text-blue-400 animate-pulse">Uploading...</div>
@@ -265,7 +266,7 @@ function IconUpload({ url, appName, onUploaded, onRemoved }: { url: string; appN
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium text-slate-300 transition-colors disabled:opacity-50"
+            className="px-3 py-1.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-xs font-medium text-slate-300 transition-colors disabled:opacity-50"
           >
             {url ? 'Replace Image' : 'Choose File'}
           </button>
@@ -273,7 +274,7 @@ function IconUpload({ url, appName, onUploaded, onRemoved }: { url: string; appN
             <button
               type="button"
               onClick={onRemoved}
-              className="ml-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-xs font-medium text-red-400 transition-colors"
+              className="ml-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-sm text-xs font-medium text-red-400 transition-colors"
             >
               Remove
             </button>
@@ -319,19 +320,19 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
     setSaving(false);
   };
 
-  const inputCls = "w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600";
+  const inputCls = "w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600";
   const labelCls = "text-xs font-bold text-slate-500 uppercase tracking-wider";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="glass w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+      <div className="glass w-full max-w-2xl rounded-none overflow-hidden border-slate-700 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+        <div className="p-6 border-b border-[#1e293b] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             {isEdit && (
               app.iconUrl
-                ? <img src={app.iconUrl} alt="" className="w-10 h-10 rounded-lg border border-white/10 bg-slate-900 object-contain" />
-                : <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center text-lg text-slate-500">{app.name.charAt(0)}</div>
+                ? <img src={app.iconUrl} alt="" className="w-10 h-10 rounded-sm border border-slate-700 bg-[#111] object-contain" />
+                : <div className="w-10 h-10 rounded-sm bg-slate-800 border border-slate-700 flex items-center justify-center text-lg text-slate-500">{app.name.charAt(0)}</div>
             )}
             <div>
               <h3 className="text-lg font-bold">{isEdit ? app.name : 'Add New App'}</h3>
@@ -406,7 +407,7 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
           </div>
 
           {/* ── Divider ── */}
-          <div className="border-t border-white/5 pt-2">
+          <div className="border-t border-[#1e293b] pt-2">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">BITW Card Data</h4>
           </div>
 
@@ -446,8 +447,8 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
 
           {/* ── Delete App ── */}
           {isEdit && (
-            <div className="border-t border-white/5 pt-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-red-500/10">
+            <div className="border-t border-[#1e293b] pt-4">
+              <div className="flex items-center justify-between p-3 rounded-sm bg-[#111] border border-red-500/10">
                 <div>
                   <p className="text-sm font-semibold text-red-400">Delete App</p>
                   <p className="text-[10px] text-slate-500">Soft-delete — hides from lists but can be recovered</p>
@@ -467,7 +468,7 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
                     }
                     setDeleting(false);
                   }}
-                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-sm text-xs font-semibold transition-colors disabled:opacity-50"
                 >
                   {deleting ? 'Deleting...' : 'Delete App'}
                 </button>
@@ -477,17 +478,17 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/5 flex-shrink-0">
+        <div className="p-6 border-t border-[#1e293b] flex-shrink-0">
           {saveError && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400 mb-4">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-sm px-4 py-3 text-sm text-red-400 mb-4">
               {saveError}
             </div>
           )}
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
+            <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">
               Cancel
             </button>
-            <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+            <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-sm text-sm font-semibold transition-colors">
               {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Add App'}
             </button>
           </div>
@@ -533,9 +534,9 @@ export default function DevelopmentOverview() {
           <div className="h-8 bg-slate-800 rounded w-64 mb-2" />
           <div className="h-4 bg-slate-800 rounded w-96" />
         </div>
-        <div className="glass rounded-xl p-6">
+        <div className="glass rounded-none p-6">
           <div className="flex gap-4">
-            {[1,2,3,4].map(i => <div key={i} className="flex-1 h-64 bg-slate-800 rounded-xl" />)}
+            {[1,2,3,4].map(i => <div key={i} className="flex-1 h-64 bg-slate-800 rounded-none" />)}
           </div>
         </div>
       </div>
@@ -545,10 +546,10 @@ export default function DevelopmentOverview() {
   if (fetchError && apps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[40vh] text-center">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="mb-4 text-amber-400"><icons.alertTriangle className="w-10 h-10 mx-auto" /></div>
         <h3 className="text-lg font-semibold text-slate-200 mb-2">Failed to load apps</h3>
         <p className="text-sm text-slate-500 mb-6">{fetchError}</p>
-        <button onClick={refetch} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">
+        <button onClick={refetch} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors">
           Try Again
         </button>
       </div>
@@ -564,7 +565,7 @@ export default function DevelopmentOverview() {
         </div>
         <button
           onClick={openAdd}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-medium transition-colors flex items-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           Add App
@@ -572,7 +573,7 @@ export default function DevelopmentOverview() {
       </div>
 
       {/* App Pipeline Board */}
-      <div className="glass rounded-xl p-6">
+      <div className="glass rounded-none p-6">
         <div className="mb-6">
           <h3 className="font-semibold text-lg">App Pipeline</h3>
           <p className="text-sm text-slate-500">
@@ -588,7 +589,7 @@ export default function DevelopmentOverview() {
               return (
                 <div key={stage} className="flex-1 min-w-[180px] flex flex-col">
                   {/* Column header */}
-                  <div className={`border-t-4 ${c.border} ${c.bg} rounded-t-lg px-4 py-3`}>
+                  <div className={`border-t-4 ${c.border} ${c.bg} px-4 py-3`}>
                     <span className={`text-sm font-bold ${c.text}`}>{stage}</span>
                     <span className="text-xs text-slate-500 ml-1.5">({stageApps.length})</span>
                   </div>
@@ -599,19 +600,19 @@ export default function DevelopmentOverview() {
                       <div
                         key={app.name}
                         onClick={() => openEdit(app)}
-                        className="bg-slate-800/80 border border-white/5 rounded-xl p-4 hover:border-white/15 transition-all cursor-pointer shadow-lg shadow-black/20 min-h-[100px]"
+                        className="bg-slate-800/80 border border-[#1e293b] rounded-none p-4 hover:border-slate-700 transition-all cursor-pointer min-h-[100px]"
                       >
                         <div className="flex items-center gap-2">
                           {app.iconUrl
-                            ? <img src={app.iconUrl} alt="" className="w-7 h-7 rounded-md border border-white/10 bg-slate-900 object-contain flex-shrink-0" />
-                            : <div className="w-7 h-7 rounded-md bg-slate-700 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-400 flex-shrink-0">{app.name.charAt(0)}</div>
+                            ? <img src={app.iconUrl} alt="" className="w-7 h-7 rounded-sm border border-slate-700 bg-[#111] object-contain flex-shrink-0" />
+                            : <div className="w-7 h-7 rounded-sm bg-slate-700 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-400 flex-shrink-0">{app.name.charAt(0)}</div>
                           }
                           <span className="text-sm font-semibold">{app.name}</span>
                         </div>
                         <p className="text-xs text-slate-400 leading-relaxed mt-2 line-clamp-3">{app.pipelineNote || app.description}</p>
                       </div>
                     )) : (
-                      <div className="border border-dashed border-slate-700 rounded-xl py-8 flex items-center justify-center text-slate-600 text-xs min-h-[100px]">
+                      <div className="border border-dashed border-slate-700 rounded-none py-8 flex items-center justify-center text-slate-600 text-xs min-h-[100px]">
                         No apps
                       </div>
                     )}

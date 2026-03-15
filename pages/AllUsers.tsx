@@ -94,14 +94,14 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
 }) {
   if (tableUsers.length === 0) {
     return (
-      <div className="glass rounded-xl p-12 text-center text-slate-500">No users found.</div>
+      <div className="glass rounded-none p-12 text-center text-slate-500">No users found.</div>
     );
   }
 
   return (
     <>
       {/* Stat bar */}
-      <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
+      <div className="glass rounded-none px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-slate-100">{tableUsers.length}</span>
           <span className="text-xs text-slate-500">total</span>
@@ -119,10 +119,10 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">
         {tableUsers.map((user) => (
-          <div key={user.id} className="glass rounded-xl p-4 space-y-3">
+          <div key={user.id} className="glass rounded-none p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                   {user.avatar}
                 </div>
                 <div className="min-w-0">
@@ -140,7 +140,6 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
                 <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
                 {user.status}
               </span>
-              <button onClick={() => onAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">{user.app}</button>
             </div>
             <div className="flex justify-between text-xs text-slate-500">
               <span>Last seen: {user.lastSeen}</span>
@@ -151,15 +150,14 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
       </div>
 
       {/* Desktop Table */}
-      <div className="glass rounded-xl overflow-hidden hidden lg:block">
+      <div className="glass rounded-none overflow-hidden hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr className="border-b border-white/5 text-left">
+              <tr className="border-b border-[#1e293b] text-left">
                 <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
                 <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Role</th>
                 <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status</th>
-                <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">App</th>
                 <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last Seen</th>
                 <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Joined</th>
                 <th className="p-4 w-10"></th>
@@ -167,10 +165,10 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
             </thead>
             <tbody>
               {tableUsers.map((user) => (
-                <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                <tr key={user.id} className="border-b border-[#1e293b] hover:bg-[#111] transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                         {user.avatar}
                       </div>
                       <div className="min-w-0">
@@ -187,11 +185,6 @@ function UserTable({ users: tableUsers, onEdit, onAppInfo }: {
                       <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
                       {user.status}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <button onClick={() => onAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">
-                      {user.app}
-                    </button>
                   </td>
                   <td className="p-4 text-xs text-slate-400">{user.lastSeen}</td>
                   <td className="p-4 text-xs text-slate-400">{user.createdAt}</td>
@@ -377,7 +370,7 @@ export default function AllUsers() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
-            {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp} Users` : 'Users'}
+            {currentApp ? `${currentApp} Users` : 'Users'}
           </h2>
           <p className="text-slate-500 mt-1">
             {currentApp ? `Manage users for ${currentApp}.` : 'Manage users across all applications.'}
@@ -386,7 +379,7 @@ export default function AllUsers() {
         {activeTab === 'users' && (
           <button
             onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'starter', app: 'Demolight', dealershipName: '' }); setShowInvite(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-sm font-semibold text-sm transition-all flex items-center gap-2"
           >
             <icons.users className="w-4 h-4" />
             Add Admin User
@@ -395,7 +388,7 @@ export default function AllUsers() {
       </div>
 
       {/* Compact Stat Bar */}
-      <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
+      <div className="glass rounded-none px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-slate-100">{counts.total}</span>
           <span className="text-xs text-slate-500">users</span>
@@ -416,7 +409,7 @@ export default function AllUsers() {
 
       {/* Tab Bar — only on main /users route */}
       {!currentApp && (
-        <div className="flex gap-1 bg-slate-900/50 p-1 rounded-lg w-fit">
+        <div className="flex gap-1 bg-[#111] p-1 rounded-sm w-fit">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -428,20 +421,20 @@ export default function AllUsers() {
 
       {/* All Users Tab */}
       {activeTab === 'users' && loading && (
-        <div className="glass rounded-xl p-12 text-center animate-pulse">
+        <div className="glass rounded-none p-12 text-center animate-pulse">
           <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
           <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
         </div>
       )}
 
       {activeTab === 'users' && !loading && displayUsers.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">{fetchError ? '⚠️' : '👥'}</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4">{fetchError ? <icons.alertTriangle className="w-10 h-10 mx-auto text-amber-400" /> : <icons.users className="w-10 h-10 mx-auto text-slate-400" />}</div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">{fetchError ? 'Failed to load users' : 'No users yet'}</h3>
           <p className="text-sm text-slate-500 mb-6">{fetchError || (currentApp ? `No users found for ${currentApp}.` : 'Add your first admin user to get started.')}</p>
           <button
             onClick={() => { setNewUser({ firstName: '', lastName: '', email: '', mobile: '', role: 'admin', accountType: 'starter', app: 'Demolight', dealershipName: '' }); setShowInvite(true); }}
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm font-semibold transition-colors"
           >
             Add Admin User
           </button>
@@ -461,14 +454,14 @@ export default function AllUsers() {
                 placeholder="Search by name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg text-sm bg-slate-900 border border-white/5 focus:outline-none focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 rounded-sm text-sm bg-[#111] border border-[#1e293b] focus:outline-none focus:border-blue-500"
               />
             </div>
             {!currentApp && (
               <select
                 value={appFilter}
                 onChange={(e) => setAppFilter(e.target.value)}
-                className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="bg-[#111] border border-[#1e293b] rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Apps</option>
                 {apps.filter(a => a.status === 'live').map((app) => (
@@ -479,7 +472,7 @@ export default function AllUsers() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
-              className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="bg-[#111] border border-[#1e293b] rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -491,7 +484,7 @@ export default function AllUsers() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as UserStatus | 'all')}
-              className="bg-slate-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="bg-[#111] border border-[#1e293b] rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
@@ -504,10 +497,10 @@ export default function AllUsers() {
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-3">
             {filtered.map((user) => (
-              <div key={user.id} className="glass rounded-xl p-4 space-y-3">
+              <div key={user.id} className="glass rounded-none p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                       {user.avatar}
                     </div>
                     <div className="min-w-0">
@@ -532,7 +525,7 @@ export default function AllUsers() {
                     <span className={`w-1.5 h-1.5 rounded-full ${statusDot[user.status]}`} />
                     {user.status}
                   </span>
-                  <button onClick={() => setShowAppInfo(user.app)} className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">{user.app}</button>
+                  {!currentApp && <button onClick={() => setShowAppInfo(user.app)} className="px-1.5 py-0.5 bg-[#111] hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors">{user.app}</button>}
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Last seen: {user.lastSeen}</span>
@@ -541,20 +534,20 @@ export default function AllUsers() {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="glass rounded-xl p-12 text-center text-slate-500">No users match your filters.</div>
+              <div className="glass rounded-none p-12 text-center text-slate-500">No users match your filters.</div>
             )}
           </div>
 
           {/* Desktop Table */}
-          <div className="glass rounded-xl overflow-hidden hidden lg:block">
+          <div className="glass rounded-none overflow-hidden hidden lg:block">
             <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
               <thead>
-                <tr className="border-b border-white/5 text-left">
+                <tr className="border-b border-[#1e293b] text-left">
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Role</th>
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status</th>
-                  <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">App</th>
+                  {!currentApp && <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">App</th>}
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last Seen</th>
                   <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Joined</th>
                   <th className="p-4 w-10"></th>
@@ -562,10 +555,10 @@ export default function AllUsers() {
               </thead>
               <tbody>
                 {filtered.map((user) => (
-                  <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                  <tr key={user.id} className="border-b border-[#1e293b] hover:bg-[#111] transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                           {user.avatar}
                         </div>
                         <div className="min-w-0">
@@ -585,14 +578,14 @@ export default function AllUsers() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="p-4">
+                    {!currentApp && <td className="p-4">
                       <button
                         onClick={() => setShowAppInfo(user.app)}
-                        className="px-1.5 py-0.5 bg-white/5 hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors"
+                        className="px-1.5 py-0.5 bg-[#111] hover:bg-blue-500/10 hover:text-blue-400 rounded text-[10px] text-slate-400 font-medium transition-colors"
                       >
                         {user.app}
                       </button>
-                    </td>
+                    </td>}
                     <td className="p-4 text-xs text-slate-400">{user.lastSeen}</td>
                     <td className="p-4 text-xs text-slate-400">{user.createdAt}</td>
                     <td className="p-4">
@@ -633,15 +626,15 @@ export default function AllUsers() {
 
       {/* SaleslogHQ Tab */}
       {activeTab === 'salesloghq' && slLoading && (
-        <div className="glass rounded-xl p-12 text-center animate-pulse">
+        <div className="glass rounded-none p-12 text-center animate-pulse">
           <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
           <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
         </div>
       )}
 
       {activeTab === 'salesloghq' && !slLoading && slUsers.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📝</div>
+        <div className="glass rounded-none p-12 text-center">
+          <div className="mb-4 text-slate-400"><icons.edit className="w-10 h-10 mx-auto" /></div>
           <h3 className="text-lg font-semibold text-slate-200 mb-2">No SaleslogHQ users yet</h3>
           <p className="text-sm text-slate-500">Users will appear here once they're added to SaleslogHQ.</p>
         </div>
@@ -649,7 +642,7 @@ export default function AllUsers() {
 
       {activeTab === 'salesloghq' && !slLoading && slUsers.length > 0 && (
         <>
-          <div className="glass rounded-xl px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
+          <div className="glass rounded-none px-4 lg:px-6 py-3 flex flex-wrap items-center gap-4 lg:gap-8">
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-slate-100">{slUsers.length}</span>
               <span className="text-xs text-slate-500">total</span>
@@ -667,9 +660,9 @@ export default function AllUsers() {
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-3">
             {slUsers.map((u) => (
-              <div key={u.id} className="glass rounded-xl p-4 space-y-3">
+              <div key={u.id} className="glass rounded-none p-4 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                     {(u.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
@@ -684,7 +677,7 @@ export default function AllUsers() {
                     {u.is_active ? 'Active' : 'Inactive'}
                   </span>
                   {u.sl_dealerships?.name && (
-                    <span className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-slate-400 font-medium">{u.sl_dealerships.name}</span>
+                    <span className="px-1.5 py-0.5 bg-[#111] rounded text-[10px] text-slate-400 font-medium">{u.sl_dealerships.name}</span>
                   )}
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
@@ -696,11 +689,11 @@ export default function AllUsers() {
           </div>
 
           {/* Desktop Table */}
-          <div className="glass rounded-xl overflow-hidden hidden lg:block">
+          <div className="glass rounded-none overflow-hidden hidden lg:block">
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr className="border-b border-white/5 text-left">
+                  <tr className="border-b border-[#1e293b] text-left">
                     <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">User</th>
                     <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Role</th>
                     <th className="p-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status</th>
@@ -712,10 +705,10 @@ export default function AllUsers() {
                 </thead>
                 <tbody>
                   {slUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                    <tr key={u.id} className="border-b border-[#1e293b] hover:bg-[#111] transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shadow-lg flex-shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                             {(u.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
@@ -751,7 +744,7 @@ export default function AllUsers() {
       {/* Per-App Tabs (BuybidHQ, SalesboardHQ, Demolight) */}
       {appTabMap[activeTab] && (
         loading ? (
-          <div className="glass rounded-xl p-12 text-center animate-pulse">
+          <div className="glass rounded-none p-12 text-center animate-pulse">
             <div className="h-6 bg-slate-800 rounded w-48 mx-auto mb-4" />
             <div className="h-4 bg-slate-800 rounded w-64 mx-auto" />
           </div>
@@ -773,7 +766,7 @@ export default function AllUsers() {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Overlap Matrix */}
-            <div className="glass rounded-xl p-6">
+            <div className="glass rounded-none p-6">
               <div className="mb-6">
                 <h3 className="font-bold text-lg">User Overlap Heatmap</h3>
                 <p className="text-xs text-slate-500">Number of shared users between different applications</p>
@@ -791,12 +784,12 @@ export default function AllUsers() {
                   <tbody>
                     {apps.slice(0, 5).map((appY, idxY) => (
                       <tr key={appY.name}>
-                        <td className="p-2 font-bold text-right text-slate-500 border-r border-white/5">{appY.name}</td>
+                        <td className="p-2 font-bold text-right text-slate-500 border-r border-[#1e293b]">{appY.name}</td>
                         {apps.slice(0, 5).map((appX, idxX) => {
                           const count = idxX === idxY ? appY.users : Math.floor(Math.random() * 15);
                           const intensity = idxX === idxY ? 'bg-blue-600/60' : count > 10 ? 'bg-blue-600/40' : count > 5 ? 'bg-blue-600/20' : 'bg-blue-600/5';
                           return (
-                            <td key={appX.name} className={`p-4 border border-white/5 text-center ${intensity} font-bold text-slate-100`}>
+                            <td key={appX.name} className={`p-4 border border-[#1e293b] text-center ${intensity} font-bold text-slate-100`}>
                               {count}
                             </td>
                           );
@@ -809,7 +802,7 @@ export default function AllUsers() {
             </div>
 
             {/* Engagement Bar Chart */}
-            <div className="glass rounded-xl p-4 lg:p-6">
+            <div className="glass rounded-none p-4 lg:p-6">
               <div className="mb-6">
                 <h3 className="font-bold text-lg">Total Engagement by App</h3>
                 <p className="text-xs text-slate-500">Active sessions per app in the last 30 days</p>
@@ -841,9 +834,9 @@ export default function AllUsers() {
 
       {/* Add Admin User Modal */}
       {showInvite && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
-            <div className="p-4 lg:p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80">
+          <div className="glass w-full sm:max-w-lg rounded-t-none sm:rounded-none overflow-hidden border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div className="p-4 lg:p-6 border-b border-[#1e293b] flex items-center justify-between">
               <div>
                 <h3 className="text-lg lg:text-xl font-bold">Add Admin User</h3>
                 <p className="text-xs text-slate-500 mt-1">Create a new admin user and assign them to an application.</p>
@@ -915,7 +908,7 @@ export default function AllUsers() {
                     value={newUser.firstName}
                     onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
                     onBlur={(e) => validateField('firstName', e.target.value)}
-                    className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.firstName ? 'border-red-500/50' : 'border-white/10'}`}
+                    className={`w-full bg-[#111] border rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.firstName ? 'border-red-500/50' : 'border-slate-700'}`}
                   />
                   {formErrors.firstName && <p className="text-xs text-red-400">{formErrors.firstName}</p>}
                 </div>
@@ -928,7 +921,7 @@ export default function AllUsers() {
                     value={newUser.lastName}
                     onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
                     onBlur={(e) => validateField('lastName', e.target.value)}
-                    className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.lastName ? 'border-red-500/50' : 'border-white/10'}`}
+                    className={`w-full bg-[#111] border rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.lastName ? 'border-red-500/50' : 'border-slate-700'}`}
                   />
                   {formErrors.lastName && <p className="text-xs text-red-400">{formErrors.lastName}</p>}
                 </div>
@@ -943,7 +936,7 @@ export default function AllUsers() {
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   onBlur={(e) => validateField('email', e.target.value)}
-                  className={`w-full bg-slate-900 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.email ? 'border-red-500/50' : 'border-white/10'}`}
+                  className={`w-full bg-[#111] border rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600 ${formErrors.email ? 'border-red-500/50' : 'border-slate-700'}`}
                 />
                 {formErrors.email && <p className="text-xs text-red-400">{formErrors.email}</p>}
               </div>
@@ -956,7 +949,7 @@ export default function AllUsers() {
                   value={newUser.mobile}
                   maxLength={14}
                   onChange={(e) => setNewUser({ ...newUser, mobile: formatPhone(e.target.value) })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                  className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
                 />
               </div>
 
@@ -981,12 +974,12 @@ export default function AllUsers() {
                     required
                     value={newUser.app}
                     onChange={(e) => setNewUser({ ...newUser, app: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="" disabled>Select an app...</option>
                     {apps.map((app) => (
                       <option key={app.name} value={app.name}>
-                        {app.icon} {app.name} ({app.status})
+                        {app.name} ({app.status})
                       </option>
                     ))}
                   </select>
@@ -996,7 +989,7 @@ export default function AllUsers() {
                   <select
                     value={newUser.accountType}
                     onChange={(e) => setNewUser({ ...newUser, accountType: e.target.value as AccountType })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="starter">Starter</option>
                     <option value="professional">Professional</option>
@@ -1007,7 +1000,7 @@ export default function AllUsers() {
                   <select
                     value={newUser.role}
                     onChange={(e) => setNewUser({ ...newUser, role: e.target.value as UserRole })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
@@ -1019,8 +1012,11 @@ export default function AllUsers() {
               </div>
 
               {newUser.app && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
-                  <div className="text-2xl">{apps.find(a => a.name === newUser.app)?.icon}</div>
+                <div className="flex items-center gap-3 p-3 rounded-sm bg-blue-500/5 border border-blue-500/10">
+                  {(() => { const a = apps.find(x => x.name === newUser.app); return a?.iconUrl
+                    ? <img src={a.iconUrl} alt="" className="w-8 h-8 rounded-md border border-slate-700 bg-[#111] object-contain flex-shrink-0" />
+                    : <div className="w-8 h-8 rounded-md bg-slate-700 border border-slate-700 flex items-center justify-center text-sm font-bold text-slate-400 flex-shrink-0">{newUser.app.charAt(0)}</div>;
+                  })()}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold">{newUser.app}</p>
                     <p className="text-[10px] text-slate-500 truncate">{apps.find(a => a.name === newUser.app)?.description}</p>
@@ -1039,14 +1035,14 @@ export default function AllUsers() {
                 <button
                   type="button"
                   onClick={() => setShowInvite(false)}
-                  className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={inviting || Object.keys(formErrors).length > 0 || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.app || (newUser.app === 'Demolight' && !newUser.dealershipName)}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-sm text-sm font-semibold transition-colors"
                 >
                   {inviting ? 'Adding...' : 'Add User'}
                 </button>
@@ -1063,14 +1059,14 @@ export default function AllUsers() {
         const activeCount = appUsers.filter(u => u.status === 'active').length;
         const roleBreakdown = appUsers.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc; }, {} as Record<string, number>);
         return (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
-            <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
-              <div className="p-4 lg:p-6 border-b border-white/5 flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80">
+            <div className="glass w-full sm:max-w-lg rounded-t-none sm:rounded-none overflow-hidden border-slate-700 max-h-[90vh] overflow-y-auto">
+              <div className="p-4 lg:p-6 border-b border-[#1e293b] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {appData && (
-                    <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-2xl">
-                      {appData.icon}
-                    </div>
+                    appData.iconUrl
+                      ? <img src={appData.iconUrl} alt="" className="w-12 h-12 rounded-none border border-[#1e293b] bg-[#111] object-contain" />
+                      : <div className="w-12 h-12 rounded-none bg-[#111] border border-[#1e293b] flex items-center justify-center text-lg font-bold text-slate-400">{appData.name.charAt(0)}</div>
                   )}
                   <div>
                     <h3 className="text-xl font-bold">{showAppInfo}</h3>
@@ -1084,19 +1080,19 @@ export default function AllUsers() {
               <div className="p-6 space-y-5">
                 {/* Stats row */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
-                  <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-center">
+                  <div className="bg-[#111] rounded-sm p-3 border border-[#1e293b] text-center">
                     <p className="text-lg font-bold">{appUsers.length}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Total Users</p>
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-center">
+                  <div className="bg-[#111] rounded-sm p-3 border border-[#1e293b] text-center">
                     <p className="text-lg font-bold text-emerald-400">{activeCount}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Active</p>
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-center">
+                  <div className="bg-[#111] rounded-sm p-3 border border-[#1e293b] text-center">
                     <p className="text-lg font-bold text-blue-400">{appData?.tableCount || 0}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Tables</p>
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-3 border border-white/5 text-center">
+                  <div className="bg-[#111] rounded-sm p-3 border border-[#1e293b] text-center">
                     <p className="text-lg font-bold text-purple-400">{appData?.status || '—'}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Status</p>
                   </div>
@@ -1107,7 +1103,7 @@ export default function AllUsers() {
                   <p className="text-xs font-bold text-slate-500 uppercase mb-2">Role Breakdown</p>
                   <div className="flex gap-2">
                     {Object.entries(roleBreakdown).map(([role, count]) => (
-                      <span key={role} className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${roleColors[role as UserRole] || 'bg-slate-500/10 text-slate-400'}`}>
+                      <span key={role} className={`px-2.5 py-1 rounded-sm text-xs font-semibold ${roleColors[role as UserRole] || 'bg-slate-500/10 text-slate-400'}`}>
                         {role}: {count}
                       </span>
                     ))}
@@ -1136,9 +1132,9 @@ export default function AllUsers() {
                   <p className="text-xs font-bold text-slate-500 uppercase mb-2">Assigned Users</p>
                   <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                     {appUsers.map(u => (
-                      <div key={u.id} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-white/5">
+                      <div key={u.id} className="flex items-center justify-between p-2.5 rounded-sm bg-[#111] border border-[#1e293b]">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-bold text-white">
+                          <div className="w-8 h-8 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-[10px] font-bold text-white">
                             {u.avatar}
                           </div>
                           <div>
@@ -1162,7 +1158,7 @@ export default function AllUsers() {
                 </div>
 
                 <div className="pt-2">
-                  <button onClick={() => setShowAppInfo(null)} className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
+                  <button onClick={() => setShowAppInfo(null)} className="w-full px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">
                     Close
                   </button>
                 </div>
@@ -1174,9 +1170,9 @@ export default function AllUsers() {
 
       {/* Edit Modal */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
-          <div className="glass w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80">
+          <div className="glass w-full sm:max-w-lg rounded-t-none sm:rounded-none overflow-hidden border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-[#1e293b] flex items-center justify-between">
               <h3 className="text-xl font-bold">Manage User</h3>
               <button onClick={() => setEditingUser(null)} className="text-slate-500 hover:text-slate-200">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
@@ -1206,7 +1202,7 @@ export default function AllUsers() {
               finally { setSaving(false); }
             }}>
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white shadow-lg">
+                <div className="w-14 h-14 rounded-full bg-[#111] border border-slate-600 flex items-center justify-center text-lg font-bold text-white">
                   {editingUser.avatar}
                 </div>
                 <div>
@@ -1222,7 +1218,7 @@ export default function AllUsers() {
                     type="text"
                     value={editForm.firstName}
                     onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1231,7 +1227,7 @@ export default function AllUsers() {
                     type="text"
                     value={editForm.lastName}
                     onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -1243,7 +1239,7 @@ export default function AllUsers() {
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1253,7 +1249,7 @@ export default function AllUsers() {
                     value={editForm.phone}
                     maxLength={14}
                     onChange={(e) => setEditForm({ ...editForm, phone: formatPhone(e.target.value) })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-slate-600"
                     placeholder="(555) 123-4567"
                   />
                 </div>
@@ -1278,11 +1274,11 @@ export default function AllUsers() {
                   <select
                     value={editForm.app}
                     disabled
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 opacity-60"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500 opacity-60"
                   >
                     {apps.map((app) => (
                       <option key={app.name} value={app.name}>
-                        {app.icon} {app.name} ({app.status})
+                        {app.name} ({app.status})
                       </option>
                     ))}
                     <option value="Watchtower">Watchtower</option>
@@ -1291,7 +1287,7 @@ export default function AllUsers() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Role</label>
-                  <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
                     <option value="user">User</option>
@@ -1301,7 +1297,7 @@ export default function AllUsers() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Status</label>
-                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                  <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
@@ -1315,7 +1311,7 @@ export default function AllUsers() {
                   <select
                     value={editForm.accountType}
                     onChange={(e) => setEditForm({ ...editForm, accountType: e.target.value })}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111] border border-slate-700 rounded-sm px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="starter">Starter</option>
                     <option value="professional">Professional</option>
@@ -1324,34 +1320,34 @@ export default function AllUsers() {
               )}
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-[#111] border border-[#1e293b]">
                   <div>
                     <p className="text-sm font-semibold">Password Reset</p>
                     <p className="text-[10px] text-slate-500">Send a password reset SMS to {editingUser.email}</p>
                   </div>
                   <button
                     type="button"
-                    className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-xs font-semibold transition-colors"
+                    className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-sm text-xs font-semibold transition-colors"
                   >
                     Send Reset SMS
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-lg bg-red-900/20 border border-red-500/20">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-[#111] border border-red-500/10">
                   <div>
                     <p className="text-sm font-semibold text-red-400">Delete User</p>
                     <p className="text-[10px] text-red-300">Permanently remove this user and all their data</p>
                   </div>
                   <button
                     type="button"
-                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg text-xs font-semibold transition-colors"
+                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-sm text-xs font-semibold transition-colors"
                   >
                     Delete User
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-red-500/10">
+              <div className="flex items-center justify-between p-3 rounded-sm bg-[#111] border border-red-500/10">
                 <div>
                   <p className="text-sm font-semibold text-red-400">Delete User</p>
                   <p className="text-[10px] text-slate-500">Soft-delete — hides from lists but can be recovered</p>
@@ -1378,17 +1374,17 @@ export default function AllUsers() {
                       alert(`Delete failed: ${(err as Error).message}`);
                     }
                   }}
-                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors"
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-sm text-xs font-semibold transition-colors"
                 >
                   Delete User
                 </button>
               </div>
 
               <div className="pt-4 flex gap-4">
-                <button type="button" onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
+                <button type="button" onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 bg-[#111] hover:bg-[#1e293b] border border-slate-700 rounded-sm text-sm font-semibold transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-sm text-sm font-semibold transition-colors">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>

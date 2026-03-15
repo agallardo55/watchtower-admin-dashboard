@@ -37,6 +37,7 @@ export interface GraduationStage {
 export interface NavItem {
   label: string;
   icon: string;
+  iconUrl?: string;
   path: string;
   children?: NavItem[];
 }

@@ -192,7 +192,7 @@ export default function AppActivity() {
           { label: 'Top Event', value: topEvent },
           { label: 'Last Activity', value: lastActivity ? relativeTime(lastActivity) : '—' },
         ].map((m) => (
-          <div key={m.label} className="rounded-xl border border-white/5 bg-slate-900/50 p-4">
+          <div key={m.label} className="rounded-none border border-[#1e293b] bg-[#111] p-4">
             <p className="text-xs text-slate-500 mb-1">{m.label}</p>
             <p className="text-lg font-bold">{m.value}</p>
           </div>
@@ -203,11 +203,11 @@ export default function AppActivity() {
       {users.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-3">Users</h2>
-          <div className="rounded-xl border border-white/5 overflow-hidden">
+          <div className="rounded-none border border-[#1e293b] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
+                  <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-[#1e293b]">
                     <th className="px-4 py-3 font-medium">Email</th>
                     <th className="px-4 py-3 font-medium">First Seen</th>
                     <th className="px-4 py-3 font-medium">Last Active</th>
@@ -215,9 +215,9 @@ export default function AppActivity() {
                     <th className="px-4 py-3 font-medium">Most Recent</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-[#1e293b]">
                   {paginatedUsers.map((u) => (
-                    <tr key={u.email} className="hover:bg-white/[0.02]">
+                    <tr key={u.email} className="hover:bg-[#111]">
                       <td className="px-4 py-3 text-slate-300">{u.email}</td>
                       <td className="px-4 py-3 text-slate-400">{relativeTime(u.first_seen)}</td>
                       <td className="px-4 py-3 text-slate-400">{relativeTime(u.last_active)}</td>
@@ -233,12 +233,12 @@ export default function AppActivity() {
               </table>
             </div>
             {usersTotalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 text-sm">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-[#1e293b] text-sm">
                 <span className="text-slate-500">{users.length} users</span>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setUsersPage(Math.max(0, usersPage - 1))} disabled={usersPage === 0} className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Prev</button>
+                  <button onClick={() => setUsersPage(Math.max(0, usersPage - 1))} disabled={usersPage === 0} className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Prev</button>
                   <span className="text-slate-500">{usersPage + 1} / {usersTotalPages}</span>
-                  <button onClick={() => setUsersPage(Math.min(usersTotalPages - 1, usersPage + 1))} disabled={usersPage >= usersTotalPages - 1} className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
+                  <button onClick={() => setUsersPage(Math.min(usersTotalPages - 1, usersPage + 1))} disabled={usersPage >= usersTotalPages - 1} className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
                 </div>
               </div>
             )}
@@ -250,7 +250,7 @@ export default function AppActivity() {
       {breakdown.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold mb-3">Event Breakdown</h2>
-          <div className="rounded-xl border border-white/5 bg-slate-900/50 p-5 space-y-3">
+          <div className="rounded-none border border-[#1e293b] bg-[#111] p-5 space-y-3">
             {breakdown.map((b) => (
               <div key={b.event_type} className="flex items-center gap-3">
                 <span className="text-sm text-slate-400 w-40 truncate">{b.event_type}</span>
@@ -270,18 +270,18 @@ export default function AppActivity() {
       {/* Event Timeline */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Event Timeline</h2>
-        <div className="rounded-xl border border-white/5 overflow-hidden">
+        <div className="rounded-none border border-[#1e293b] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
+                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-[#1e293b]">
                   <th className="px-4 py-3 font-medium">Time</th>
                   <th className="px-4 py-3 font-medium">Event</th>
                   <th className="px-4 py-3 font-medium">User</th>
                   <th className="px-4 py-3 font-medium">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-[#1e293b]">
                 {events.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
@@ -290,7 +290,7 @@ export default function AppActivity() {
                   </tr>
                 ) : (
                   events.map((ev) => (
-                    <tr key={ev.id} className={`hover:bg-white/[0.02] ${
+                    <tr key={ev.id} className={`hover:bg-[#111] ${
                       ev.event_type === 'signup' ? 'border-l-2 border-emerald-500' :
                       ev.event_type === 'error' ? 'border-l-2 border-red-500' : ''
                     }`}>
@@ -317,12 +317,12 @@ export default function AppActivity() {
             </table>
           </div>
           {eventsTotalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 text-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-[#1e293b] text-sm">
               <span className="text-slate-500">{eventsTotal.toLocaleString()} events</span>
               <div className="flex items-center gap-2">
-                <button onClick={() => setEventsPage(Math.max(0, eventsPage - 1))} disabled={eventsPage === 0} className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Prev</button>
+                <button onClick={() => setEventsPage(Math.max(0, eventsPage - 1))} disabled={eventsPage === 0} className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Prev</button>
                 <span className="text-slate-500">{eventsPage + 1} / {eventsTotalPages}</span>
-                <button onClick={() => setEventsPage(Math.min(eventsTotalPages - 1, eventsPage + 1))} disabled={eventsPage >= eventsTotalPages - 1} className="px-3 py-1 rounded-lg border border-white/10 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
+                <button onClick={() => setEventsPage(Math.min(eventsTotalPages - 1, eventsPage + 1))} disabled={eventsPage >= eventsTotalPages - 1} className="px-3 py-1 rounded-sm border border-slate-700 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
               </div>
             </div>
           )}
