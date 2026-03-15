@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useApps } from '../hooks/useApps';
-import { updateApp, createApp, AppFormData, RoadmapItem, AppEntryWithMeta } from '../services/apps';
+import { updateApp, createApp, softDeleteApp, AppFormData, RoadmapItem, AppEntryWithMeta } from '../services/apps';
 import { supabase } from '../lib/supabase';
 
 interface PipelineStageConfig {
@@ -288,6 +288,7 @@ function IconUpload({ url, appName, onUploaded, onRemoved }: { url: string; appN
 
 // ─── App Form Modal ──────────────────────────────────────────
 function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null; onClose: () => void; onSaved: () => void }) {
+  const [deleting, setDeleting] = useState(false);
   const isEdit = app !== null;
   const [form, setForm] = useState<AppFormData>(app ? appToFormData(app) : emptyFormData());
   const [saving, setSaving] = useState(false);
@@ -442,6 +443,37 @@ function AppFormModal({ app, onClose, onSaved }: { app: AppEntryWithMeta | null;
               <ScreenshotList urls={form.screenshots} onChange={u => set('screenshots', u)} />
             </div>
           </div>
+
+          {/* ── Delete App ── */}
+          {isEdit && (
+            <div className="border-t border-white/5 pt-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-red-500/10">
+                <div>
+                  <p className="text-sm font-semibold text-red-400">Delete App</p>
+                  <p className="text-[10px] text-slate-500">Soft-delete — hides from lists but can be recovered</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={async () => {
+                    if (!confirm('Delete this record? It will be hidden but can be recovered if needed.')) return;
+                    setDeleting(true);
+                    try {
+                      await softDeleteApp(app!.id);
+                      onSaved();
+                      onClose();
+                    } catch (err) {
+                      alert(`Delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                    }
+                    setDeleting(false);
+                  }}
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Delete App'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

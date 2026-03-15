@@ -1351,6 +1351,39 @@ export default function AllUsers() {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-red-500/10">
+                <div>
+                  <p className="text-sm font-semibold text-red-400">Delete User</p>
+                  <p className="text-[10px] text-slate-500">Soft-delete — hides from lists but can be recovered</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm('Delete this record? It will be hidden but can be recovered if needed.')) return;
+                    try {
+                      const now = new Date().toISOString();
+                      const res = await fetch(`${supabaseUrl}/functions/v1/update-user`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${supabaseAnonKey}` },
+                        body: JSON.stringify({ userId: editingUser.id, app: editingUser.app, fields: { deleted_at: now } }),
+                      });
+                      if (!res.ok) {
+                        const result = await res.json();
+                        alert(`Error: ${result.error}`);
+                        return;
+                      }
+                      setUsers(prev => prev.filter(u => u.id !== editingUser.id));
+                      setEditingUser(null);
+                    } catch (err) {
+                      alert(`Delete failed: ${(err as Error).message}`);
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  Delete User
+                </button>
+              </div>
+
               <div className="pt-4 flex gap-4">
                 <button type="button" onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold transition-colors">
                   Cancel

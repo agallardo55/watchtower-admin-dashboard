@@ -195,6 +195,16 @@ export async function updatePipelineNote(id: string, note: string): Promise<void
   if (error) throw error;
 }
 
+export async function softDeleteApp(id: string): Promise<void> {
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from('wt_app_registry')
+    .update({ deleted_at: now })
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 export async function updateGraduationStage(id: string, stage: string): Promise<void> {
   const { error } = await supabase
     .from('wt_app_registry')
