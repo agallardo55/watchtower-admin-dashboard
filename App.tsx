@@ -18,6 +18,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ActivityOverview from './pages/ActivityOverview';
 import AppActivity from './pages/AppActivity';
+import SecondBrain from './pages/SecondBrain';
 import { useApps } from './hooks/useApps';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -355,6 +356,8 @@ export default function App() {
           <Route path="/daily-tasks" element={<DailyTasks />} />
           <Route path="/activity" element={<ActivityOverview />} />
           <Route path="/activity/:appSlug" element={<AppActivity />} />
+          <Route path="/second-brain" element={<SecondBrain />} />
+          <Route path="/second-brain/:category" element={<SecondBrain />} />
           <Route path="/feature-requests" element={<FeatureRequests />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
