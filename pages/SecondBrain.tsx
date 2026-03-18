@@ -13,15 +13,29 @@ interface Document {
   created_at: string;
 }
 
-const CATEGORIES = ['All', 'Identity', 'Professional', 'Personal', 'AI Assistant', 'Financial', 'Learning'] as const;
+const CATEGORIES = ['all', 'root', 'identity', 'professional', 'personal', 'ai-assistant', 'financial', 'learning', 'template'] as const;
+
+const categoryLabels: Record<string, string> = {
+  all: 'All',
+  root: 'Root',
+  identity: 'Identity',
+  professional: 'Professional',
+  personal: 'Personal',
+  'ai-assistant': 'AI Assistant',
+  financial: 'Financial',
+  learning: 'Learning',
+  template: 'Template',
+};
 
 const categoryColors: Record<string, string> = {
-  Identity: 'border-purple-500/40 text-purple-400 bg-purple-500/10',
-  Professional: 'border-blue-500/40 text-blue-400 bg-blue-500/10',
-  Personal: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
-  'AI Assistant': 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10',
-  Financial: 'border-yellow-500/40 text-yellow-400 bg-yellow-500/10',
-  Learning: 'border-orange-500/40 text-orange-400 bg-orange-500/10',
+  root: 'border-red-500/40 text-red-400 bg-red-500/10',
+  identity: 'border-purple-500/40 text-purple-400 bg-purple-500/10',
+  professional: 'border-blue-500/40 text-blue-400 bg-blue-500/10',
+  personal: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+  'ai-assistant': 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10',
+  financial: 'border-yellow-500/40 text-yellow-400 bg-yellow-500/10',
+  learning: 'border-orange-500/40 text-orange-400 bg-orange-500/10',
+  template: 'border-slate-500/40 text-slate-400 bg-slate-500/10',
 };
 
 export default function SecondBrain() {
@@ -31,10 +45,16 @@ export default function SecondBrain() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
-  const activeCategory = routeCategory
-    ? CATEGORIES.find(c => c.toLowerCase().replace(/\s+/g, '-') === routeCategory) || 'All'
-    : 'All';
+  // Sync state from route on mount / route change
+  useEffect(() => {
+    if (routeCategory && CATEGORIES.includes(routeCategory as typeof CATEGORIES[number])) {
+      setActiveCategory(routeCategory);
+    } else {
+      setActiveCategory('all');
+    }
+  }, [routeCategory]);
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -56,7 +76,7 @@ export default function SecondBrain() {
 
   const filtered = useMemo(() => {
     let docs = documents;
-    if (activeCategory !== 'All') {
+    if (activeCategory !== 'all') {
       docs = docs.filter(d => d.category === activeCategory);
     }
     if (search.trim()) {
@@ -70,15 +90,16 @@ export default function SecondBrain() {
 
   const handleCategoryClick = (cat: string) => {
     setExpandedId(null);
-    if (cat === 'All') {
+    setActiveCategory(cat);
+    if (cat === 'all') {
       navigate('/second-brain');
     } else {
-      navigate(`/second-brain/${cat.toLowerCase().replace(/\s+/g, '-')}`);
+      navigate(`/second-brain/${cat}`);
     }
   };
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: documents.length };
+    const counts: Record<string, number> = { all: documents.length };
     for (const doc of documents) {
       counts[doc.category] = (counts[doc.category] || 0) + 1;
     }
@@ -130,7 +151,7 @@ export default function SecondBrain() {
               }`}
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
-              {cat} <span className="text-[10px] opacity-60">({count})</span>
+              {categoryLabels[cat] || cat} <span className="text-[10px] opacity-60">({count})</span>
             </button>
           );
         })}
@@ -172,7 +193,7 @@ export default function SecondBrain() {
                     {doc.title}
                   </h3>
                   <span className={`flex-shrink-0 px-2 py-0.5 text-[10px] border ${badgeClass}`}>
-                    {doc.category}
+                    {categoryLabels[doc.category] || doc.category}
                   </span>
                 </div>
 
