@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { secondBrain } from '../lib/secondBrain';
 
 interface Document {
@@ -212,12 +213,21 @@ export default function SecondBrain() {
                 )}
 
                 {/* Content Preview / Full */}
-                <p
-                  className={`text-xs text-slate-500 leading-relaxed ${isExpanded ? '' : 'line-clamp-3'}`}
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  {isExpanded ? doc.content : doc.content.slice(0, 150) + (doc.content.length > 150 ? '...' : '')}
-                </p>
+                {isExpanded ? (
+                  <div
+                    className="mt-3 p-4 bg-[#111] border border-[#1e293b] overflow-auto max-h-[60vh] text-xs text-slate-300 leading-relaxed prose prose-invert prose-sm prose-headings:text-green-400 prose-headings:font-bold prose-a:text-blue-400 prose-code:text-green-300 prose-code:bg-[#1a1a1a] prose-code:px-1 prose-code:py-0.5 prose-pre:bg-[#0a0a0a] prose-pre:border prose-pre:border-[#1e293b] prose-strong:text-slate-200 prose-li:text-slate-400 max-w-none"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    <ReactMarkdown>{doc.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p
+                    className="text-xs text-slate-500 leading-relaxed line-clamp-3"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {doc.content.slice(0, 150)}{doc.content.length > 150 ? '...' : ''}
+                  </p>
+                )}
 
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#1e293b]">
