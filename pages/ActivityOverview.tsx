@@ -25,21 +25,21 @@ function relativeTime(dateStr: string): string {
 }
 
 function healthDot(lastActivity: string | null, totalEvents: number): { color: string; label: string } {
-  if (totalEvents === 0 || !lastActivity) return { color: '#444444', label: 'No events' };
+  if (totalEvents === 0 || !lastActivity) return { color: 'var(--text-muted)', label: 'No events' };
   const hours = (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60);
-  if (hours < 24) return { color: '#4ADE80', label: 'Active' };
-  if (hours < 168) return { color: '#F59E0B', label: 'Quiet' };
-  return { color: '#EF4444', label: 'Inactive' };
+  if (hours < 24) return { color: 'var(--accent)', label: 'Active' };
+  if (hours < 168) return { color: 'var(--warning)', label: 'Quiet' };
+  return { color: 'var(--danger)', label: 'Inactive' };
 }
 
 const eventTypeStyle = (eventType: string): React.CSSProperties => {
-  if (eventType === 'signup') return { background: 'rgba(74,222,128,0.1)', color: '#4ADE80', border: '1px solid rgba(74,222,128,0.2)' };
-  if (eventType === 'error') return { background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)' };
-  return { background: 'rgba(255,255,255,0.05)', color: '#666666', border: '1px solid #222222' };
+  if (eventType === 'signup') return { background: 'var(--accent-bg-hover)', color: 'var(--accent)', border: '1px solid var(--accent-border)' };
+  if (eventType === 'error') return { background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,0.2)' };
+  return { background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid var(--border)' };
 };
 
 const eventRowBorder = (eventType: string): React.CSSProperties => {
-  if (eventType === 'signup') return { borderLeft: '2px solid #4ADE80' };
+  if (eventType === 'signup') return { borderLeft: '2px solid var(--accent)' };
   if (eventType === 'error') return { borderLeft: '2px solid #EF4444' };
   return { borderLeft: '2px solid transparent' };
 };
@@ -134,17 +134,17 @@ export default function ActivityOverview() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem', color: '#444444', fontSize: '13px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem', color: 'var(--text-muted)', fontSize: '13px' }}>
         LOADING...
       </div>
     );
   }
 
   const selectStyle: React.CSSProperties = {
-    background: '#0d0d0d',
-    border: '1px solid #222222',
+    background: 'var(--bg-input)',
+    border: '1px solid var(--border)',
     borderRadius: '4px',
-    color: '#e0e0e0',
+    color: 'var(--text-primary)',
     fontSize: '12px',
     padding: '6px 10px',
     outline: 'none',
@@ -155,13 +155,13 @@ export default function ActivityOverview() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Header */}
       <div>
-        <div style={{ fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
+        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
           WATCHTOWER
         </div>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0', margin: 0, letterSpacing: '-0.01em' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
           // ACTIVITY
         </h1>
-        <p style={{ color: '#444444', fontSize: '12px', marginTop: '4px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '4px' }}>
           Cross-app user activity across all BITW apps
         </p>
       </div>
@@ -183,11 +183,11 @@ export default function ActivityOverview() {
                   color: 'inherit',
                   transition: 'border-color 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#333333')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = '#222222')}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--text-faint)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e0e0e0' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {appDisplayNames[s.app_slug] || s.app_slug}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -198,28 +198,28 @@ export default function ActivityOverview() {
                         height: '7px',
                         borderRadius: '50%',
                         background: h.color,
-                        boxShadow: h.color === '#4ADE80' ? `0 0 6px ${h.color}` : 'none',
+                        boxShadow: h.color === 'var(--accent)' ? `0 0 6px ${h.color}` : 'none',
                       }}
                     />
-                    <span style={{ fontSize: '10px', color: '#444444' }}>{h.label}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{h.label}</span>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</p>
-                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#e0e0e0', margin: 0 }}>{s.total_events.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{s.total_events.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</p>
-                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#4ADE80', margin: 0 }}>{s.events_today.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent)', margin: 0 }}>{s.events_today.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Users</p>
-                    <p style={{ fontSize: '18px', fontWeight: 700, color: '#e0e0e0', margin: 0 }}>{s.unique_users.toLocaleString()}</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Users</p>
+                    <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{s.unique_users.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: '10px', color: '#444444', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last</p>
-                    <p style={{ fontSize: '12px', fontWeight: 500, color: '#666666', margin: 0 }}>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last</p>
+                    <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)', margin: 0 }}>
                       {s.last_activity ? relativeTime(s.last_activity) : '—'}
                     </p>
                   </div>
@@ -231,7 +231,7 @@ export default function ActivityOverview() {
       ) : (
         <div
           className="terminal-card"
-          style={{ padding: '32px', textAlign: 'center', color: '#444444', fontSize: '13px' }}
+          style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}
         >
           No activity recorded yet. Once apps start sending events, you'll see them here.
         </div>
@@ -262,7 +262,7 @@ export default function ActivityOverview() {
         </select>
 
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#444444', display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
             <icons.search />
           </div>
           <input
@@ -279,7 +279,7 @@ export default function ActivityOverview() {
         </div>
 
         {(appFilter !== 'all' || typeFilter !== 'all' || search) && (
-          <span style={{ fontSize: '11px', color: '#444444' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             {total.toLocaleString()} result{total !== 1 ? 's' : ''}
           </span>
         )}
@@ -290,12 +290,12 @@ export default function ActivityOverview() {
         <div style={{ overflowX: 'auto' }}>
           <table className="terminal-table" style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #1a1a1a' }}>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Time</th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>App</th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>User</th>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Details</th>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Time</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>App</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Event</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>User</th>
+                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Details</th>
               </tr>
             </thead>
             <tbody>
@@ -303,7 +303,7 @@ export default function ActivityOverview() {
                 <tr>
                   <td
                     colSpan={5}
-                    style={{ padding: '32px 16px', textAlign: 'center', color: '#444444', fontSize: '12px' }}
+                    style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}
                   >
                     No activity found matching your filters.
                   </td>
@@ -314,20 +314,20 @@ export default function ActivityOverview() {
                     key={ev.id}
                     style={{
                       ...eventRowBorder(ev.event_type),
-                      borderBottom: '1px solid #1a1a1a',
+                      borderBottom: '1px solid var(--border-subtle)',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.01)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <td style={{ padding: '10px 16px', color: '#444444', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       {relativeTime(ev.created_at)}
                     </td>
                     <td style={{ padding: '10px 16px' }}>
                       <Link
                         to={`/activity/${ev.app_slug}`}
-                        style={{ color: '#4ADE80', textDecoration: 'none', fontWeight: 500 }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#6EE7A0')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#4ADE80')}
+                        style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--accent)')}
                       >
                         {appDisplayNames[ev.app_slug] || ev.app_slug}
                       </Link>
@@ -346,10 +346,10 @@ export default function ActivityOverview() {
                         {ev.event_type}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 16px', color: '#e0e0e0' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-primary)' }}>
                       {ev.user_email || '—'}
                     </td>
-                    <td style={{ padding: '10px 16px', color: '#444444', fontSize: '11px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-muted)', fontSize: '11px', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {ev.metadata && Object.keys(ev.metadata).length > 0
                         ? JSON.stringify(ev.metadata)
                         : '—'}
@@ -371,7 +371,7 @@ export default function ActivityOverview() {
             borderTop: '1px solid #1a1a1a',
             fontSize: '12px',
           }}>
-            <span style={{ color: '#444444' }}>
+            <span style={{ color: 'var(--text-muted)' }}>
               {total.toLocaleString()} total events
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -381,19 +381,19 @@ export default function ActivityOverview() {
                 style={{
                   padding: '4px 12px',
                   background: 'transparent',
-                  border: '1px solid #222222',
+                  border: '1px solid var(--border)',
                   borderRadius: '4px',
-                  color: page === 0 ? '#333333' : '#666666',
+                  color: page === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
                   fontSize: '12px',
                   cursor: page === 0 ? 'not-allowed' : 'pointer',
                   transition: 'border-color 0.15s, color 0.15s',
                 }}
-                onMouseEnter={e => { if (page !== 0) { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = page === 0 ? '#333333' : '#666666'; }}
+                onMouseEnter={e => { if (page !== 0) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = page === 0 ? 'var(--text-faint)' : 'var(--text-secondary)'; }}
               >
                 Prev
               </button>
-              <span style={{ color: '#444444', minWidth: '60px', textAlign: 'center' }}>
+              <span style={{ color: 'var(--text-muted)', minWidth: '60px', textAlign: 'center' }}>
                 {page + 1} / {totalPages}
               </span>
               <button
@@ -402,15 +402,15 @@ export default function ActivityOverview() {
                 style={{
                   padding: '4px 12px',
                   background: 'transparent',
-                  border: '1px solid #222222',
+                  border: '1px solid var(--border)',
                   borderRadius: '4px',
-                  color: page >= totalPages - 1 ? '#333333' : '#666666',
+                  color: page >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
                   fontSize: '12px',
                   cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
                   transition: 'border-color 0.15s, color 0.15s',
                 }}
-                onMouseEnter={e => { if (page < totalPages - 1) { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = page >= totalPages - 1 ? '#333333' : '#666666'; }}
+                onMouseEnter={e => { if (page < totalPages - 1) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = page >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)'; }}
               >
                 Next
               </button>

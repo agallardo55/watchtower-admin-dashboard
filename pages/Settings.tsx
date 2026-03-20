@@ -17,12 +17,12 @@ const tabs = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: '#0d0d0d',
-  border: '1px solid #222222',
+  background: 'var(--bg-input)',
+  border: '1px solid var(--border)',
   borderRadius: '4px',
   padding: '10px 14px',
   fontSize: '13px',
-  color: '#e0e0e0',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -31,7 +31,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '10px',
   fontWeight: 600,
-  color: '#666666',
+  color: 'var(--text-secondary)',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   display: 'block',
@@ -41,7 +41,7 @@ const labelStyle: React.CSSProperties = {
 const sectionHeaderStyle: React.CSSProperties = {
   fontSize: '12px',
   fontWeight: 600,
-  color: '#666666',
+  color: 'var(--text-secondary)',
   marginBottom: '4px',
 };
 
@@ -157,7 +157,7 @@ export default function Settings() {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
-        <div style={{ color: '#444444', fontSize: '13px' }}>Loading settings...</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Loading settings...</div>
       </div>
     );
   }
@@ -168,19 +168,19 @@ export default function Settings() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '896px', margin: '0 auto' }}>
       {/* Header */}
       <div>
-        <div style={{ fontSize: '10px', color: '#444444', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
+        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
           WATCHTOWER
         </div>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#e0e0e0', margin: 0, letterSpacing: '-0.01em' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
           // SETTINGS
         </h1>
-        <p style={{ color: '#444444', fontSize: '12px', marginTop: '4px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '4px' }}>
           Manage your account, security, and preferences.
         </p>
       </div>
 
       {/* Tab Bar */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #1a1a1a', gap: '0' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-subtle)', gap: '0' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -191,15 +191,15 @@ export default function Settings() {
               fontWeight: 500,
               background: 'transparent',
               border: 'none',
-              borderBottom: activeTab === tab.id ? '2px solid #4ADE80' : '2px solid transparent',
-              color: activeTab === tab.id ? '#4ADE80' : '#666666',
+              borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
+              color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
               cursor: 'pointer',
               transition: 'color 0.15s, border-color 0.15s',
               marginBottom: '-1px',
               fontFamily: 'inherit',
             }}
-            onMouseEnter={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#e0e0e0'; }}
-            onMouseLeave={e => { if (activeTab !== tab.id) e.currentTarget.style.color = '#666666'; }}
+            onMouseEnter={e => { if (activeTab !== tab.id) e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { if (activeTab !== tab.id) e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
             {tab.label}
           </button>
@@ -216,23 +216,23 @@ export default function Settings() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: 'rgba(74,222,128,0.1)',
-                border: '1px solid rgba(74,222,128,0.2)',
+                background: 'var(--accent-bg-hover)',
+                border: '1px solid var(--accent-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '22px',
                 fontWeight: 700,
-                color: '#4ADE80',
+                color: 'var(--accent)',
                 flexShrink: 0,
               }}>
                 {initials}
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0', margin: '0 0 4px 0' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
                   {profile.firstName} {profile.lastName}
                 </h3>
-                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
                   {profile.title} &bull; {profile.company}
                 </p>
               </div>
@@ -240,17 +240,17 @@ export default function Settings() {
                 style={{
                   padding: '7px 14px',
                   background: 'transparent',
-                  border: '1px solid #222222',
+                  border: '1px solid var(--border)',
                   borderRadius: '4px',
-                  color: '#666666',
+                  color: 'var(--text-secondary)',
                   fontSize: '12px',
                   fontWeight: 500,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                   transition: 'border-color 0.15s, color 0.15s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
               >
                 Change Avatar
               </button>
@@ -268,7 +268,7 @@ export default function Settings() {
                 fontSize: '13px',
                 background: saveMessage.type === 'success' ? 'rgba(74,222,128,0.08)' : 'rgba(239,68,68,0.08)',
                 border: `1px solid ${saveMessage.type === 'success' ? 'rgba(74,222,128,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                color: saveMessage.type === 'success' ? '#4ADE80' : '#EF4444',
+                color: saveMessage.type === 'success' ? 'var(--accent)' : '#EF4444',
               }}>
                 {saveMessage.text}
               </div>
@@ -282,8 +282,8 @@ export default function Settings() {
                   value={profile.firstName}
                   onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
                   style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 />
               </div>
               <div>
@@ -293,8 +293,8 @@ export default function Settings() {
                   value={profile.lastName}
                   onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
                   style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 />
               </div>
             </div>
@@ -308,7 +308,7 @@ export default function Settings() {
                   disabled
                   style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }}
                 />
-                <p style={{ fontSize: '10px', color: '#333333', marginTop: '4px' }}>Email changes require re-verification</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '4px' }}>Email changes require re-verification</p>
               </div>
               <div>
                 <label style={labelStyle}>Mobile Number</label>
@@ -318,10 +318,10 @@ export default function Settings() {
                   maxLength={14}
                   onChange={(e) => setProfile({ ...profile, mobile: formatPhone(e.target.value) })}
                   style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 />
-                <p style={{ fontSize: '10px', color: '#333333', marginTop: '4px' }}>Used for MFA and password reset</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '4px' }}>Used for MFA and password reset</p>
               </div>
             </div>
 
@@ -333,8 +333,8 @@ export default function Settings() {
                   value={profile.company}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
                   style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 />
               </div>
               <div>
@@ -343,8 +343,8 @@ export default function Settings() {
                   value={profile.timezone}
                   onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
                   style={{ ...inputStyle, cursor: 'pointer' }}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 >
                   <option value="America/Los_Angeles">Pacific Time (PT)</option>
                   <option value="America/Denver">Mountain Time (MT)</option>
@@ -361,8 +361,8 @@ export default function Settings() {
                 disabled={saving}
                 style={{
                   padding: '9px 24px',
-                  background: saving ? '#2d5a3d' : '#4ADE80',
-                  color: '#000000',
+                  background: saving ? 'var(--accent-dim)' : 'var(--accent)',
+                  color: 'var(--bg-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   fontSize: '13px',
@@ -372,8 +372,8 @@ export default function Settings() {
                   transition: 'background 0.15s, opacity 0.15s',
                   fontFamily: 'inherit',
                 }}
-                onMouseEnter={e => { if (!saving) e.currentTarget.style.background = '#6EE7A0'; }}
-                onMouseLeave={e => { if (!saving) e.currentTarget.style.background = '#4ADE80'; }}
+                onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--accent)'; }}
+                onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--accent)'; }}
               >
                 {saving ? 'Saving...' : 'Save Profile'}
               </button>
@@ -390,7 +390,7 @@ export default function Settings() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
                 <div style={sectionHeaderStyle}>Password</div>
-                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Last changed 30 days ago</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>Last changed 30 days ago</p>
               </div>
               {!showChangePassword && (
                 <button
@@ -398,17 +398,17 @@ export default function Settings() {
                   style={{
                     padding: '7px 14px',
                     background: 'transparent',
-                    border: '1px solid #222222',
+                    border: '1px solid var(--border)',
                     borderRadius: '4px',
-                    color: '#666666',
+                    color: 'var(--text-secondary)',
                     fontSize: '12px',
                     fontWeight: 500,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'border-color 0.15s, color 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
                   Change Password
                 </button>
@@ -432,8 +432,8 @@ export default function Settings() {
                     value={passwords.current}
                     onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
                     style={inputStyle}
-                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                   />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -445,8 +445,8 @@ export default function Settings() {
                       value={passwords.newPass}
                       onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })}
                       style={inputStyle}
-                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                     />
                   </div>
                   <div>
@@ -457,8 +457,8 @@ export default function Settings() {
                       value={passwords.confirm}
                       onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
                       style={inputStyle}
-                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                     />
                   </div>
                 </div>
@@ -469,17 +469,17 @@ export default function Settings() {
                     style={{
                       padding: '7px 14px',
                       background: 'transparent',
-                      border: '1px solid #222222',
+                      border: '1px solid var(--border)',
                       borderRadius: '4px',
-                      color: '#666666',
+                      color: 'var(--text-secondary)',
                       fontSize: '12px',
                       fontWeight: 500,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
                       transition: 'border-color 0.15s, color 0.15s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#444444'; e.currentTarget.style.color = '#e0e0e0'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text-muted)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
                     Cancel
                   </button>
@@ -487,8 +487,8 @@ export default function Settings() {
                     type="submit"
                     style={{
                       padding: '7px 16px',
-                      background: '#4ADE80',
-                      color: '#000000',
+                      background: 'var(--accent)',
+                      color: 'var(--bg-primary)',
                       border: 'none',
                       borderRadius: '4px',
                       fontSize: '12px',
@@ -497,8 +497,8 @@ export default function Settings() {
                       fontFamily: 'inherit',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#6EE7A0'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#4ADE80'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; }}
                   >
                     Update Password
                   </button>
@@ -512,7 +512,7 @@ export default function Settings() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
                 <div style={sectionHeaderStyle}>Two-Factor Authentication</div>
-                <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Add an extra layer of security to your account</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>Add an extra layer of security to your account</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{
@@ -520,7 +520,7 @@ export default function Settings() {
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
-                  color: '#F59E0B',
+                  color: 'var(--warning)',
                   background: 'rgba(245,158,11,0.1)',
                   border: '1px solid rgba(245,158,11,0.2)',
                   padding: '2px 8px',
@@ -532,17 +532,17 @@ export default function Settings() {
                   style={{
                     padding: '7px 14px',
                     background: 'transparent',
-                    border: '1px solid #222222',
+                    border: '1px solid var(--border)',
                     borderRadius: '4px',
-                    color: '#666666',
+                    color: 'var(--text-secondary)',
                     fontSize: '12px',
                     fontWeight: 500,
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'border-color 0.15s, color 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.color = '#4ADE80'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.color = '#666666'; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
                   Enable 2FA
                 </button>
@@ -559,7 +559,7 @@ export default function Settings() {
           <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <div style={sectionHeaderStyle}>Email Notifications</div>
-              <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>Choose what email notifications you receive</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>Choose what email notifications you receive</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -584,8 +584,8 @@ export default function Settings() {
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div>
-                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#e0e0e0', margin: '0 0 2px 0' }}>{item.label}</p>
-                    <p style={{ fontSize: '10px', color: '#444444', margin: 0 }}>{item.desc}</p>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 2px 0' }}>{item.label}</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: 0 }}>{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleNotif(item.key)}
@@ -593,8 +593,8 @@ export default function Settings() {
                       width: '36px',
                       height: '20px',
                       borderRadius: '10px',
-                      background: notifications[item.key] ? '#4ADE80' : '#1a1a1a',
-                      border: `1px solid ${notifications[item.key] ? '#4ADE80' : '#333333'}`,
+                      background: notifications[item.key] ? 'var(--accent)' : 'var(--bg-elevated)',
+                      border: `1px solid ${notifications[item.key] ? 'var(--accent)' : 'var(--text-faint)'}`,
                       position: 'relative',
                       cursor: 'pointer',
                       transition: 'background 0.2s, border-color 0.2s',
@@ -605,7 +605,7 @@ export default function Settings() {
                       style={{
                         width: '14px',
                         height: '14px',
-                        background: notifications[item.key] ? '#000000' : '#444444',
+                        background: notifications[item.key] ? 'var(--bg-primary)' : 'var(--text-muted)',
                         borderRadius: '50%',
                         position: 'absolute',
                         top: '2px',
@@ -623,7 +623,7 @@ export default function Settings() {
           <div className="terminal-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <div style={sectionHeaderStyle}>Push Notifications</div>
-              <p style={{ fontSize: '12px', color: '#444444', margin: 0 }}>In-app and browser push notification preferences</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>In-app and browser push notification preferences</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -648,8 +648,8 @@ export default function Settings() {
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div>
-                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#e0e0e0', margin: '0 0 2px 0' }}>{item.label}</p>
-                    <p style={{ fontSize: '10px', color: '#444444', margin: 0 }}>{item.desc}</p>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 2px 0' }}>{item.label}</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: 0 }}>{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleNotif(item.key)}
@@ -657,8 +657,8 @@ export default function Settings() {
                       width: '36px',
                       height: '20px',
                       borderRadius: '10px',
-                      background: notifications[item.key] ? '#4ADE80' : '#1a1a1a',
-                      border: `1px solid ${notifications[item.key] ? '#4ADE80' : '#333333'}`,
+                      background: notifications[item.key] ? 'var(--accent)' : 'var(--bg-elevated)',
+                      border: `1px solid ${notifications[item.key] ? 'var(--accent)' : 'var(--text-faint)'}`,
                       position: 'relative',
                       cursor: 'pointer',
                       transition: 'background 0.2s, border-color 0.2s',
@@ -669,7 +669,7 @@ export default function Settings() {
                       style={{
                         width: '14px',
                         height: '14px',
-                        background: notifications[item.key] ? '#000000' : '#444444',
+                        background: notifications[item.key] ? 'var(--bg-primary)' : 'var(--text-muted)',
                         borderRadius: '50%',
                         position: 'absolute',
                         top: '2px',
@@ -687,8 +687,8 @@ export default function Settings() {
             <button
               style={{
                 padding: '9px 24px',
-                background: '#4ADE80',
-                color: '#000000',
+                background: 'var(--accent)',
+                color: 'var(--bg-primary)',
                 border: 'none',
                 borderRadius: '4px',
                 fontSize: '13px',
@@ -697,8 +697,8 @@ export default function Settings() {
                 fontFamily: 'inherit',
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#6EE7A0'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#4ADE80'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; }}
             >
               Save Preferences
             </button>

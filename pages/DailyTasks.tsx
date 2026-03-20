@@ -53,16 +53,16 @@ const priorityBorderStyle: Record<Priority, React.CSSProperties> = {
 };
 
 const priorityBadgeStyle: Record<Priority, React.CSSProperties> = {
-  critical: { color: '#EF4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  high: { color: '#EF4444', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  medium: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  low: { color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  critical: { color: 'var(--danger)', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  high: { color: 'var(--danger)', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  medium: { color: 'var(--warning)', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  low: { color: 'var(--text-secondary)', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
 };
 
 const statusDotColor: Record<TaskStatus, string> = {
-  todo: '#3B82F6',
-  in_progress: '#A78BFA',
-  done: '#4ADE80',
+  todo: `var(--info)`,
+  in_progress: `var(--purple)`,
+  done: 'var(--accent)',
 };
 
 const statusColors: Record<TaskStatus, { dot: string; label: string }> = {
@@ -178,10 +178,10 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    background: '#0d0d0d',
-    border: '1px solid #222222',
+    background: 'var(--bg-input)',
+    border: '1px solid var(--border)',
     borderRadius: '4px',
-    color: '#e0e0e0',
+    color: 'var(--text-primary)',
     fontSize: 13,
     padding: '8px 12px',
     outline: 'none',
@@ -192,7 +192,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
   const labelStyle: React.CSSProperties = {
     fontSize: 10,
     fontWeight: 600,
-    color: '#666666',
+    color: 'var(--text-secondary)',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     display: 'block',
@@ -209,8 +209,8 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
       <div
         className="relative w-full"
         style={{
-          background: '#111111',
-          border: '1px solid #222222',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border)',
           borderRadius: '4px',
           maxWidth: 480,
           maxHeight: '90vh',
@@ -219,7 +219,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
         }}
       >
         <div style={{ padding: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 20 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 20 }}>
             {isEdit ? 'Edit Task' : 'New Task'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -235,7 +235,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
                 autoFocus
               />
               {titleError && (
-                <p style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{titleError}</p>
+                <p style={{ color: 'var(--danger)', fontSize: 11, marginTop: 4 }}>{titleError}</p>
               )}
             </div>
 
@@ -303,7 +303,7 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
               <button
                 type="button"
                 onClick={onClose}
-                style={{ padding: '7px 14px', background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ padding: '7px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 Cancel
               </button>
@@ -312,8 +312,8 @@ function TaskModal({ task, isEdit, defaultDate, onSave, onClose, saving, appList
                 disabled={saving || !title.trim()}
                 style={{
                   padding: '7px 16px',
-                  background: '#4ADE80',
-                  color: '#000',
+                  background: 'var(--accent)',
+                  color: 'var(--bg-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   fontSize: 13,
@@ -352,23 +352,23 @@ function DeleteConfirm({ taskTitle, onConfirm, onCancel, deleting }: { taskTitle
       <div
         className="relative w-full"
         style={{
-          background: '#111111',
-          border: '1px solid #222222',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border)',
           borderRadius: '4px',
           maxWidth: 384,
           padding: 24,
           boxShadow: '0 24px 48px rgba(0,0,0,0.8)',
         }}
       >
-        <h3 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 8 }}>Delete Task</h3>
-        <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>
-          Are you sure you want to delete "<span style={{ color: '#e0e0e0' }}>{taskTitle}</span>"? This cannot be undone.
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Delete Task</h3>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          Are you sure you want to delete "<span style={{ color: 'var(--text-primary)' }}>{taskTitle}</span>"? This cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
             disabled={deleting}
-            style={{ background: 'transparent', border: '1px solid #222222', color: '#666666', padding: '8px 16px', borderRadius: '4px', fontSize: 13, cursor: 'pointer', opacity: deleting ? 0.5 : 1, fontFamily: 'inherit' }}
+            style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '8px 16px', borderRadius: '4px', fontSize: 13, cursor: 'pointer', opacity: deleting ? 0.5 : 1, fontFamily: 'inherit' }}
           >
             Cancel
           </button>
@@ -376,7 +376,7 @@ function DeleteConfirm({ taskTitle, onConfirm, onCancel, deleting }: { taskTitle
             onClick={onConfirm}
             disabled={deleting}
             style={{
-              background: '#EF4444',
+              background: 'var(--danger)',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
@@ -422,8 +422,8 @@ function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCa
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? '#1a1a1a' : '#111111',
-        border: '1px solid #222222',
+        background: hovered ? 'var(--bg-elevated)' : 'var(--bg-surface)',
+        border: '1px solid var(--border)',
         borderRadius: '4px',
         padding: '8px 10px',
         cursor: 'pointer',
@@ -459,7 +459,7 @@ function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCa
             style={{
               fontSize: 12,
               fontWeight: 500,
-              color: task.status === 'done' ? '#444444' : '#e0e0e0',
+              color: task.status === 'done' ? 'var(--text-muted)' : 'var(--text-primary)',
               textDecoration: task.status === 'done' ? 'line-through' : 'none',
               lineHeight: 1.3,
               overflow: 'hidden',
@@ -471,7 +471,7 @@ function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCa
           </p>
           <div className="flex items-center flex-wrap gap-1" style={{ marginTop: 4 }}>
             {task.app && (
-              <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 9, fontWeight: 500, background: 'rgba(255,255,255,0.04)', color: '#666666', border: '1px solid #222222', display: 'inline-block', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 9, fontWeight: 500, background: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)', border: '1px solid var(--border)', display: 'inline-block', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {task.app}
               </span>
             )}
@@ -488,14 +488,14 @@ function TaskCard({ task, onEdit, onDelete, onStatusCycle, onDragStart }: TaskCa
         >
           <button
             onClick={() => onEdit(task)}
-            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
+            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             title="Edit"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
           </button>
           <button
             onClick={() => onDelete(task)}
-            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
+            style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             title="Delete"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
@@ -523,7 +523,7 @@ function Backlog({ tasks, onEdit, onDelete, onStatusCycle, onDragStart, onDragOv
   return (
     <div
       style={{
-        background: isDragOver ? 'rgba(245,158,11,0.05)' : '#111111',
+        background: isDragOver ? 'rgba(245,158,11,0.05)' : 'var(--bg-surface)',
         border: isDragOver ? '1px solid rgba(245,158,11,0.4)' : '1px solid #222222',
         borderRadius: '4px',
         overflow: 'hidden',
@@ -538,14 +538,14 @@ function Backlog({ tasks, onEdit, onDelete, onStatusCycle, onDragStart, onDragOv
         style={{ padding: '8px 12px', borderBottom: '1px solid #222222' }}
       >
         <div className="flex items-center gap-2">
-          <div style={{ width: 8, height: 8, borderRadius: '999px', background: '#F59E0B' }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#e0e0e0' }}>Backlog</span>
+          <div style={{ width: 8, height: 8, borderRadius: '999px', background: 'var(--warning)' }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>Backlog</span>
         </div>
-        <span style={{ fontSize: 10, color: '#666666', background: '#0d0d0d', padding: '2px 6px', borderRadius: '999px', border: '1px solid #222222' }}>{tasks.length}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg-input)', padding: '2px 6px', borderRadius: '999px', border: '1px solid var(--border)' }}>{tasks.length}</span>
       </div>
       <div className="max-h-[300px] overflow-y-auto" style={{ padding: 8 }}>
         {tasks.length === 0 ? (
-          <p style={{ fontSize: 10, color: '#444444', textAlign: 'center', padding: '16px 0' }}>No unscheduled tasks</p>
+          <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>No unscheduled tasks</p>
         ) : (
           tasks.map(task => (
             <TaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusCycle={onStatusCycle} onDragStart={onDragStart} />
@@ -846,7 +846,7 @@ export default function DailyTasks() {
   // --- Loading state ---
   if (loading) {
     return (
-      <div style={{ color: '#444444', fontSize: 12, padding: '40px 0' }}>loading tasks...</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: 12, padding: '40px 0' }}>loading tasks...</div>
     );
   }
 
@@ -860,11 +860,11 @@ export default function DailyTasks() {
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
         </div>
-        <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 4 }}>Failed to load tasks</h2>
-        <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>{error}</p>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Failed to load tasks</h2>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>{error}</p>
         <button
           onClick={() => { setLoading(true); setError(null); fetchTasks(); }}
-          style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: '#4ADE80', color: '#000', border: 'none', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', cursor: 'pointer' }}
         >
           Retry
         </button>
@@ -880,10 +880,10 @@ export default function DailyTasks() {
           className="flex items-center justify-between"
           style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px' }}
         >
-          <p style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>
+          <p style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</p>
           <button
             onClick={() => setError(null)}
-            style={{ fontSize: 11, color: '#EF4444', marginLeft: 16, background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ fontSize: 11, color: 'var(--danger)', marginLeft: 16, background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Dismiss
           </button>
@@ -893,14 +893,14 @@ export default function DailyTasks() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e0e0e0' }}>Weekly Tasks</h1>
-          <p style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{formatWeekRange(weekStart)}</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>Weekly Tasks</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{formatWeekRange(weekStart)}</p>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={appFilter}
             onChange={e => setAppFilter(e.target.value)}
-            style={{ background: '#0d0d0d', border: '1px solid #222222', borderRadius: '4px', color: '#e0e0e0', fontSize: 12, padding: '5px 10px', outline: 'none', fontFamily: 'inherit' }}
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-primary)', fontSize: 12, padding: '5px 10px', outline: 'none', fontFamily: 'inherit' }}
           >
             <option value="all">All Apps</option>
             {usedApps.map(a => <option key={a} value={a}>{a}</option>)}
@@ -914,7 +914,7 @@ export default function DailyTasks() {
               fontWeight: 500,
               border: showBacklog ? '1px solid rgba(245,158,11,0.3)' : '1px solid #222222',
               background: showBacklog ? 'rgba(245,158,11,0.1)' : 'transparent',
-              color: showBacklog ? '#F59E0B' : '#444444',
+              color: showBacklog ? 'var(--warning)' : 'var(--text-muted)',
               cursor: 'pointer',
               fontFamily: 'inherit',
             }}
@@ -923,7 +923,7 @@ export default function DailyTasks() {
           </button>
           <button
             onClick={() => { setModalDefaultDate(today); setModalOpen(true); }}
-            style={{ background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', borderRadius: '4px', padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
             Add Task
@@ -936,7 +936,7 @@ export default function DailyTasks() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setWeekOffset(o => o - 1)}
-            style={{ background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+            style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
@@ -944,9 +944,9 @@ export default function DailyTasks() {
             onClick={() => setWeekOffset(0)}
             style={{
               background: 'transparent',
-              border: '1px solid #222222',
+              border: '1px solid var(--border)',
               borderRadius: '4px',
-              color: weekOffset === 0 ? '#4ADE80' : '#444444',
+              color: weekOffset === 0 ? 'var(--accent)' : 'var(--text-muted)',
               fontSize: 12,
               cursor: 'pointer',
               padding: '4px 10px',
@@ -957,23 +957,23 @@ export default function DailyTasks() {
           </button>
           <button
             onClick={() => setWeekOffset(o => o + 1)}
-            style={{ background: 'transparent', border: '1px solid #222222', borderRadius: '4px', color: '#666666', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+            style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
 
-        <div className="flex items-center gap-4" style={{ fontSize: 12, color: '#666666' }}>
+        <div className="flex items-center gap-4" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
           {weekTaskCount.total > 0 && (
             <span>
-              <span style={{ color: '#4ADE80', fontWeight: 500 }}>{weekTaskCount.done}</span>/{weekTaskCount.total} done
+              <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{weekTaskCount.done}</span>/{weekTaskCount.total} done
             </span>
           )}
           {overdueCount > 0 && (
             <button
               onClick={handleMoveOverdueToToday}
               className="flex items-center gap-1"
-              style={{ color: '#F59E0B', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}
+              style={{ color: 'var(--warning)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12 }}
             >
               {overdueCount} overdue — move to today
             </button>
@@ -985,19 +985,19 @@ export default function DailyTasks() {
       {tasks.length === 0 && (
         <div
           className="flex flex-col items-center justify-center py-16"
-          style={{ border: '1px solid #222222', borderRadius: '4px', background: 'rgba(17,17,17,0.5)' }}
+          style={{ border: '1px solid var(--border)', borderRadius: '4px', background: 'rgba(17,17,17,0.5)' }}
         >
           <div
             className="w-12 h-12 flex items-center justify-center"
-            style={{ borderRadius: '999px', background: '#1a1a1a', marginBottom: 16 }}
+            style={{ borderRadius: '999px', background: 'var(--bg-elevated)', marginBottom: 16 }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#444444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
           </div>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e0e0e0', marginBottom: 4 }}>No tasks yet</h2>
-          <p style={{ fontSize: 13, color: '#666666', marginBottom: 16 }}>Create your first task to get started</p>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>No tasks yet</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>Create your first task to get started</p>
           <button
             onClick={() => { setModalDefaultDate(today); setModalOpen(true); }}
-            style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: '#4ADE80', color: '#000', border: 'none', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', borderRadius: '4px', fontSize: 13, fontWeight: 600, background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', cursor: 'pointer' }}
           >
             Add Task
           </button>
@@ -1055,7 +1055,7 @@ export default function DailyTasks() {
                       style={{
                         fontSize: 10,
                         fontWeight: 600,
-                        color: isToday ? '#4ADE80' : '#444444',
+                        color: isToday ? 'var(--accent)' : 'var(--text-muted)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.06em',
                       }}
@@ -1066,7 +1066,7 @@ export default function DailyTasks() {
                       style={{
                         fontSize: 20,
                         fontWeight: 700,
-                        color: isToday ? '#4ADE80' : '#e0e0e0',
+                        color: isToday ? 'var(--accent)' : 'var(--text-primary)',
                         lineHeight: 1,
                       }}
                     >
@@ -1075,7 +1075,7 @@ export default function DailyTasks() {
                   </div>
                   <button
                     onClick={() => { setModalDefaultDate(key); setModalOpen(true); }}
-                    style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: '#444444', display: 'flex', alignItems: 'center' }}
+                    style={{ padding: 2, borderRadius: 3, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
                     title={`Add task to ${DAY_NAMES_FULL[d.getDay()]}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -1085,7 +1085,7 @@ export default function DailyTasks() {
                 {/* Tasks */}
                 <div className="flex-1 overflow-y-auto" style={{ padding: 6, minHeight: 120 }}>
                   {dayTasks.length === 0 ? (
-                    <p style={{ color: '#444444', fontSize: 11, textAlign: 'center', padding: '16px 0' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 11, textAlign: 'center', padding: '16px 0' }}>
                       {isPast ? '—' : ''}
                     </p>
                   ) : (
@@ -1104,7 +1104,7 @@ export default function DailyTasks() {
 
                 {/* Day task count */}
                 {dayTasks.length > 0 && (
-                  <div style={{ padding: '4px 8px', borderTop: '1px solid #222222', fontSize: 10, color: '#444444' }}>
+                  <div style={{ padding: '4px 8px', borderTop: '1px solid #222222', fontSize: 10, color: 'var(--text-muted)' }}>
                     {dayTasks.filter(t => t.status === 'done').length}/{dayTasks.length}
                   </div>
                 )}

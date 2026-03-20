@@ -824,13 +824,13 @@ export default function AllUsers() {
               <div style={{ width: '100%', minHeight: 250 }} className="h-[250px] lg:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={barData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} hide />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--chart-axis)', fontSize: 10}} hide />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--chart-axis)', fontSize: 10}} />
                     <Tooltip
-                      cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                      contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px', fontSize: '12px'}}
-                      itemStyle={{color: '#f1f5f9'}}
+                      cursor={{fill: 'var(--chart-cursor)'}}
+                      contentStyle={{backgroundColor: 'var(--chart-tooltip-bg)', borderColor: 'var(--chart-tooltip-border)', borderRadius: '8px', fontSize: '12px'}}
+                      itemStyle={{color: 'var(--chart-tooltip-text)'}}
                     />
                     <Bar dataKey="users" radius={[4, 4, 0, 0]}>
                       {barData.map((entry, index) => (

@@ -18,15 +18,15 @@ interface Task {
 }
 
 const categoryStyles: Record<string, React.CSSProperties> = {
-  specs:          { color: '#3B82F6', background: 'rgba(59,130,246,0.1)',   border: '1px solid rgba(59,130,246,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  research:       { color: '#A78BFA', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  infrastructure: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  content:        { color: '#4ADE80', background: 'rgba(74,222,128,0.1)',  border: '1px solid rgba(74,222,128,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  development:    { color: '#3B82F6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  specs:          { color: 'var(--info)', background: 'rgba(59,130,246,0.1)',   border: '1px solid rgba(59,130,246,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  research:       { color: 'var(--purple)', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  infrastructure: { color: 'var(--warning)', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  content:        { color: 'var(--accent)', background: 'var(--accent-bg-hover)',  border: '1px solid var(--accent-border)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  development:    { color: 'var(--info)', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
 };
 
 const defaultCategoryStyle: React.CSSProperties = {
-  color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600,
+  color: 'var(--text-secondary)', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600,
 };
 
 const categoryLabels: Record<string, string> = {
@@ -35,19 +35,19 @@ const categoryLabels: Record<string, string> = {
 };
 
 const priorityStyles: Record<string, React.CSSProperties> = {
-  high:   { color: '#EF4444', background: 'rgba(239,68,68,0.1)',   border: '1px solid rgba(239,68,68,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  medium: { color: '#F59E0B', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
-  low:    { color: '#666666', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  high:   { color: 'var(--danger)', background: 'rgba(239,68,68,0.1)',   border: '1px solid rgba(239,68,68,0.2)',   padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  medium: { color: 'var(--warning)', background: 'rgba(245,158,11,0.1)',  border: '1px solid rgba(245,158,11,0.2)',  padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
+  low:    { color: 'var(--text-secondary)', background: 'rgba(102,102,102,0.1)', border: '1px solid rgba(102,102,102,0.2)', padding: '2px 8px', borderRadius: 3, fontSize: 10, fontWeight: 600 },
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: '#0d0d0d',
-  border: '1px solid #222222',
+  background: 'var(--bg-input)',
+  border: '1px solid var(--border)',
   borderRadius: '4px',
   padding: '8px 12px',
   fontSize: 13,
-  color: '#e0e0e0',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -56,7 +56,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 600,
-  color: '#666666',
+  color: 'var(--text-secondary)',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   display: 'block',
@@ -213,17 +213,17 @@ export default function Development() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div style={{ fontSize: 11, color: '#444444', marginBottom: 4 }}>// development</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e0e0e0', margin: 0 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>// development</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             {currentApp ? `${apps.find(a => a.name === currentApp)?.icon || ''} ${currentApp}` : 'development'}
           </h2>
-          <p style={{ fontSize: 12, color: '#666666', marginTop: 4 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
             {currentApp ? `Tasks for ${currentApp}.` : 'Daily tasks and work items across all applications.'}
           </p>
         </div>
         <button
           onClick={() => { setNewTask(prev => ({ ...prev, app: currentApp || 'Watchtower' })); setShowAddTask(true); }}
-          style={{ background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+          style={{ background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', borderRadius: '4px', padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           Add Task
@@ -231,14 +231,14 @@ export default function Development() {
       </div>
 
       {/* Stat line */}
-      <p style={{ fontSize: 13, color: '#666666' }}>
-        <span style={{ color: '#e0e0e0', fontWeight: 600 }}>{stats.total}</span> tasks
-        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
-        <span style={{ color: '#4ADE80', fontWeight: 600 }}>{stats.done}</span> completed
-        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
-        <span style={{ color: '#3B82F6', fontWeight: 600 }}>{stats.total - stats.done}</span> remaining
-        <span style={{ margin: '0 6px', color: '#444444' }}>&middot;</span>
-        <span style={{ color: '#EF4444', fontWeight: 600 }}>{stats.high}</span> high priority
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{stats.total}</span> tasks
+        <span style={{ margin: '0 6px', color: 'var(--text-muted)' }}>&middot;</span>
+        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{stats.done}</span> completed
+        <span style={{ margin: '0 6px', color: 'var(--text-muted)' }}>&middot;</span>
+        <span style={{ color: 'var(--info)', fontWeight: 600 }}>{stats.total - stats.done}</span> remaining
+        <span style={{ margin: '0 6px', color: 'var(--text-muted)' }}>&middot;</span>
+        <span style={{ color: 'var(--danger)', fontWeight: 600 }}>{stats.high}</span> high priority
       </p>
 
       {/* Category filter pills */}
@@ -249,8 +249,8 @@ export default function Development() {
             onClick={() => setCategoryFilter(cat)}
             style={
               categoryFilter === cat
-                ? { background: 'rgba(74,222,128,0.1)', color: '#4ADE80', border: '1px solid rgba(74,222,128,0.2)', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
-                : { background: 'transparent', color: '#444444', border: '1px solid #222222', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
+                ? { background: 'var(--accent-bg-hover)', color: 'var(--accent)', border: '1px solid var(--accent-border)', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
+                : { background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '999px', padding: '6px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }
             }
           >
             {cat === 'all' ? 'All' : (categoryLabels[cat] || cat)}
@@ -258,17 +258,17 @@ export default function Development() {
         ))}
       </div>
 
-      {loading && <p style={{ color: '#444444', fontSize: 12 }}>loading tasks...</p>}
+      {loading && <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>loading tasks...</p>}
 
       {/* 3-column kanban */}
       <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto pb-4 lg:pb-0 -mx-1 px-1">
         {/* To Do */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#666666', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
               To Do
             </h2>
-            <span style={{ fontSize: 10, background: '#1a1a1a', color: '#444444', padding: '1px 8px', borderRadius: '999px', border: '1px solid #222222' }}>
+            <span style={{ fontSize: 10, background: 'var(--bg-elevated)', color: 'var(--text-muted)', padding: '1px 8px', borderRadius: '999px', border: '1px solid var(--border)' }}>
               {todoTasks.length}
             </span>
           </div>
@@ -282,7 +282,7 @@ export default function Development() {
               />
             ))}
             {todoTasks.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: '#444444', fontSize: 12 }}>No tasks here</div>
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 12 }}>No tasks here</div>
             )}
           </div>
         </div>
@@ -290,10 +290,10 @@ export default function Development() {
         {/* Review */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
               Review
             </h2>
-            <span style={{ fontSize: 10, background: 'rgba(245,158,11,0.1)', color: '#F59E0B', padding: '1px 8px', borderRadius: '999px', border: '1px solid rgba(245,158,11,0.2)' }}>
+            <span style={{ fontSize: 10, background: 'rgba(245,158,11,0.1)', color: 'var(--warning)', padding: '1px 8px', borderRadius: '999px', border: '1px solid rgba(245,158,11,0.2)' }}>
               {reviewTasks.length}
             </span>
           </div>
@@ -309,7 +309,7 @@ export default function Development() {
               />
             ))}
             {reviewTasks.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: '#444444', fontSize: 12 }}>No tasks in review</div>
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 12 }}>No tasks in review</div>
             )}
           </div>
         </div>
@@ -317,10 +317,10 @@ export default function Development() {
         {/* Done */}
         <div className="min-w-[280px] lg:min-w-0 flex-shrink-0 lg:flex-shrink">
           <div className="flex items-center gap-3 mb-4">
-            <h2 style={{ fontSize: 11, fontWeight: 600, color: '#4ADE80', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
               Done
             </h2>
-            <span style={{ fontSize: 10, background: 'rgba(74,222,128,0.1)', color: '#4ADE80', padding: '1px 8px', borderRadius: '999px', border: '1px solid rgba(74,222,128,0.2)' }}>
+            <span style={{ fontSize: 10, background: 'var(--accent-bg-hover)', color: 'var(--accent)', padding: '1px 8px', borderRadius: '999px', border: '1px solid var(--accent-border)' }}>
               {doneTasks.length}
             </span>
           </div>
@@ -341,13 +341,13 @@ export default function Development() {
       {/* Add Task Modal */}
       {showAddTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
-          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#e0e0e0', margin: 0 }}>New Task</h3>
-                <p style={{ fontSize: 11, color: '#666666', marginTop: 4, marginBottom: 0 }}>Add a new task to your development board.</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>New Task</h3>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, marginBottom: 0 }}>Add a new task to your development board.</p>
               </div>
-              <button onClick={() => setShowAddTask(false)} style={{ background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <button onClick={() => setShowAddTask(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
               </button>
             </div>
@@ -361,8 +361,8 @@ export default function Development() {
                   value={newTask.title}
                   onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
                   style={inputStyle}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
               </div>
               <div>
@@ -373,8 +373,8 @@ export default function Development() {
                   value={newTask.description}
                   onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
                   style={{ ...inputStyle, resize: 'none' }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -384,8 +384,8 @@ export default function Development() {
                     value={newTask.app}
                     onChange={e => setNewTask(prev => ({ ...prev, app: e.target.value }))}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
@@ -399,8 +399,8 @@ export default function Development() {
                     value={newTask.category}
                     onChange={e => setNewTask(prev => ({ ...prev, category: e.target.value }))}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
@@ -417,8 +417,8 @@ export default function Development() {
                     value={newTask.priority}
                     onChange={e => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
@@ -431,8 +431,8 @@ export default function Development() {
                     value={newTask.status}
                     onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value as TaskStatus }))}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
@@ -445,14 +445,14 @@ export default function Development() {
                 <button
                   type="button"
                   onClick={() => setShowAddTask(false)}
-                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  style={{ flex: 1, padding: '8px 16px', background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+                  style={{ flex: 1, padding: '8px 16px', background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
                 >
                   {saving ? 'Saving...' : 'Add Task'}
                 </button>
@@ -465,20 +465,20 @@ export default function Development() {
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
-          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 400, padding: '24px' }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: '#EF4444', marginBottom: 8, marginTop: 0 }}>Delete Task</h3>
-            <p style={{ fontSize: 12, color: '#666666', marginBottom: 16 }}>Are you sure? This cannot be undone.</p>
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', width: '100%', maxWidth: 400, padding: '24px' }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--danger)', marginBottom: 8, marginTop: 0 }}>Delete Task</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>Are you sure? This cannot be undone.</p>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={saving}
-                style={{ flex: 1, padding: '8px 16px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+                style={{ flex: 1, padding: '8px 16px', background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
               >
                 {saving ? 'Deleting...' : 'Delete'}
               </button>
@@ -490,13 +490,13 @@ export default function Development() {
       {/* Edit Task Modal */}
       {editingTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(10,10,10,0.9)' }}>
-          <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', width: '100%', maxWidth: 540, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#e0e0e0', margin: 0 }}>Edit Task</h3>
-                <p style={{ fontSize: 11, color: '#666666', marginTop: 4, marginBottom: 0 }}>Update task details or mark as complete.</p>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Task</h3>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, marginBottom: 0 }}>Update task details or mark as complete.</p>
               </div>
-              <button onClick={() => setEditingTask(null)} style={{ background: 'transparent', border: 'none', color: '#444444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <button onClick={() => setEditingTask(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
               </button>
             </div>
@@ -509,8 +509,8 @@ export default function Development() {
                   value={editingTask.title}
                   onChange={e => setEditingTask({ ...editingTask, title: e.target.value })}
                   style={inputStyle}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
               </div>
               <div>
@@ -521,8 +521,8 @@ export default function Development() {
                   value={editingTask.description || ''}
                   onChange={e => setEditingTask({ ...editingTask, description: e.target.value })}
                   style={{ ...inputStyle, resize: 'none' }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                  onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -532,8 +532,8 @@ export default function Development() {
                     value={editingTask.app}
                     onChange={e => setEditingTask({ ...editingTask, app: e.target.value })}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="Watchtower">Watchtower</option>
                     {apps.map(a => (
@@ -547,8 +547,8 @@ export default function Development() {
                     value={editingTask.category}
                     onChange={e => setEditingTask({ ...editingTask, category: e.target.value })}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="specs">Specs</option>
                     <option value="research">Research</option>
@@ -565,8 +565,8 @@ export default function Development() {
                     value={editingTask.priority}
                     onChange={e => setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] })}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
@@ -579,8 +579,8 @@ export default function Development() {
                     value={editingTask.status}
                     onChange={e => setEditingTask({ ...editingTask, status: e.target.value as TaskStatus })}
                     style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#4ADE80')}
-                    onBlur={e => (e.currentTarget.style.borderColor = '#222222')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                   >
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>
@@ -594,7 +594,7 @@ export default function Development() {
                   type="button"
                   disabled={saving}
                   onClick={() => deleteTask(editingTask.id)}
-                  style={{ padding: '8px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                  style={{ padding: '8px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
                 >
                   Delete
                 </button>
@@ -602,14 +602,14 @@ export default function Development() {
                 <button
                   type="button"
                   onClick={() => setEditingTask(null)}
-                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #222222', color: '#666666', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                  style={{ padding: '8px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  style={{ padding: '8px 16px', background: '#4ADE80', color: '#000', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
+                  style={{ padding: '8px 16px', background: 'var(--accent)', color: 'var(--bg-primary)', border: 'none', borderRadius: '4px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.5 : 1 }}
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -636,11 +636,11 @@ interface TaskCardProps {
 function TaskCard({ task, currentApp, onClick, done, accentBorder, accentBorderHover }: TaskCardProps) {
   const [hovered, setHovered] = useState(false);
 
-  const baseBorder = accentBorder || '#222222';
-  const hoverBorder = accentBorderHover || '#2a2a2a';
+  const baseBorder = accentBorder || 'var(--border)';
+  const hoverBorder = accentBorderHover || 'var(--border-accent)';
 
   const cardStyle: React.CSSProperties = {
-    background: done ? '#0d0d0d' : (hovered ? '#1a1a1a' : '#111111'),
+    background: done ? 'var(--bg-input)' : (hovered ? 'var(--bg-elevated)' : 'var(--bg-surface)'),
     border: `1px solid ${hovered ? hoverBorder : baseBorder}`,
     borderRadius: '4px',
     padding: 16,
@@ -661,7 +661,7 @@ function TaskCard({ task, currentApp, onClick, done, accentBorder, accentBorderH
       onMouseLeave={() => setHovered(false)}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={done ? { fontWeight: 500, fontSize: 13, color: '#444444', textDecoration: 'line-through' } : { fontWeight: 500, fontSize: 13, color: '#e0e0e0' }}>
+        <span style={done ? { fontWeight: 500, fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' } : { fontWeight: 500, fontSize: 13, color: 'var(--text-primary)' }}>
           {task.title}
         </span>
         <span style={priStyle}>
@@ -669,7 +669,7 @@ function TaskCard({ task, currentApp, onClick, done, accentBorder, accentBorderH
         </span>
       </div>
       {task.description && (
-        <p style={done ? { color: '#444444', fontSize: 11, marginTop: 4, textDecoration: 'line-through', marginBottom: 0 } : { color: '#444444', fontSize: 11, marginTop: 4, marginBottom: 0 }}>
+        <p style={done ? { color: 'var(--text-muted)', fontSize: 11, marginTop: 4, textDecoration: 'line-through', marginBottom: 0 } : { color: 'var(--text-muted)', fontSize: 11, marginTop: 4, marginBottom: 0 }}>
           {task.description}
         </p>
       )}
@@ -678,7 +678,7 @@ function TaskCard({ task, currentApp, onClick, done, accentBorder, accentBorderH
           {categoryLabels[task.category] || task.category}
         </span>
         {!currentApp && (
-          <span style={{ background: '#1a1a1a', color: '#555555', fontSize: 10, padding: '1px 8px', borderRadius: 3, border: '1px solid #222222' }}>
+          <span style={{ background: 'var(--bg-elevated)', color: 'var(--text-dim)', fontSize: 10, padding: '1px 8px', borderRadius: 3, border: '1px solid var(--border)' }}>
             {task.app}
           </span>
         )}

@@ -9,12 +9,12 @@ type Step = 'email' | 'code' | 'done';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: '#0d0d0d',
-  border: '1px solid #222222',
+  background: 'var(--bg-input)',
+  border: '1px solid var(--border)',
   borderRadius: '4px',
   padding: '10px 14px',
   fontSize: '13px',
-  color: '#e0e0e0',
+  color: 'var(--text-primary)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -23,7 +23,7 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '10px',
   fontWeight: 600,
-  color: '#666666',
+  color: 'var(--text-secondary)',
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
   display: 'block',
@@ -122,17 +122,17 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     : '// password updated';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div style={{ width: '100%', maxWidth: 360 }}>
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ fontSize: 28, color: '#4ADE80', fontWeight: 700, marginBottom: 8 }}>◆</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#e0e0e0', letterSpacing: '0.1em', marginBottom: 4 }}>WATCHTOWER</div>
-          <div style={{ fontSize: 11, color: '#444444' }}>{stepLabel}</div>
+          <div style={{ fontSize: 28, color: 'var(--accent)', fontWeight: 700, marginBottom: 8 }}>◆</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.1em', marginBottom: 4 }}>WATCHTOWER</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{stepLabel}</div>
         </div>
 
         {/* Card */}
-        <div style={{ background: '#111111', border: '1px solid #222222', borderRadius: '4px', padding: '28px' }}>
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', padding: '28px' }}>
           {error && (
             <div style={{
               background: 'rgba(239,68,68,0.08)',
@@ -140,7 +140,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
               borderRadius: '4px',
               padding: '10px 14px',
               fontSize: '12px',
-              color: '#EF4444',
+              color: 'var(--danger)',
               marginBottom: '20px',
             }}>
               {error}
@@ -160,8 +160,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                     required
                     style={inputStyle}
                     placeholder="you@example.com"
-                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <button
@@ -170,8 +170,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   style={{
                     width: '100%',
                     padding: '10px',
-                    background: loading ? '#2d5a3d' : '#4ADE80',
-                    color: '#000000',
+                    background: loading ? 'var(--accent-dim)' : 'var(--accent)',
+                    color: 'var(--bg-primary)',
                     border: 'none',
                     borderRadius: '4px',
                     fontSize: '13px',
@@ -181,8 +181,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                     transition: 'background 0.15s',
                     fontFamily: 'inherit',
                   }}
-                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
-                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
+                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
+                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
                 >
                   {loading ? 'sending...' : '$ send_reset_code'}
                 </button>
@@ -194,7 +194,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   width: '100%',
                   textAlign: 'center',
                   fontSize: '12px',
-                  color: '#444444',
+                  color: 'var(--text-muted)',
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
@@ -202,8 +202,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   fontFamily: 'inherit',
                   transition: 'color 0.15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#666666'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
               >
                 ← back to login
               </button>
@@ -225,8 +225,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                     required
                     style={{ ...inputStyle, textAlign: 'center', fontSize: '18px', letterSpacing: '0.3em' }}
                     placeholder="000000"
-                    onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div>
@@ -240,8 +240,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                       minLength={8}
                       style={{ ...inputStyle, paddingRight: 40 }}
                       placeholder="min 8 characters"
-                      onFocus={e => { e.currentTarget.style.borderColor = '#4ADE80'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = '#222222'; e.currentTarget.style.boxShadow = 'none'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(74,222,128,0.2)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
                     />
                     <button
                       type="button"
@@ -253,7 +253,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                         transform: 'translateY(-50%)',
                         background: 'transparent',
                         border: 'none',
-                        color: '#444444',
+                        color: 'var(--text-muted)',
                         cursor: 'pointer',
                         padding: 0,
                         display: 'flex',
@@ -274,8 +274,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   style={{
                     width: '100%',
                     padding: '10px',
-                    background: (loading || code.length !== 6) ? '#2d5a3d' : '#4ADE80',
-                    color: '#000000',
+                    background: (loading || code.length !== 6) ? 'var(--accent-dim)' : 'var(--accent)',
+                    color: 'var(--bg-primary)',
                     border: 'none',
                     borderRadius: '4px',
                     fontSize: '13px',
@@ -285,8 +285,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                     transition: 'background 0.15s',
                     fontFamily: 'inherit',
                   }}
-                  onMouseEnter={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
-                  onMouseLeave={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
+                  onMouseEnter={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
+                  onMouseLeave={e => { if (!loading && code.length === 6) (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
                 >
                   {loading ? 'resetting...' : '$ reset_password'}
                 </button>
@@ -294,18 +294,18 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <button
                   onClick={() => { setStep('email'); setCode(''); setError(''); }}
-                  style={{ fontSize: '12px', color: '#444444', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.15s' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#666666'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+                  style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.15s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
                 >
                   ← back
                 </button>
                 <button
                   onClick={handleResend}
                   disabled={loading}
-                  style={{ fontSize: '12px', color: '#444444', background: 'transparent', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.5 : 1, transition: 'color 0.15s' }}
-                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = '#666666'; }}
-                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = '#444444'; }}
+                  style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.5 : 1, transition: 'color 0.15s' }}
+                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+                  onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
                 >
                   resend code
                 </button>
@@ -318,11 +318,11 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
               <div style={{
                 background: 'rgba(74,222,128,0.08)',
-                border: '1px solid rgba(74,222,128,0.2)',
+                border: '1px solid var(--accent-border)',
                 borderRadius: '4px',
                 padding: '12px 16px',
                 fontSize: '12px',
-                color: '#4ADE80',
+                color: 'var(--accent)',
               }}>
                 // password updated — you can now sign in
               </div>
@@ -331,8 +331,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                 style={{
                   width: '100%',
                   padding: '10px',
-                  background: '#4ADE80',
-                  color: '#000000',
+                  background: 'var(--accent)',
+                  color: 'var(--bg-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   fontSize: '13px',
@@ -341,8 +341,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   fontFamily: 'inherit',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#6EE7A0'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#4ADE80'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
               >
                 ← back to login
               </button>
