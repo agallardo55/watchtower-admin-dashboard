@@ -93,14 +93,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm rounded-[28px] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-none bg-blue-600 flex items-center justify-center font-bold text-white text-2xl mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center font-bold text-white text-2xl mb-3 shadow-lg shadow-blue-200">
             W
           </div>
-          <h1 className="text-xl font-bold text-white">Reset Password</h1>
+          <h1 className="text-xl font-bold text-slate-900">Reset Password</h1>
           <p className="text-sm text-slate-500 mt-1">
             {step === 'email' && "We'll send a code to your phone"}
             {step === 'code' && (phoneHint ? `Code sent to ${phoneHint}` : 'Enter the code sent to your phone')}
@@ -109,7 +109,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-sm px-4 py-3 text-sm text-red-400 mb-4">
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm text-red-600 mb-4">
             {error}
           </div>
         )}
@@ -119,27 +119,27 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           <>
             <form onSubmit={handleSendCode} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 rounded-sm bg-[#111] border border-slate-700 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
                   placeholder="you@example.com"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-sm bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Sending...' : 'Send Reset Code'}
               </button>
             </form>
             <button
               onClick={onBack}
-              className="block w-full text-center text-sm text-slate-500 hover:text-slate-300 mt-4 transition-colors"
+              className="block w-full text-center text-sm text-slate-500 hover:text-slate-900 mt-4 transition-colors"
             >
               Back to login
             </button>
@@ -151,7 +151,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           <>
             <form onSubmit={handleVerifyAndReset} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">6-Digit Code</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">6-Digit Code</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -159,12 +159,12 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                   required
-                  className="w-full px-4 py-2.5 rounded-sm bg-[#111] border border-slate-700 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors tracking-widest text-center text-lg"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors tracking-widest text-center text-lg"
                   placeholder="000000"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1.5">New Password</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">New Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -172,13 +172,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full px-4 py-2.5 pr-10 rounded-sm bg-[#111] border border-slate-700 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 pr-10 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="Min 8 characters"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
                   >
                     {showPassword ? (
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" x2="23" y1="1" y2="23"/></svg>
@@ -191,7 +191,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full py-2.5 rounded-sm bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
@@ -199,14 +199,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             <div className="flex justify-between mt-4">
               <button
                 onClick={() => { setStep('email'); setCode(''); setError(''); }}
-                className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
               >
                 Back
               </button>
               <button
                 onClick={handleResend}
                 disabled={loading}
-                className="text-sm text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+                className="text-sm text-slate-500 hover:text-slate-900 transition-colors disabled:opacity-50"
               >
                 Resend code
               </button>
@@ -217,12 +217,12 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
         {/* Step 3: Done */}
         {step === 'done' && (
           <div className="text-center space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-sm px-4 py-3 text-sm text-green-400">
+            <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-sm text-green-700">
               Password updated successfully. You can now sign in.
             </div>
             <button
               onClick={onBack}
-              className="w-full py-2.5 rounded-sm bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
+              className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
             >
               Back to login
             </button>

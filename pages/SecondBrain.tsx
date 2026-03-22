@@ -112,7 +112,7 @@ export default function SecondBrain() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             🧠 Second Brain
           </h1>
           <p className="text-xs text-slate-500 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -131,7 +131,7 @@ export default function SecondBrain() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search documents by title or content..."
-          className="w-full pl-10 pr-4 py-2.5 text-xs border bg-[#0d0d0d] border-[#1e293b] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-green-500/50 transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 text-xs border rounded-2xl bg-white/80 border-[#1e293b] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-green-500/50 transition-colors shadow-sm"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         />
       </div>
@@ -148,7 +148,7 @@ export default function SecondBrain() {
               className={`px-3 py-1.5 text-xs border transition-all ${
                 isActive
                   ? 'border-green-500/50 text-green-400 bg-green-500/10'
-                  : 'border-[#1e293b] text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                  : 'border-[#1e293b] text-slate-500 hover:text-slate-900 hover:border-slate-500'
               }`}
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
@@ -181,14 +181,14 @@ export default function SecondBrain() {
               <div
                 key={doc.id}
                 onClick={() => setExpandedId(isExpanded ? null : doc.id)}
-                className={`border bg-[#0d0d0d] p-4 cursor-pointer transition-all hover:border-green-500/30 ${
+                className={`glass border p-4 cursor-pointer transition-all hover:border-green-500/30 ${
                   isExpanded ? 'border-green-500/40 col-span-1 md:col-span-2 xl:col-span-3' : 'border-[#1e293b]'
                 }`}
               >
                 {/* Card Header */}
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <h3
-                    className="text-sm font-medium text-slate-200 leading-tight"
+                    className="text-sm font-medium text-slate-900 leading-tight"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     {doc.title}
@@ -204,7 +204,7 @@ export default function SecondBrain() {
                     {doc.tags.map(tag => (
                       <span
                         key={tag}
-                        className="px-1.5 py-0.5 text-[10px] text-slate-500 border border-[#1e293b] bg-[#111]"
+                        className="px-1.5 py-0.5 text-[10px] text-slate-500 border border-[#1e293b] bg-white/70 rounded-full"
                       >
                         {tag}
                       </span>
@@ -215,7 +215,7 @@ export default function SecondBrain() {
                 {/* Content Preview / Full */}
                 {isExpanded ? (
                   <div
-                    className="mt-3 p-4 bg-[#111] border border-[#1e293b] overflow-auto max-h-[60vh] text-xs text-slate-300 leading-relaxed prose prose-invert prose-sm prose-headings:text-green-400 prose-headings:font-bold prose-a:text-blue-400 prose-code:text-green-300 prose-code:bg-[#1a1a1a] prose-code:px-1 prose-code:py-0.5 prose-pre:bg-[#0a0a0a] prose-pre:border prose-pre:border-[#1e293b] prose-strong:text-slate-200 prose-li:text-slate-400 max-w-none"
+                    className="mt-3 p-4 rounded-2xl bg-white/80 border border-[#1e293b] overflow-auto max-h-[60vh] text-xs text-slate-700 leading-relaxed prose prose-sm prose-headings:text-green-700 prose-headings:font-bold prose-p:text-slate-700 prose-a:text-blue-600 prose-code:text-green-700 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-pre:bg-slate-950 prose-pre:text-slate-100 prose-pre:border prose-pre:border-[#1e293b] prose-strong:text-slate-900 prose-li:text-slate-700 max-w-none shadow-inner"
                     style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     <ReactMarkdown>{doc.content}</ReactMarkdown>
