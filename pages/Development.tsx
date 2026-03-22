@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useApps } from '../hooks/useApps';
-import { supabaseAdmin } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
 interface Task {
@@ -52,7 +52,7 @@ export default function Development() {
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('wt_tasks')
       .select('id, title, description, category, priority, status, app_id, completed_at')
       .is('deleted_at', null)
@@ -110,7 +110,7 @@ export default function Development() {
   const addTask = async () => {
     if (!newTask.title.trim()) return;
     setSaving(true);
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('wt_tasks')
       .insert({
         title: newTask.title,
@@ -135,7 +135,7 @@ export default function Development() {
   const saveEditTask = async () => {
     if (!editingTask) return;
     setSaving(true);
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('wt_tasks')
       .update({
         title: editingTask.title,
@@ -166,7 +166,7 @@ export default function Development() {
   const confirmDelete = async () => {
     if (!showDeleteConfirm) return;
     setSaving(true);
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('wt_tasks')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', showDeleteConfirm);

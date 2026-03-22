@@ -22,6 +22,43 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authedClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+
+    const { data: authData, error: sessionError } = await authedClient.auth.getUser();
+    if (sessionError || !authData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: caller, error: callerError } = await serviceClient
+      .from("wt_users")
+      .select("role")
+      .eq("id", authData.user.id)
+      .maybeSingle();
+
+    if (callerError || caller?.role !== "super_admin") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { firstName, lastName, email, mobile, role, accountType, app, dealershipName }: CreateAdminUserRequest = await req.json();
 
     if (!firstName || !lastName || !email || !role || !accountType || !app) {
@@ -38,11 +75,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     // Check if user already exists
     const { data: existingUsers } = await serviceClient.auth.admin.listUsers();
@@ -133,7 +165,7 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            Authorization: `Bearer ${serviceRoleKey}`,
           },
           body: JSON.stringify({
             userId: authUser.user.id,

@@ -5,7 +5,7 @@ import { icons } from '../constants';
 import { useApps } from '../hooks/useApps';
 import { EdgeFunctionUser } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { supabase, supabaseAdmin, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -273,19 +273,10 @@ export default function AllUsers() {
       setLoading(true);
       setFetchError(null);
       try {
-        // Fetch all users across all projects via edge function (service role bypasses JWT auth)
-        const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-
-        const res = await fetch(
-          `${supabaseUrl}/functions/v1/all-users`,
-          { headers: { Authorization: `Bearer ${serviceKey}` } }
-        );
-
-        if (!res.ok) {
-          const body = await res.text();
-          throw new Error(`Edge function error ${res.status}: ${body}`);
+        const { data, error } = await supabase.functions.invoke('all-users');
+        if (error) {
+          throw error;
         }
-        const data = await res.json();
 
         if (Array.isArray(data)) {
           const mapped: AppUser[] = data.map((u: EdgeFunctionUser) => {
@@ -329,7 +320,7 @@ export default function AllUsers() {
     async function fetchSlUsers() {
       setSlLoading(true);
       try {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await supabase
           .from('sl_users')
           .select('id, display_name, email, phone, role, is_active, hire_date, employee_number, created_at, sl_dealerships(name)')
           .order('created_at', { ascending: false });
@@ -857,13 +848,8 @@ export default function AllUsers() {
                 setInviting(true);
                 
                 try {
-                  const res = await fetch(`${supabaseUrl}/functions/v1/create-admin-user`, {
-                    method: 'POST',
-                    headers: { 
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY}`
-                    },
-                    body: JSON.stringify({
+                  const { data: result, error } = await supabase.functions.invoke('create-admin-user', {
+                    body: {
                       firstName: newUser.firstName,
                       lastName: newUser.lastName,
                       email: newUser.email,
@@ -872,12 +858,15 @@ export default function AllUsers() {
                       accountType: newUser.accountType,
                       app: newUser.app,
                       dealershipName: newUser.dealershipName
-                    }),
+                    },
                   });
 
-                  const result = await res.json();
-                  
-                  if (!res.ok) {
+                  if (error) {
+                    alert(`Error: ${error.message}`);
+                    return;
+                  }
+
+                  if (result?.error) {
                     alert(`Error: ${result.error}`);
                     return;
                   }

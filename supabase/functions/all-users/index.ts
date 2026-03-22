@@ -83,10 +83,46 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Read app registry from Watchtower DB
     const wtUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const wt = createClient(wtUrl, serviceKey);
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const authedClient = createClient(wtUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const serviceClient = createClient(wtUrl, serviceKey);
+
+    const { data: authData, error: authError } = await authedClient.auth.getUser();
+    if (authError || !authData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: caller, error: callerError } = await serviceClient
+      .from("wt_users")
+      .select("role")
+      .eq("id", authData.user.id)
+      .maybeSingle();
+
+    if (callerError || caller?.role !== "super_admin") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 1. Read app registry from Watchtower DB
+    const wt = serviceClient;
 
     const { data: appConfigs, error: configErr } = await wt
       .from("wt_app_registry")

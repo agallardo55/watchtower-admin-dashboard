@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { icons } from '../constants';
 import { useApps } from '../hooks/useApps';
 import { useStats } from '../hooks/useStats';
-import { supabaseAdmin } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 function formatRelativeTime(dateStr: string): string {
@@ -50,7 +50,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       // Daily stats for chart
-      const { data: statsData } = await supabaseAdmin
+      const { data: statsData } = await supabase
         .from('wt_daily_stats')
         .select('date, users_total, signups, app_id, wt_app_registry(name)')
         .order('date', { ascending: true })
@@ -68,7 +68,7 @@ export default function Dashboard() {
       }
 
       // Recent activity from wt_activity_log
-      const { data: activityData } = await supabaseAdmin
+      const { data: activityData } = await supabase
         .from('wt_activity_log')
         .select('id, action, actor, description, created_at, wt_app_registry(name)')
         .order('created_at', { ascending: false })
@@ -84,7 +84,7 @@ export default function Dashboard() {
       }
 
       // Pending invitations
-      const { count } = await supabaseAdmin
+      const { count } = await supabase
         .from('wt_invitations')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');

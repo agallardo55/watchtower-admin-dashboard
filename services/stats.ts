@@ -1,4 +1,4 @@
-import { supabase, supabaseUrl } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export interface DashboardStats {
   totalApps: number;
@@ -27,15 +27,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // Try to get user count from edge function
   let totalUsers = apps?.reduce((sum, a) => sum + (a.user_count || 0), 0) || 0;
   try {
-    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-    const res = await fetch(`${supabaseUrl}/functions/v1/all-users`, {
-      headers: { Authorization: `Bearer ${serviceKey}` },
-    });
-    if (res.ok) {
-      const users = await res.json();
-      if (Array.isArray(users) && users.length > 0) {
-        totalUsers = users.length;
-      }
+    const { data, error: functionError } = await supabase.functions.invoke('all-users');
+    if (functionError) {
+      throw functionError;
+    }
+    if (Array.isArray(data) && data.length > 0) {
+      totalUsers = data.length;
     }
   } catch {
     // Fall back to user_count from app registry

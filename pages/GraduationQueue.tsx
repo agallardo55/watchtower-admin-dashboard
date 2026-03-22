@@ -10,6 +10,7 @@ interface AppRegistry {
   name: string;
   status: string;
   icon: string;
+  iconUrl?: string;
   category: string;
   users: number;
 }
