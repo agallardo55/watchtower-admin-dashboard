@@ -21,6 +21,8 @@ import AppActivity from './pages/AppActivity';
 import SecondBrain from './pages/SecondBrain';
 import { useApps } from './hooks/useApps';
 
+const getWatchtowerLogo = (theme: 'light' | 'dark') => theme === 'light' ? '/watchtower-icon-light.svg' : '/watchtower-icon.png';
+
 const Layout: React.FC<{ children: React.ReactNode; theme: 'light' | 'dark'; onToggleTheme: () => void }> = ({ children, theme, onToggleTheme }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -108,9 +110,9 @@ const Layout: React.FC<{ children: React.ReactNode; theme: 'light' | 'dark'; onT
 
   const sidebarContent = (
     <>
-      <div className={`p-4 lg:p-6 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`p-4 lg:p-6 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
         <div className={`flex items-center gap-1.5 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-          <img src="/watchtower-icon.png" alt="Watchtower" className="w-8 h-8 flex-shrink-0" />
+          <img src={getWatchtowerLogo(theme)} alt="Watchtower" className="w-8 h-8 flex-shrink-0" />
           {!isSidebarCollapsed && <span className="font-bold text-lg text-slate-900 tracking-tight">Watchtower</span>}
         </div>
         <button
@@ -250,7 +252,7 @@ const Layout: React.FC<{ children: React.ReactNode; theme: 'light' | 'dark'; onT
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
             <div className="flex items-center gap-2">
-              <img src="/watchtower-icon.png" alt="Watchtower" className="w-7 h-7" />
+              <img src={getWatchtowerLogo(theme)} alt="Watchtower" className="w-7 h-7" />
               <span className="font-bold text-base text-slate-900">Watchtower</span>
             </div>
           </div>
@@ -352,6 +354,9 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem('watchtower-theme', theme);
+
+    const favicon = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (favicon) favicon.href = getWatchtowerLogo(theme);
   }, [theme]);
 
   const toggleTheme = () => {
@@ -368,9 +373,9 @@ export default function App() {
 
   if (!session) {
     if (authView === 'forgot') {
-      return <ForgotPassword onBack={() => setAuthView('login')} />;
+      return <ForgotPassword theme={theme} onBack={() => setAuthView('login')} />;
     }
-    return <Login onForgotPassword={() => setAuthView('forgot')} />;
+    return <Login theme={theme} onForgotPassword={() => setAuthView('forgot')} />;
   }
 
   return (

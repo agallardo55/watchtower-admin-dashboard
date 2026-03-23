@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface LoginProps {
+  theme: 'light' | 'dark';
   onForgotPassword: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
+const Login: React.FC<LoginProps> = ({ theme, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const logoSrc = theme === 'light' ? '/watchtower-icon-light.svg' : '/watchtower-icon.png';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
         <div className="hidden lg:block">
           <div className="max-w-lg">
             <div className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600 shadow-sm">
-              <img src="/watchtower-icon.png" alt="Watchtower" className="h-6 w-6" />
+              <img src={logoSrc} alt="Watchtower" className="h-6 w-6" />
               Watchtower
             </div>
             <h1 className="mt-6 text-5xl font-bold tracking-tight text-slate-900">
@@ -44,7 +46,7 @@ const Login: React.FC<LoginProps> = ({ onForgotPassword }) => {
         </div>
         <div className="w-full max-w-sm justify-self-center rounded-[28px] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur">
           <div className="flex flex-col items-center mb-8">
-            <img src="/watchtower-icon.png" alt="Watchtower" className="w-12 h-12 rounded-none mb-3" />
+            <img src={logoSrc} alt="Watchtower" className="w-12 h-12 rounded-none mb-3" />
             <h2 className="text-xl font-bold text-slate-900">Watchtower</h2>
             <p className="text-sm text-slate-500 mt-1">Admin Dashboard</p>
           </div>

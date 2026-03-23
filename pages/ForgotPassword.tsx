@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface ForgotPasswordProps {
+  theme: 'light' | 'dark';
   onBack: () => void;
 }
 
 type Step = 'email' | 'code' | 'done';
 
-const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
+const ForgotPassword: React.FC<ForgotPasswordProps> = ({ theme, onBack }) => {
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -16,6 +17,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
   const [phoneHint, setPhoneHint] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const logoSrc = theme === 'light' ? '/watchtower-icon-light.svg' : '/watchtower-icon.png';
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,9 +99,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
       <div className="w-full max-w-sm rounded-[28px] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center font-bold text-white text-2xl mb-3 shadow-lg shadow-blue-200">
-            W
-          </div>
+          <img src={logoSrc} alt="Watchtower" className="w-12 h-12 mb-3" />
           <h1 className="text-xl font-bold text-slate-900">Reset Password</h1>
           <p className="text-sm text-slate-500 mt-1">
             {step === 'email' && "We'll send a code to your phone"}

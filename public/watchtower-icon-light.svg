@@ -1,0 +1,30 @@
+<svg width="768" height="768" viewBox="0 0 768 768" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="towerGradient" x1="182" y1="116" x2="537" y2="654" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EC3FF"/>
+      <stop offset="0.52" stop-color="#2F9BFF"/>
+      <stop offset="1" stop-color="#2A63F2"/>
+    </linearGradient>
+  </defs>
+  <rect width="768" height="768" rx="104" fill="white"/>
+  <rect x="1" y="1" width="766" height="766" rx="103" stroke="#D4D4D8" stroke-width="2"/>
+  <g fill="url(#towerGradient)">
+    <path d="M225 159L245 118H281V159H305V107H342V159H414V107H451V159H475L543 126V214L498 198V525L571 548V589L385 648L200 588V549L258 524V333L225 340V303L258 292V212L225 222V184L258 173V159H225Z"/>
+    <path d="M211 248L558 321V355H519L495 339H271L239 355H211V248Z"/>
+    <path d="M276 339H498L474 549H295L276 339Z"/>
+    <path d="M200 549H571L385 648L200 549Z"/>
+    <path d="M195 162L245 146V176L195 191V162Z"/>
+    <path d="M195 226L245 211V241L195 256V226Z"/>
+    <path d="M195 290L245 275V305L195 320V290Z"/>
+    <path d="M216 353L243 353V391H216V353Z"/>
+    <path d="M230 408L257 408V446H230V408Z"/>
+    <path d="M244 463L271 463V501H244V463Z"/>
+    <path d="M258 518L285 518V556H258V518Z"/>
+    <path d="M317 369H339V401H317V369Z"/>
+    <path d="M317 425H339V457H317V425Z"/>
+    <path d="M317 481H339V513H317V481Z"/>
+    <path d="M385 548H405V648H385V548Z" opacity="0.95"/>
+    <path d="M486 186L543 201V234L486 218V186Z" opacity="0.95"/>
+  </g>
+  <path d="M211 248L558 321V355H519L495 339H271L239 355H211V248Z" fill="white"/>
+</svg>
